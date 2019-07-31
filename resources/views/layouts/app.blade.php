@@ -121,7 +121,7 @@
             </span>
           </a>
           <ul class="treeview-menu">
-          <li><a href="{{ route('terima.index') }}"><i class="fa fa-cubes"></i> <span>Terima Barang PO</span></a></li>
+          <li><a href="{{ route('terima_po.index') }}"><i class="fa fa-cubes"></i> <span>Terima Barang PO</span></a></li>
           <li><a href="{{ route('retur.index') }}"><i class="fa fa-cubes"></i> <span>Terima Barang Retur</span></a></li>            
           </ul>
         <!-- tambah menu stock barang -->

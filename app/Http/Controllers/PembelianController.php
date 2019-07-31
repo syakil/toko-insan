@@ -8,7 +8,8 @@ use App\Pembelian;
 use Auth;
 use PDF;
 use App\Supplier;
-use App\PembelianDetail;
+use App\PembelianTemporary;
+use App\PembelianTemporaryDetail;
 use App\Produk;
 use DB;
 
@@ -23,9 +24,9 @@ class PembelianController extends Controller
    public function listData()
    {
    
-     $pembelian = Pembelian::leftJoin('supplier', 'supplier.id_supplier', '=', 'pembelian.id_supplier')
+      $pembelian = PembelianTemporary::leftJoin('supplier', 'supplier.id_supplier', '=', 'pembelian_temporary.id_supplier')
       
-     ->orderBy('pembelian.id_pembelian', 'desc')
+     ->orderBy('pembelian_temporary.id_pembelian', 'desc')
      ->get();
      $no = 0;
      $data = array();
@@ -54,7 +55,7 @@ class PembelianController extends Controller
    public function show($id)
    {
    
-     $detail = PembelianDetail::leftJoin('produk', 'produk.kode_produk', '=', 'pembelian_detail.kode_produk')
+     $detail = PembelianTemporaryDetail::leftJoin('produk', 'produk.kode_produk', '=', 'pembelian_temporary_detail.kode_produk')
         ->where('id_pembelian', '=', $id)
         ->where('unit',Auth::user()->unit)
         ->get();
@@ -82,19 +83,19 @@ class PembelianController extends Controller
 
 
   public function cetak($id){
-      $data['produk'] = DB::table('pembelian_detail','produk')
-                          ->select('pembelian_detail.*','produk.kode_produk','produk.nama_produk')
-                          ->leftJoin('produk','pembelian_detail.kode_produk','=','produk.kode_produk')
+      $data['produk'] = DB::table('pembelian_temporary_detail','produk')
+                          ->select('pembelian_temporary_detail.*','produk.kode_produk','produk.nama_produk')
+                          ->leftJoin('produk','pembelian_temporary_detail.kode_produk','=','produk.kode_produk')
                           ->where('unit',Auth::user()->unit)
                           ->where('id_pembelian',$id)
                           ->get();
 
-      $data['alamat'] = Pembelian::leftJoin('supplier','pembelian.id_supplier','=','supplier.id_supplier')
-                                  ->leftJoin('branch','pembelian.kode_gudang','=','branch.kode_gudang')
+      $data['alamat'] = PembelianTemporary::leftJoin('supplier','pembelian_temporay.id_supplier','=','supplier.id_supplier')
+                                  ->leftJoin('branch','pembelian_temporary.kode_gudang','=','branch.kode_gudang')
                                   ->where('id_pembelian',$id)
                                   ->get();
 
-      $data['nosurat'] = Pembelian::where('id_pembelian',$id)->get();
+      $data['nosurat'] = PembelianTemporary::where('id_pembelian',$id)->get();
       $data['no'] =1;
       $pdf = PDF::loadView('pembelian.cetak_po', $data);
       return $pdf->stream('surat_jalan.pdf');
@@ -102,7 +103,7 @@ class PembelianController extends Controller
 
    public function create($id)
    {
-      $pembelian = new Pembelian;
+      $pembelian = new PembelianTemporary;
       $pembelian->id_supplier = $id;     
       $pembelian->total_item = 0;     
       $pembelian->total_harga = 0;
@@ -116,7 +117,7 @@ class PembelianController extends Controller
       $pembelian->kode_gudang = Auth::user()->unit;
           
       $pembelian->save();
-
+      // dd($pembelian);
       session(['idpembelian' => $pembelian->id_pembelian]);
       session(['idsupplier' => $id]);
 
@@ -125,7 +126,7 @@ class PembelianController extends Controller
 
    public function store(Request $request)
    {
-      $pembelian = Pembelian::find($request['idpembelian']);
+      $pembelian = PembelianTemporary::find($request['idpembelian']);
       $pembelian->total_item = $request['totalitem'];
       $pembelian->total_harga = $request['total'];
       $pembelian->diskon = $request['diskon'];
@@ -143,10 +144,10 @@ class PembelianController extends Controller
    
    public function destroy($id)
    {
-      $pembelian = Pembelian::find($id);
+      $pembelian = PembelianTemporary::find($id);
       $pembelian->delete();
 
-      $detail = PembelianDetail::where('id_pembelian', '=', $id)->get();
+      $detail = PembelianTemporaryDetail::where('id_pembelian', '=', $id)->get();
       foreach($detail as $data){
         $produk = Produk::where('kode_produk', '=', $data->kode_produk)->first();
         $produk->stok -= $data->jumlah;

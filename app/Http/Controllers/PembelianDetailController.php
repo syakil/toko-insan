@@ -2,24 +2,26 @@
 namespace App\Http\Controllers;
 use Illuminate\Http\Request;
 use Redirect;
-use App\Pembelian;
+use App\PembelianTemporaryDetail;
 use App\Supplier;
 use Auth;
 use App\Produk;
-use App\PembelianDetail;
+use App\PembelianTemporary;
+
 class PembelianDetailController extends Controller
 {
    public function  index(){
       $produk = Produk:: all() 
       ->where('unit', '=', Auth::user()->unit);
       $idpembelian = session('idpembelian');
+      // dd($idpembelian);
       $supplier = Supplier::find(session('idsupplier'));
       return view('pembelian_detail.index', compact('produk', 'idpembelian', 'supplier'));
    }
     public function listData($id)
    {
-   
-     $detail = PembelianDetail::leftJoin('produk', 'produk.kode_produk', '=', 'pembelian_detail.kode_produk')
+   // dd($id);
+     $detail = PembelianTemporaryDetail::leftJoin('produk', 'produk.kode_produk', '=', 'pembelian_temporary_detail.kode_produk')
         ->where('id_pembelian', '=', $id)
         ->where('unit', '=',  Auth::user()->unit)
         ->get();
@@ -51,10 +53,11 @@ class PembelianDetailController extends Controller
       $produk = Produk::where('kode_produk', '=', $request['kode'])
       ->where('unit', '=',  Auth::user()->unit)
       ->first();
-      $detail = new PembelianDetail;
+      $detail = new PembelianTemporaryDetail;
       $detail->id_pembelian = $request['idpembelian'];
       $detail->kode_produk = $request['kode'];
       $detail->harga_beli = $produk->harga_beli;
+      $detail->id_kategori =$produk->id_kategori;
       $detail->jumlah = 1;
       $detail->expired_date =date('Y-m-d');
       $detail->jumlah_terima = 0;
@@ -65,14 +68,14 @@ class PembelianDetailController extends Controller
    public function update(Request $request, $id)
    {
       $nama_input = "jumlah_".$id;
-      $detail = PembelianDetail::find($id);
+      $detail = PembelianTemporaryDetail::find($id);
       $detail->jumlah = $request[$nama_input];
       $detail->sub_total = $detail->harga_beli * $request[$nama_input];
       $detail->update();
    }
    public function destroy($id)
    {
-      $detail = PembelianDetail::find($id);
+      $detail = PembelianTemporaryDetail::find($id);
       $detail->delete();
    }
    public function loadForm($diskon, $total){
@@ -83,6 +86,6 @@ class PembelianDetailController extends Controller
         "bayarrp" => format_uang($bayar),
         "terbilang" => ucwords(terbilang($bayar))." Rupiah"
       );
-     return response()->json($data);
+      return response()->json($data);
    }
 }

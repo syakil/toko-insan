@@ -183,6 +183,17 @@ Route::group(['middleware' => ['web', 'cekuser:4' ]], function(){
    Route::post('terima/create_stok', 'TerimaController@input_stok')->name('terima.input_stok');
    Route::resource('terima', 'TerimaController');
    
+   // controller terima barang terbaru
+   Route::get('terima_po/data', 'TerimaPoController@listData')->name('terima_po.data');
+   Route::get('terima_po/{id}/tambah', 'TerimaPoController@create');
+   Route::get('terima_po/{id}/lihat', 'TerimaPoController@show');
+   Route::get('terima_po/{id}/poPDF', 'TerimaPoController@cetak');
+   Route::resource('terima_po', 'TerimaPoController');   
+
+   Route::get('terima_po_detail/{id}/data', 'TerimaPoDetailController@listData')->name('terima_po_detail.data');
+   Route::get('terima_po_detail/loadform/{diskon}/{total}', 'TerimaPoDetailController@loadForm');
+   Route::resource('terima_po_detail', 'TerimaPoDetailController');   
+
    // ----//
    
    Route::get('transfer/gudang', 'TransferController@gudang')->name('kirim.index');

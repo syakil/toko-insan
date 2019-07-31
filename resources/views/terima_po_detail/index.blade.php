@@ -1,13 +1,12 @@
 @extends('layouts.app')
 
 @section('title')
-  Transaksi Pembelian
+  Terima Barang Pembelian
 @endsection
 
 @section('breadcrumb')
-   @parent
-   <li>pembelian</li>
-   <li>tambah</li>
+    @parent
+    <li>terima_barang</li>
 @endsection
 
 @section('content')     
@@ -22,6 +21,12 @@
   <tr><td>Alamat</td><td><b>{{ $supplier->alamat }}</b></td></tr>
   <tr><td>Telpon</td><td><b>{{ $supplier->telpon }}</b></td></tr>
 </table>
+@if ($message = Session::get('error'))
+      <div class="alert alert-danger alert-block">
+        <button type="button" class="close" data-dismiss="alert">×</button> 
+        <strong>{{ $message }}</strong>
+      </div>
+@endif
 <hr>
 
 <form class="form form-horizontal form-produk" method="post">
@@ -48,29 +53,28 @@
       <th width="30">No</th>
       <th>Kode Produk</th>
       <th>Nama Produk</th>
-      <th align="right">Harga</th>
       <th>Jumlah</th>
-      <th align="right">Sub Total</th>
+      <th align="right">Tanggal Kadaluarsa</th>
       <th width="100">Aksi</th>
-    </tr>
+   </tr>
 </thead>
 <tbody></tbody>
 </table>
 </form>
 
-  <div class="col-md-8">
+  <!-- <div class="col-md-8">
      <div id="tampil-bayar" style="background: #dd4b39; color: #fff; font-size: 80px; text-align: center; height: 100px"></div>
      <div id="tampil-terbilang" style="background: #3c8dbc; color: #fff; font-weight: bold; padding: 10px"></div>
-  </div>
+  </div> -->
   <div class="col-md-4">
-    <form class="form form-horizontal form-pembelian" method="post" action="{{  route('pembelian.store') }} ">
+    <form class="form form-horizontal form-pembelian" method="post" action="{{  route('terima_po.store') }} ">
       {{ csrf_field() }}
       <input type="hidden" name="idpembelian" value="{{ $idpembelian }}">
       <input type="hidden" name="total" id="total">
       <input type="hidden" name="totalitem" id="totalitem">
       <input type="hidden" name="bayar" id="bayar">
 
-      <div class="form-group">
+      <!-- <div class="form-group">
         <label for="totalrp" class="col-md-4 control-label">Total</label>
         <div class="col-md-8">
           <input type="text" class="form-control" id="totalrp" readonly>
@@ -89,7 +93,7 @@
         <div class="col-md-8">
           <input type="text" class="form-control" id="bayarrp" readonly>
         </div>
-      </div>
+      </div> -->
 
     </form>
   </div>
@@ -103,7 +107,7 @@
   </div>
 </div>
 
-@include('pembelian_detail.produk')
+@include('terima_po_detail.produk')
 @endsection
 
 @section('script')
@@ -116,7 +120,7 @@ $(function(){
      "bSort" : false,
      "processing" : true,
      "ajax" : {
-       "url" : "{{ route('pembelian_detail.data', $idpembelian) }}",
+       "url" : "{{ route('terima_po_detail.data', $idpembelian) }}",
        "type" : "GET"
      }
   }).on('draw.dt', function(){
@@ -139,11 +143,9 @@ $(function(){
       $('.form-pembelian').submit();
    });
 });
-
-
 function addItem(){
   $.ajax({
-    url : "{{ route('pembelian_detail.store') }}",
+    url : "{{ route('terima_po_detail.store') }}",
     type : "POST",
     data : $('.form-produk').serialize(),
     success : function(data){
@@ -164,7 +166,7 @@ function selectItem(kode){
 }
 function changeCount(id){
      $.ajax({
-        url : "pembelian_detail/"+id,
+        url : "terima_po_detail/"+id,
         type : "POST",
         data : $('.form-keranjang').serialize(),
         success : function(data){
@@ -184,7 +186,7 @@ function showProduct(){
 function deleteItem(id){
    if(confirm("Apakah yakin data akan dihapus?")){
      $.ajax({
-       url : "pembelian_detail/"+id,
+       url : "terima_po_detail/"+id,
        type : "POST",
        data : {'_method' : 'DELETE', '_token' : $('meta[name=csrf-token]').attr('content')},
        success : function(data){
@@ -202,7 +204,7 @@ function loadForm(diskon=0){
   $('#total').val($('.total').text());
   $('#totalitem').val($('.totalitem').text());
   $.ajax({
-       url : "pembelian_detail/loadform/"+diskon+"/"+$('.total').text(),
+       url : "terima_po_detail/loadform/"+diskon+"/"+$('.total').text(),
        type : "GET",
        dataType : 'JSON',
        success : function(data){
@@ -217,6 +219,15 @@ function loadForm(diskon=0){
        }
   });
 }
+
+
 </script>
 
+
+<script type="text/javascript">
+function handler(evt){
+    if(evt.keyCode == 13) // enter key
+        location.reload() // refresh page
+}   
+</script>
 @endsection
