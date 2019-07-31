@@ -133,7 +133,7 @@ class TerimaTokoController extends Controller
 
             // Acc Kp
             $jurnal = new TabelTransaksi;
-            $jurnal->unit =  Auth::user()->unit; 
+            $jurnal->unit =  'KP'; 
             $jurnal->kode_transaksi = $jurnal_field->id_pembelian;
             $jurnal->kode_rekening = 1831000;
             $jurnal->tanggal_transaksi  = date('Y-m-d');
@@ -147,7 +147,7 @@ class TerimaTokoController extends Controller
             $jurnal->save();
             
             $jurnal = new TabelTransaksi;
-            $jurnal->unit =  Auth::user()->unit; 
+            $jurnal->unit =  'KP'; 
             $jurnal->kode_transaksi = $jurnal_field->id_pembelian;
             $jurnal->kode_rekening = 1830000;
             $jurnal->tanggal_transaksi  = date('Y-m-d');
@@ -163,6 +163,35 @@ class TerimaTokoController extends Controller
             // jika yang diterima toko selisih dengan yang dikirim
             if ($jurnal_field->total_item != $jurnal_field->total_terima) {
 
+                $jurnal = new TabelTransaksi;
+                $jurnal->unit =  Auth::user()->unit; 
+                $jurnal->kode_transaksi = $jurnal_field->id_pembelian;
+                $jurnal->kode_rekening = 1482000;
+                $jurnal->tanggal_transaksi  = date('Y-m-d');
+                $jurnal->jenis_transaksi  = 'Jurnal System';
+                $jurnal->keterangan_transaksi = 'TerimaToko' . ' ' . $jurnal_field->id_pembelian . ' ' . $jurnal_field->nama_toko;
+                $jurnal->debet = $jurnal_field->total_harga_terima;
+                $jurnal->kredit = 0;
+                $jurnal->tanggal_posting = '';
+                $jurnal->keterangan_posting = '0';
+                $jurnal->id_admin = Auth::user()->id; 
+                $jurnal->save();
+                
+                $jurnal = new TabelTransaksi;
+                $jurnal->unit =  Auth::user()->unit; 
+                $jurnal->kode_transaksi = $jurnal_field->id_pembelian;
+                $jurnal->kode_rekening = 2500000;
+                $jurnal->tanggal_transaksi  = date('Y-m-d');
+                $jurnal->jenis_transaksi  = 'Jurnal System';
+                $jurnal->keterangan_transaksi = 'TerimaToko' . ' ' . $jurnal_field->id_pembelian . ' ' . $jurnal_field->nama_toko;
+                $jurnal->debet =0;
+                $jurnal->kredit = $jurnal_field->total_harga_terima;;
+                $jurnal->tanggal_posting = '';
+                $jurnal->keterangan_posting = '0';
+                $jurnal->id_admin = Auth::user()->id; 
+                $jurnal->save();
+                
+
 
                 $jurnal = new TabelTransaksi;
                 $jurnal->unit =  $jurnal_field->kode_gudang; 
@@ -170,7 +199,7 @@ class TerimaTokoController extends Controller
                 $jurnal->kode_rekening = 1969000;
                 $jurnal->tanggal_transaksi  = date('Y-m-d');
                 $jurnal->jenis_transaksi  = 'Jurnal System';
-                $jurnal->keterangan_transaksi = 'Selisih TerimaToko' . ' ' . $jurnal_field->id_pembelian . ' ' . $jurnal_field->nama_toko;
+                $jurnal->keterangan_transaksi = 'Selisih Terima Toko' . ' ' . $jurnal_field->id_pembelian . ' ' . $jurnal_field->nama_toko;
                 $jurnal->debet = $jurnal_field->total_harga - $jurnal_field->total_harga_terima;
                 $jurnal->kredit = 0;
                 $jurnal->tanggal_posting = '';
@@ -184,7 +213,7 @@ class TerimaTokoController extends Controller
                 $jurnal->kode_rekening = 2500000;
                 $jurnal->tanggal_transaksi  = date('Y-m-d');
                 $jurnal->jenis_transaksi  = 'Jurnal System';
-                $jurnal->keterangan_transaksi = 'Selisih TerimaToko' . ' ' . $jurnal_field->id_pembelian . ' ' . $jurnal_field->nama_toko;
+                $jurnal->keterangan_transaksi = 'Selisih Terima Toko' . ' ' . $jurnal_field->id_pembelian . ' ' . $jurnal_field->nama_toko;
                 $jurnal->debet =0;
                 $jurnal->kredit = $jurnal_field->total_harga - $jurnal_field->total_harga_terima;
                 $jurnal->tanggal_posting = '';
@@ -199,7 +228,7 @@ class TerimaTokoController extends Controller
                 $jurnal->kode_rekening = 1831000;
                 $jurnal->tanggal_transaksi  = date('Y-m-d');
                 $jurnal->jenis_transaksi  = 'Jurnal System';
-                $jurnal->keterangan_transaksi = 'Selisih TerimaToko' . ' ' . $jurnal_field->id_pembelian . ' ' . $jurnal_field->nama_toko;
+                $jurnal->keterangan_transaksi = 'Selisih Terima Toko' . ' ' . $jurnal_field->id_pembelian . ' ' . $jurnal_field->nama_toko;
                 $jurnal->debet = $jurnal_field->total_harga_terima;
                 $jurnal->kredit = 0;
                 $jurnal->tanggal_posting = '';
@@ -214,15 +243,14 @@ class TerimaTokoController extends Controller
                 $jurnal->kode_rekening = 1830000;
                 $jurnal->tanggal_transaksi  = date('Y-m-d');
                 $jurnal->jenis_transaksi  = 'Jurnal System';
-                $jurnal->keterangan_transaksi = 'Selisih TerimaToko' . ' ' . $jurnal_field->id_pembelian . ' ' . $jurnal_field->nama_toko;
-                $jurnal->debet = $jurnal_field->total_harga - $jurnal_field->total_harga_terima;
-                $jurnal->kredit = 0;
+                $jurnal->keterangan_transaksi = 'Terima Toko' . ' ' . $jurnal_field->id_pembelian . ' ' . $jurnal_field->nama_toko;
+                $jurnal->debet = 0;
+                $jurnal->kredit = $jurnal_field->total_harga_terima;
                 $jurnal->tanggal_posting = '';
                 $jurnal->keterangan_posting = '0';
                 $jurnal->id_admin = Auth::user()->id; 
                 $jurnal->save();
 
-                 
                 $jurnal = new TabelTransaksi;
                 $jurnal->unit =  'KP'; 
                 $jurnal->kode_transaksi = $jurnal_field->id_pembelian;
