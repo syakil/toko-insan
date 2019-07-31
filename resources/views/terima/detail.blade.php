@@ -22,6 +22,12 @@
   <div class="col-xs-12">
     <div class="box">
       <div class="box-header">
+      @if ($message = Session::get('error'))
+      <div class="alert alert-danger alert-block">
+        <button type="button" class="close" data-dismiss="alert">×</button> 
+        <strong>{{ $message }}</strong>
+      </div>
+    @endif
       </div>
       <div class="box-body">
       <form action="{{ route('terima.input_stok') }}" method="post">
@@ -41,7 +47,7 @@
                 <tbody>
                     @foreach ($pembelian as $p)
                     <tr>
-                    <<input type="hidden" name="check[]" value="{{$p->id_pembelian_detail}}">
+                    <input type="hidden" name="check[]" value="{{$p->id_pembelian_detail}}">
                         <td>{{$nomer++}}</td>
                         <td>{{$p->kode_produk}}</td>
                         <td>{{$p->nama_produk}}</td>

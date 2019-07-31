@@ -1,7 +1,8 @@
 @extends('layouts.app')
 
 @section('title')
-  Terima Barang PO
+  Terima Barang PO <br> <br>
+  
 @endsection
 
 @section('breadcrumb')
@@ -16,7 +17,15 @@
 <div class="row">
   <div class="col-xs-12">
     <div class="box">
+    
       <div class="box-header">
+      
+  @if ($message = Session::get('error'))
+      <div class="alert alert-danger alert-block">
+        <button type="button" class="close" data-dismiss="alert">×</button> 
+        <strong>{{ $message }}</strong>
+      </div>
+    @endif
       </div>
       <div class="box-body"> 
                     <form action="{{ route('terima.update_status') }}" method="post">
