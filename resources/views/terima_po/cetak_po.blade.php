@@ -64,21 +64,19 @@
 
     <div class="box1">
         <strong>Penerima Barang :</strong><br>
-        @foreach ($alamat as $s)
         <table cellspacing="0">
         <tr>
         <td>Nama Gudang</td>
-        <td>: {{$s->nama_gudang}}</td>
+        <td>: {{$alamat->nama_gudang}}</td>
         </tr>
         <tr>
         <td>Kode Gudang</td>
-        <td>: {{$s->kode_gudang}}</td>
+        <td>: {{$alamat->kode_gudang}}</td>
         </tr>
         <tr>
         <td>Alamat</td>
-        <td>: {{$s->alamat}} - {{$s->region}}</td>
+        <td>: {{$alamat->alamat}} - {{$alamat->region}}</td>
         </tr>
-        @endforeach
         </table>
     </div>
 
@@ -86,7 +84,7 @@
 
 <!-- /surat jaln -->
 <div class="box-kiri">
-    <div class="box3"><strong>Purchase Order</strong></div>
+    <div class="box3"><strong>Surat Terima Barang</strong></div>
 
     <div class="box2">
         <table>
@@ -103,25 +101,22 @@
             @endforeach
             <tr>
                 <td>Pengirim</td>
-                @foreach($alamat as $d)
-                <td>: {{$d->nama}} ({{$d->alamat}})</td>
-                @endforeach
+                <td>: {{$alamat->nama}} ({{$alamat->alamat}})</td>
             </tr>
         </table>
     </div>
 </div>
 
 <div class="box4">
-    <table border="1" cellpadding="1" cellspacing="0" width="650px">
+    <table border="1" cellpadding="1" cellspacing="0" width="705px">
         <thead>
         <tr>
             <th width="30px" style="text-align:center;">No.</th>
             <th width="90px" style="text-align:center;">Barcode</th>
             <th style="text-align:center;">Product Name</th>
             <th width="70px" style="text-align:center;">Qty</th>
-            <th width="100px" style="text-align:center;">Harga Beli</th>
-            <th width="100px" style="text-align:center;">Harga Beli PT. SRI</th>
-            <th>Harga Beli Gabungan</th>
+            <th width="100px" style="text-align:center;">Jumlah Terima</th>
+            <th width="100px" style="text-align:center;">Expired Date</th>
         </tr>
         </thead>
         <tbody border="1" cellpadding="1" cellspacing="0" width="650px" rules="cols">
@@ -132,9 +127,8 @@
                 <td style="text-align:center;" width="90px" >{{$d->kode_produk}}</td>
                 <td style="text-align:left;" width="240px">{{$d->nama_produk}}</td>
                 <td style="text-align:center;" width="70px" >{{$d->jumlah}}</td>
-                <td style="text-align:center;" width="100px" >{{$d->harga_beli}}</td>
-                <td style="text-align:center;" width="100px" >{{$d->harga_beli + ($d->harga_beli*5/100)}}</td>
-                <td>{{$d->harga_beli * 2 + ($d->harga_beli*5/100)}}</td>
+                <td style="text-align:center;" width="100px" >{{$d->jumlah_terima}}</td>
+                <td style="text-align:center;" width="100px" >{{$d->expired_date}}</td>
             </tr>
             @endforeach
         </tbody>

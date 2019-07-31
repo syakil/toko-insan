@@ -4,6 +4,7 @@ use Illuminate\Http\Request;
 use Redirect;
 use App\Pembelian;
 use App\PembelianDetail;
+use App\PembelianTemporaryDetail;
 use App\Supplier;
 use Auth;
 use App\Produk;
@@ -14,7 +15,7 @@ class TerimaPoDetailController extends Controller
 {
     public function  index(){
         // dd(session('idpembelian'));
-        $produk = PembelianTemporary::leftJoin('produk','pembelian_temporary.kode_produk','=','produk.kode_produk')
+        $produk = PembelianTemporaryDetail::leftJoin('produk','pembelian_temporary_detail.kode_produk','=','produk.kode_produk')
                                     ->where('produk.unit', '=', Auth::user()->unit)
                                     ->where('id_pembelian',session('idpembelian'))
                                     ->get();
@@ -55,7 +56,7 @@ class TerimaPoDetailController extends Controller
         $produk = Produk::where('kode_produk', '=', $request['kode'])
         ->where('unit', '=',  Auth::user()->unit)
         ->first();
-        $pembelian = PembelianTemporary::where('id_pembelian', '=', $request['idpembelian'])
+        $pembelian = PembelianTemporaryDetail::where('id_pembelian', '=', $request['idpembelian'])
         ->where('kode_produk', '=', $request['kode'])
         // ->where('unit', '=',  Auth::user()->unit)
         ->first();
@@ -87,21 +88,21 @@ class TerimaPoDetailController extends Controller
         $detail->sub_total_terima = $detail->harga_beli * $request[$nama_input];
         $detail->update();
 
-        $temporary = PembelianTemporary::where('id_pembelian',$detail->id_pembelian)
-                                        ->where('kode_produk',$detail->kode_produk)
-                                        ->first();
-        $temporary->jumlah = $detail->jumlah_selisih;
-        $temporary->update();
+        // $temporary = PembelianTemporaryDetail::where('id_pembelian',$detail->id_pembelian)
+        //                                 ->where('kode_produk',$detail->kode_produk)
+        //                                 ->first();
+        // $temporary->jumlah = $detail->jumlah_selisih;
+        // $temporary->update();
 
     }
     public function destroy($id)
     {
         $detail = PembelianDetail::find($id);
-        $temporary = PembelianTemporary::where('id_pembelian',$detail->id_pembelian)
-                                        ->where('kode_produk',$detail->kode_produk)
-                                        ->first();
-        $temporary->jumlah += $detail->jumlah_terima;
-        $temporary->update();
+        // $temporary = PembelianTemporaryDetail::where('id_pembelian',$detail->id_pembelian)
+        //                                 ->where('kode_produk',$detail->kode_produk)
+        //                                 ->first();
+        // $temporary->jumlah += $detail->jumlah_terima;
+        // $temporary->update();
         $detail->delete();
     }
     public function loadForm($diskon, $total){
