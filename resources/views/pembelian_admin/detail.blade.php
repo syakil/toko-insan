@@ -24,6 +24,8 @@
         <div class="box-header">
         </div>
         <div class="box-body"> 
+            <form action="{{ route('pembelian.simpan') }}" method="post">
+            {{ csrf_field() }}
             <table class="table table-bordered" id="tables">
                 <thead>
                     <tr>
@@ -31,23 +33,29 @@
                         <th>Barcode</th>
                         <th>Nama Barang</th>
                         <th>Jumlah</th>
-                        <th>Harga Beli</th>
+                        <th>Satuan</th>
+                        <th>@ Satuan</th>
+                        <th>Total Harga</th>
                     </tr>
                 </thead>
 
                 <tbody>
-                    @foreach ($pembelian as $p)
+                    @foreach ($pembelian_detail as $p)
                     <tr>
+                        <input type="hidden" name="id" value="{{$p->id_pembelian}}">
                         <td>{{$nomer++}}</td>
                         <td>{{$p->kode_produk}}</td>
                         <td>{{$p->nama_produk}}</td>
                         <td>{{$p->jumlah}}</td>
-                        <td><a href="#" class="edit" data-type="number" data-pk="{{$p->id_pembelian_detail}}" data-url="{{ route('ubah.harga',$p->id_pembelian_detail)}}" data-title="Masukan Harga">{{$p->harga_beli}}</a></td>                            
+                        <td>{{$p->satuan}}</td>
+                        <td>{{$p->isi_pack}}</td>
+                        <td><a href="#" class="edit" data-type="number" data-pk="{{$p->id_pembelian_detail}}" data-url="{{ route('ubah.harga',$p->id_pembelian_detail)}}" data-title="Masukan Harga">{{$p->sub_total}}</a></td>        
                     </tr>
                     @endforeach
                 </tbody>
             </table>
-                <a href="{{ route('pembelian.jurnal',$id_pembelian) }}" class="btn btn-danger">Simpan</a>
+                <button type="submit" class="btn btn-danger">Simpan</button>
+                </form>
                 </div>
         </div>
     </div>
@@ -70,4 +78,14 @@
     <script>
     $.fn.editable.defaults.mode = 'inline';
     </script>
+
+<script>
+// function harga(e) {
+//     var sub_total = $(".harga").val();
+//     var qty = $(".qty").val();
+//     var satuan = sub_total/qty;
+//     $(".satuan").val(Math.round(satuan
+//     ));
+// }
+</script>
 @endsection

@@ -177,7 +177,6 @@ class TerimaPoController extends Controller
                 $insert_produk->id_kategori = $p->id_kategori;
                 $insert_produk->nama_produk = $p->nama_produk;
                 $insert_produk->isi_pack_detail = $produk_main->isi_pack;
-                $insert_produk->pack_detail = $p->jumlah_terima;
                 $insert_produk->satuan = $produk_main->satuan;
                 $insert_produk->stok_detail = $p->jumlah_terima*$produk_main->isi_pack;
                 $insert_produk->harga_beli = $p->harga_beli;

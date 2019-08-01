@@ -121,6 +121,7 @@ Route::group(['middleware' => ['web', 'cekuser:2']], function(){
       Route::get('pembelian_admin/jurnal/{id}','PembelianAdminController@jurnal')->name('pembelian.jurnal');
       Route::get('pembelian_admin/cetak/{id}','PembelianAdminController@cetak_po')->name('pembelian.cetak_po');
       Route::get('pembelian_admin/fpd/{id}','PembelianAdminController@cetak_fpd')->name('pembelian.cetak_fpd');
+      Route::post('pembelian_admin/simpan','PembelianAdminController@simpan')->name('pembelian.simpan');
 
       // controller menu jurnal di user admin
       Route::get('jurnal_umum_admin/index', 'JurnalUmumAdminController@index')->name('jurnal_umum_admin.index');

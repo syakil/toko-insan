@@ -63,8 +63,8 @@
                         <a href="#" class="status" data-type="select" data-pk="{{$p->id_pembelian}}" data-url="{{ route('ubah.tipe_bayar',$p->id_pembelian)}}" data-title="Select status" data-value="{{$p->tipe_bayar}}"></a></td>
                         <td>
                         <a href="{{ route('pembelian.admin_detail',$p->id_pembelian) }}" class="btn btn-warning btn-sm"> <i class="fa fa-pencil"></i> </a>
-                        <a href="{{ route('pembelian.cetak_po',$p->id_pembelian) }}" target="_blank" class="btn btn-primary btn-sm"><i class="fa fa-print"></i></a>
-                        <a href="{{ route('pembelian.cetak_fpd',$p->id_pembelian) }}" target="_blank" class="btn btn-danger btn-sm"><i class="fa fa-print"></i></a>
+                        <a href="{{ route('pembelian.cetak_po',$p->id_pembelian) }}" target="_blank" class="btn btn-primary btn-sm">PO</a>
+                        <a href="{{ route('pembelian.cetak_fpd',$p->id_pembelian) }}" target="_blank" class="btn btn-danger btn-sm">FPD</i></a>
 
                         </td>
                     </tr>
