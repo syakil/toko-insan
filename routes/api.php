@@ -17,6 +17,13 @@ Route::middleware('auth:api')->get('/user', function (Request $request) {
     return $request->user();
 });
 
+
+
+// update stok gudang di menu gudang
+Route::post('/update_stock/{id}', 'StockController@update_stock')->name('updateStock.stock');
+Route::post('/update_expired_stock/{id}', 'StockController@update_expired_stock')->name('updateStock.expired_date');
+Route::resource('updatepo', 'TerimaController');
+
 // update pembelian di menu gudang
 Route::post('/update_jumlah/{id}', 'TerimaController@update_jumlah_terima')->name('updatepo.jumlah_terima');
 Route::post('/update_expired/{id}', 'TerimaController@update_expired_date')->name('updatepo.expired_date');

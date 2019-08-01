@@ -1,5 +1,10 @@
 @extends('layouts.app')
 
+@section('header')
+
+    <link href="//cdnjs.cloudflare.com/ajax/libs/x-editable/1.5.0/bootstrap3-editable/css/bootstrap-editable.css" rel="stylesheet"/>
+@endsection
+
 @section('title')
   Daftar Detail Produk
 @endsection
@@ -26,7 +31,6 @@
                         <th>Harga Beli</th>
                         <th>Stock</th>
                         <th>Tanggal Kadaluarsa</th>
-
                     </tr>
                 </thead>
 
@@ -38,8 +42,8 @@
                         <td>{{$p->kode_produk}}</td>
                         <td>{{$p->nama_produk}}</td>
                         <td>{{$p->harga_beli}}</td>
-                        <td>{{$p->stok_detail}}</td>
-                        <td>{{tanggal_indonesia(substr($p->expired_date, 0, 10), false)}}</td>
+                        <td><a href="#" class="edit" data-type="number" data-pk="{{$p->id_produk_detail}}" data-url="{{ route('updateStock.stock',$p->id_produk_detail)}}" data-title="Masukan Qty">{{$p->stok_detail}}</a></td>
+                        <td><a href="#" class="tanggal" data-type="combodate" data-pk="{{$p->id_produk_detail}}" data-url="{{ route('updateStock.expired_date',$p->id_produk_detail)}}" data-value="{{date('Y-m-d')}}" data-title="Masukan Tanggal">{{$p->expired_date}}</a></td>
                     </tr>
                     @endforeach
                 </tbody>
@@ -54,5 +58,38 @@
 @endsection
 
 @section('script')
+
+<script src="//cdnjs.cloudflare.com/ajax/libs/x-editable/1.5.0/bootstrap3-editable/js/bootstrap-editable.min.js"></script>
+    <script type="text/javascript">
+        $(document).ready(function() {
+        $('.edit').editable();
+    });
+    </script>
+    <script>
+    $(document).ready(function(){
+    $('#tables').DataTable()
+    });
+    </script>
+    <script>
+    // $.fn.editable.defaults.mode = 'inline';
+    $(function(){
+      $('.tanggal').editable({
+        format: 'YYYY-MM-DD',    
+        viewformat: 'YYYY-MM-DD',    
+        template: 'D / MMMM / YYYY',    
+        combodate: {
+                minYear: 2018,
+                maxYear: 2030,
+                minuteStep: 1
+                }
+        });
+      });
+    </script>
+
+<script src="https://momentjs.com/downloads/moment-with-locales.js"></script>
+
+    <script>
+    $.fn.editable.defaults.mode = 'inline';
+    </script>
 
 @endsection

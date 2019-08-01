@@ -9,6 +9,8 @@ use App\Produk;
 use App\ProdukDetail;
 use App\KirimDetail;
 use App\Branch;
+use DB;
+
 class KirimBarangDetailController extends Controller
 {
    public function  index(){
@@ -52,13 +54,16 @@ class KirimBarangDetailController extends Controller
    }
    public function store(Request $request)
    {
-      $produk = ProdukDetail::where('kode_produk', '=', $request['kode'])
-      ->where('unit', '=',  Auth::user()->unit)
-      ->first();
+      $produk = DB::table('produk_detail','produk')
+                  ->leftJoin('produk','produk_detail.kode_produk','=','produk.kode_produk')
+                  ->select('produk_detail.*','produk.kode_produk','produk.harga_jual')
+                  ->where('produk_detail.kode_produk',$request['kode'])
+                  ->where('produk_detail.unit',Auth::user()->unit)
+                  ->first();
       $detail = new KirimDetail;
       $detail->id_pembelian = $request['idpembelian'];
       $detail->kode_produk = $request['kode'];
-      $detail->harga_beli = $produk->harga_beli;
+      $detail->harga_jual = $produk->harga_jual;
       $detail->jumlah = 1;
       $detail->expired_date =$produk->expired_date;
       $detail->jumlah_terima = 0;

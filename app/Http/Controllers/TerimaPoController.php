@@ -23,6 +23,8 @@ class TerimaPoController extends Controller
                             ->where('kode_gudang',Auth::user()->unit)
                             ->where('status',null)
                             ->get();
+                            
+        session(['idpembelian' => 9]);
         return view('terima_po.index', compact('pembelian')); 
     }
 
@@ -166,7 +168,7 @@ class TerimaPoController extends Controller
                                     ->where('unit',$p->unit)
                                     ->first();
                 $produk_main->stok += $p->jumlah_terima*$produk_main->isi_pack;
-                $produk_main->pack += $p->jumlah_terima;
+                // $produk_main->pack += $p->jumlah_terima;
                 // dd($new_pack);
                 $produk_main->update();
                 

@@ -1,7 +1,7 @@
 <?php
 
-use Illuminate\Http\Request;
 namespace App\Http\Controllers;
+use Illuminate\Http\Request;
 use Auth;
 use App\ProdukDetail;
 use App\Produk;
@@ -23,4 +23,30 @@ class StockController extends Controller
                         ->get();
         return view('gudang/detail_stock',['produk'=>$produk]);
     }
+
+    public function update_stock(Request $request,$id){
+
+        $detail = ProdukDetail::where('id_produk_detail',$id)->first();
+        $detail->stok_detail = $request->value;
+        $detail->update();
+                
+        $stok = ProdukDetail::where('kode_produk',$detail->kode_produk)
+                            ->where('unit',$detail->unit)
+                            ->sum('stok_detail');
+        $produk = Produk::where('kode_produk',$detail->kode_produk)
+                        ->where('unit',$detail->unit)->first();
+        $produk->stok = $stok;
+        $produk->update();
+
+    }
+
+    
+    public function update_expired_stock(Request $request,$id){
+
+        $detail = ProdukDetail::where('id_produk_detail',$id);
+        $detail->expired_date = $request->value;
+        $detail->update();
+
+    }
+
 }
