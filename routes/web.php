@@ -181,6 +181,8 @@ Route::group(['middleware' => ['web', 'cekuser:4' ]], function(){
    // sotck gudang
    Route::get('stock/index','StockController@index')->name('stock.index');
    Route::get('stock/detail/{id}','StockController@detail')->name('stock.detail');
+   // so
+   Route::put('stock/store/', 'StockController@store')->name('stock.store');
    Route::resource('stock', 'StockController');
 
    // terima barang dari PO
@@ -228,6 +230,8 @@ Route::group(['middleware' => ['web', 'cekuser:5' ]], function(){
    // sotck toko
    Route::get('stock_toko/index','StockTokoController@index')->name('stockToko.index');
    Route::get('stock_toko/detail/{id}','StockTokoController@detail')->name('stockToko.detail');
+   // so
+   Route::put('stock_toko/store/', 'StockTokoController@store')->name('stockToko.store');
    Route::resource('stockToko', 'StockTokoController');
    // 
    Route::get('terima_toko/index', 'TerimaTokoController@index')->name('terimaToko.index');
@@ -242,7 +246,6 @@ Route::group(['middleware' => ['web', 'cekuser:5' ]], function(){
    Route::post('transfer/update/{id}','TransferController@api');
 
    Route::resource('transfer', 'transferController');  
-
 
    
    Route::get('kirim_barang_toko/data', 'KirimBarangTokoController@listData')->name('kirim_barang_toko.data');

@@ -20,6 +20,9 @@
   <div class="col-xs-12">
     <div class="box">
       <div class="box-header">
+      <button type="button" class="btn btn-primary" data-toggle="modal" data-target="#exampleModal">
+            + Stock
+        </button>
       </div>
       <div class="box-body"> 
             <table class="table table-striped" id="tables">
@@ -54,6 +57,47 @@
 </div>
 
     <!-- /.content -->
+
+
+<!-- Modal -->
+<div class="modal fade" id="exampleModal" tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel" aria-hidden="true">
+  <div class="modal-dialog" role="document">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title" id="exampleModalLabel">Tambah Produk</h5>
+        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+          <span aria-hidden="true">&times;</span>
+        </button>
+      </div>
+      <div class="modal-body">
+        <form action="{{ route('stockToko.store')}}" method="post">
+        {{ csrf_field() }} {{ method_field('POST') }}
+            <div class="form-group">
+                <label for="barcode">Barcode</label>
+                <input type="number" class="form-control" id="barcode" name="barcode" value="{{$nama->kode_produk}}" readonly>
+            </div>
+            <div class="form-group">
+                <label for="nama">Nama Produk</label>
+                <input type="text" class="form-control" id="nama" name="nama" value="{{$nama->nama_produk}}" readonly>
+            </div>
+            <div class="form-group">
+                <label for="stock">Stock</label>
+                <input type="number" class="form-control" id="stock" name="stok" required>
+            </div>
+            <div class="form-group">
+                <label for="tanggal">Tanggal Kadaluarsa</label>
+                <input type="date" class="form-control" id="tanggal" name="tanggal" required>
+            </div>
+      </div>
+      <div class="modal-footer">
+            <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+            <button type="submit" class="btn btn-primary">Save changes</button>
+        </form>
+      </div>
+    </div>
+  </div>
+</div>
+
 
 @endsection
 

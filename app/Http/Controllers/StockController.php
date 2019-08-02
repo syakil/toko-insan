@@ -21,7 +21,8 @@ class StockController extends Controller
         $produk = ProdukDetail::where('kode_produk',$id)
                         ->where('unit', '=',  Auth::user()->unit)
                         ->get();
-        return view('gudang/detail_stock',['produk'=>$produk]);
+        $nama = Produk::where('kode_produk',$id)->first();
+        return view('gudang/detail_stock',['produk'=>$produk,'nama'=>$nama]);
     }
 
     public function update_stock(Request $request,$id){
@@ -47,6 +48,30 @@ class StockController extends Controller
         $detail->expired_date = $request->value;
         $detail->update();
 
+    }
+
+    public function store(Request $request){
+        $unit = Auth::user()->unit;
+        // dd($unit);
+        $produk_detail = new ProdukDetail;
+        $produk_detail->kode_produk = $request->barcode;
+        $produk_detail->nama_produk = $request->nama;
+        $produk_detail->unit = Auth::user()->unit;
+        $produk_detail->stok_detail = $request->stok;
+        $produk_detail->expired_date = $request->tanggal;
+        $produk_detail->save();
+
+        $stok = ProdukDetail::where('kode_produk',$request->barcode)
+                        ->where('unit',Auth::user()->unit)
+                        ->sum('stok_detail');
+
+        $update_stok = Produk::where('kode_produk',$request->barcode)
+                            ->where('unit',Auth::user()->unit)
+                            ->first();
+        $update_stok->stok = $stok;
+        $update_stok->update();
+    
+        return redirect()->route('stock.detail', ['id' => $request->barcode]);
     }
 
 }
