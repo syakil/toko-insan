@@ -84,17 +84,17 @@ class PembelianController extends Controller
 
   public function cetak($id){
       $data['produk'] = DB::table('pembelian_temporary_detail','produk')
-                          ->select('pembelian_temporary_detail.*','produk.kode_produk','produk.nama_produk')
-                          ->leftJoin('produk','pembelian_temporary_detail.kode_produk','=','produk.kode_produk')
-                          ->where('unit',Auth::user()->unit)
-                          ->where('id_pembelian',$id)
-                          ->get();
+                           ->select('pembelian_temporary_detail.*','produk.kode_produk','produk.nama_produk')
+                           ->leftJoin('produk','pembelian_temporary_detail.kode_produk','=','produk.kode_produk')
+                           ->where('unit',Auth::user()->unit)
+                           ->where('id_pembelian',$id)
+                           ->get();
 
-      $data['alamat'] = PembelianTemporary::leftJoin('supplier','pembelian_temporay.id_supplier','=','supplier.id_supplier')
-                                  ->leftJoin('branch','pembelian_temporary.kode_gudang','=','branch.kode_gudang')
-                                  ->where('id_pembelian',$id)
-                                  ->get();
-
+      $data['alamat'] = PembelianTemporary::leftJoin('supplier','pembelian_temporary.id_supplier','=','supplier.id_supplier')
+                                          ->leftJoin('branch','pembelian_temporary.kode_gudang','=','branch.kode_gudang')
+                                          ->where('id_pembelian',$id)
+                                          ->first();
+      // dd($data['alamat']);
       $data['nosurat'] = PembelianTemporary::where('id_pembelian',$id)->get();
       $data['no'] =1;
       $pdf = PDF::loadView('pembelian.cetak_po', $data);

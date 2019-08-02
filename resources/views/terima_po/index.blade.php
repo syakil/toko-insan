@@ -25,12 +25,11 @@
 <thead>
    <tr>
       <th width="30">No</th>
+      <th>No. Pembelian</th>
       <th>Tanggal</th>
       <th>Supplier</th>
       <th>Total Item</th>
       <th>Total Terima</th>
-      <th>Total Harga</th>
-      <th>Total Bayar</th>
       <th width="100">Aksi</th>
    </tr>
 </thead>

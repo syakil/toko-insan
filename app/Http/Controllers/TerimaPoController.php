@@ -39,12 +39,11 @@ class TerimaPoController extends Controller
         $no ++;
         $row = array();
         $row[] = $no;
+        $row[] = $list->id_pembelian;
         $row[] = tanggal_indonesia(substr($list->created_at, 0, 10), false);
         $row[] = $list->nama;
         $row[] = $list->total_item;
         $row[] = $list->total_terima;
-        $row[] = "Rp. ".format_uang($list->total_harga);
-        $row[] = "Rp. ".format_uang($list->bayar);
         $row[] = '<div class="btn-group">
                 <a onclick="showDetail('.$list->id_pembelian.')" class="btn btn-primary btn-sm"><i class="fa fa-eye"></i></a>
                 <a onclick="deleteData('.$list->id_pembelian.')" class="btn btn-danger btn-sm"><i class="fa fa-trash"></i></a>
@@ -76,7 +75,7 @@ class TerimaPoController extends Controller
         $row[] = $list->jumlah;
         $row[] = $list->jumlah_terima;
         $row[] = $list->status_jurnal;
-        $row[] = "Rp. ".format_uang($list->harga_beli * $list->jumlah_terima);
+        $row[] = $list->expired_date;
         $data[] = $row;
         }
 
@@ -108,10 +107,11 @@ class TerimaPoController extends Controller
 
     public function create($id)
     {
-        $temporary = PembelianTemporary::find($id)->first();
+        $temporary = PembelianTemporary::find($id);
+        // dd($temporary);
         $pembelian = new Pembelian;
         $pembelian->id_supplier = $temporary->id_supplier;     
-        $pembelian->total_item = 0;     
+        $pembelian->total_item = $temporary->total_item;     
         $pembelian->total_harga = 0;
         $pembelian->total_terima = 0;
         $pembelian->total_selisih = 0;
@@ -155,22 +155,15 @@ class TerimaPoController extends Controller
                         
             foreach ($produk as $p ) {
             
-                // update status_app menjadi 1
-                $pembelian=Pembelian::where('id_pembelian',$p->id_pembelian);
-                $pembelian->update(['status'=>1]);
-                
-                
-                $pembelianT=PembelianTemporary::where('id_pembelian',$p->id_pembelian);
-                $pembelianT->update(['status'=>1]);
-
                 // update table produk
                 $produk_main = Produk::where('kode_produk',$p->kode_produk)
-                                    ->where('unit',$p->unit)
-                                    ->first();
-                $produk_main->stok += $p->jumlah_terima*$produk_main->isi_pack;
+                ->where('unit',$p->unit)
+                ->first();
+                $produk_main->stok += $p->jumlah_terima*$produk_main->isi_satuan;
                 // $produk_main->pack += $p->jumlah_terima;
                 // dd($new_pack);
                 $produk_main->update();
+                // dd($produk_main->isi_satuan);
                 
 
                 //insert to produk_detail 
@@ -178,9 +171,9 @@ class TerimaPoController extends Controller
                 $insert_produk->kode_produk = $p->kode_produk;
                 $insert_produk->id_kategori = $p->id_kategori;
                 $insert_produk->nama_produk = $p->nama_produk;
-                $insert_produk->isi_pack_detail = $produk_main->isi_pack;
+                $insert_produk->isi_satuan_detail = $produk_main->isi_satuan;
                 $insert_produk->satuan = $produk_main->satuan;
-                $insert_produk->stok_detail = $p->jumlah_terima*$produk_main->isi_pack;
+                $insert_produk->stok_detail = $p->jumlah_terima*$produk_main->isi_satuan;
                 $insert_produk->harga_beli = $p->harga_beli;
                 $insert_produk->expired_date = $p->expired_date;
                 $insert_produk->unit = $p->unit;
@@ -188,6 +181,16 @@ class TerimaPoController extends Controller
 
             }
         
+        // update status_app menjadi 1
+        // $pembelian=Pembelian::where('id_pembelian',$p->id_pembelian);
+        // $pembelian->update(['status'=>1]);
+        
+        
+        $pembelianT=PembelianTemporary::where('id_pembelian',$request->session()->get('idtemporary'));
+        $pembelianT->update(['status'=>1]);
+        
+        // dd($request->session()->get('idtemporary'));
+
         Session::forget('idpembelian');
         return Redirect::route('terima_po.index');
     }

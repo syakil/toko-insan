@@ -70,6 +70,7 @@
     <form class="form form-horizontal form-pembelian" method="post" action="{{  route('terima_po.store') }} ">
       {{ csrf_field() }}
       <input type="hidden" name="idpembelian" value="{{ $idpembelian }}">
+      <!-- <input type="hidden" name="idtemporary" value=""> -->
       <input type="hidden" name="total" id="total">
       <input type="hidden" name="totalitem" id="totalitem">
       <input type="hidden" name="bayar" id="bayar">
