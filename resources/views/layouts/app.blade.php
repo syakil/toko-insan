@@ -106,6 +106,7 @@
       <li><a href="{{ route('jurnal_umum_admin.index') }}"><i class="fa fa-file-pdf-o"></i> <span>Jurnal</span></a></li>
       
         @elseif( Auth::user()->level == 3 )
+
         <li><a href="{{ route('kategori.index') }}"><i class="fa fa-cube"></i> <span>Kategori</span></a></li>
         <li><a href="{{ route('supplier.index') }}"><i class="fa fa-truck"></i> <span>Supplier</span></a></li>
         <li><a href="{{ route('pembelian.index') }}"><i class="fa fa-download"></i> <span>PO</span></a></li>
@@ -113,6 +114,7 @@
         <li><a href="{{ route('jurnal_umum_po.index') }}"><i class="fa fa-file-pdf-o"></i><span>Jurnal</span></a></li>
               
         @elseif( Auth::user()->level == 4 )
+
         <li><a href="{{ route('kirim_barang.index') }}"><i class="fa fa-cubes"></i> <span>Surat Jalan</span></a></li>
         <!-- menu baru di gudang -->
         <li class="treeview">
@@ -127,20 +129,30 @@
           <li><a href="{{ route('terima_po.index') }}"><i class="fa fa-cubes"></i> <span>Terima Barang PO</span></a></li>
           <li><a href="{{ route('retur.index') }}"><i class="fa fa-cubes"></i> <span>Terima Barang Retur</span></a></li>            
           </ul>
-        <!-- tambah menu stock barang -->
-          <li><a href="{{ route('stock.index') }}"><i class="fa fa-cubes"></i> <span>Sotck Gudang</span></a></li>
+          <!-- tambah menu stock barang -->
+          <li><a href="{{ route('stock.index') }}"><i class="fa fa-cubes"></i> <span>Stock Gudang</span></a></li>
+          <!-- menu approve -->
+          <li><a href="{{ route('approve.index') }}"><i class="fa fa-cubes"></i> <span>Approval Stock</span></a></li>
+
+
         @elseif( Auth::user()->level == 5 )
+
+
         <li><a href="{{ route('kirim_barang_toko.index') }}"><i class="fa fa-cubes"></i> <span>Surat Jalan</span></a></li>
         <li><a href="{{ route('terimaToko.index') }}"><i class="fa fa-cubes"></i> <span>Terima Barang</span></a></li> 
         <!-- tambah menu stock barang -->
-        <li><a href="{{ route('stockToko.index') }}"><i class="fa fa-cubes"></i> <span>Sotck</span></a></li>
+        <li><a href="{{ route('stockToko.index') }}"><i class="fa fa-cubes"></i> <span>Stock</span></a></li>
         
                       
         @else( Auth::user()->level == 6 )
+
+
         <li><a href="{{ route('produk.index') }}"><i class="fa fa-cubes"></i> <span>Produk</span></a></li>
         <li><a href=""><i class="fa fa-cart-plus"></i> <span>Laporan Penjualan</span></a></li>
         <!-- menu jurnal umum -->
         <li><a href="{{ route('jurnal_umum_kp.index') }}"><i class="fa fa-file-pdf-o"></i> <span>Jurnal</span></a></li>
+        <!-- menu approve -->
+        <li><a href="{{ route('approve_kp.index') }}"><i class="fa fa-cubes"></i> <span>Approval Stock</span></a></li>
         @endif
       </ul>
     </section>

@@ -203,6 +203,12 @@ Route::group(['middleware' => ['web', 'cekuser:4' ]], function(){
    Route::get('terima_po_detail/loadform/{diskon}/{total}', 'TerimaPoDetailController@loadForm');
    Route::resource('terima_po_detail', 'TerimaPoDetailController');   
 
+
+   // approval
+   Route::get('approve/index', 'ApprovalGudangController@index')->name('approve.index');
+   Route::put('approve/store', 'ApprovalGudangController@store')->name('approve.store');
+   Route::resource('approve', 'ApprovalGudangController');
+
    // ----//
    
    Route::get('transfer/gudang', 'TransferController@gudang')->name('kirim.index');
@@ -273,5 +279,10 @@ Route::group(['middleware' => ['web', 'cekuser:6' ]], function(){
    Route::get('jurnal_umum_kp/destroy/{id}', 'JurnalUmumKpController@destroy')->name('jurnal_umum_kp.destroy');
    Route::get('jurnal_umum_kp/approve', 'JurnalUmumKpController@approve')->name('jurnal_umum_kp.approve');
    Route::post('jurnal_umum_kp/autocomplete', 'JurnalUmumKpController@autocomplete')->name('jurnal_umum_kp.autocomplete');
+
+   // approval
+   Route::get('approve_kp/index', 'ApprovalKpController@index')->name('approve_kp.index');
+   Route::put('approve_kp/store', 'ApprovalKpController@store')->name('approve_kp.store');
+   Route::resource('approve_kp', 'ApprovalKpController');
 
 });
