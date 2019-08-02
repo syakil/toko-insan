@@ -17,7 +17,7 @@ class TerimaPoDetailController extends Controller
         // dd(session('idpembelian'));
         $produk = PembelianTemporaryDetail::leftJoin('produk','pembelian_temporary_detail.kode_produk','=','produk.kode_produk')
                                     ->where('produk.unit', '=', Auth::user()->unit)
-                                    ->where('id_pembelian',session('idpembelian'))
+                                    ->where('id_pembelian',session('idtemporary'))
                                     ->get();
         $idpembelian = session('idpembelian');
         $supplier = Supplier::find(session('idsupplier'));
@@ -38,12 +38,13 @@ class TerimaPoDetailController extends Controller
         $row[] = $no;
         $row[] = $list->kode_produk;
         $row[] = $list->nama_produk;
+        $row[] = $list->jumlah;
         $row[] = "<input type='number' class='form-control' name='jumlah_$list->id_pembelian_detail' value='$list->jumlah_terima' onChange='changeCount($list->id_pembelian_detail)'>";
         $row[] = "<input type='date' class='form-control' name='expired_$list->id_pembelian_detail' value='$list->expired_date' onChange='changeCount($list->id_pembelian_detail)'>";
         $row[] = '<a onclick="deleteItem('.$list->id_pembelian_detail.')" class="btn btn-danger btn-sm"><i class="fa fa-trash"></i></a>';
         $data[] = $row;
-        $total += $list->harga_beli * $list->jumlah;
-        $total_item += $list->jumlah;
+        $total += $list->harga_beli * $list->jumlah_terima;
+        $total_item += $list->jumlah_terima;
         }
         $data[] = array("<span class='hide total'>$total</span><span class='hide totalitem'>$total_item</span>", "", "", "", "", "", "");
         
@@ -54,12 +55,14 @@ class TerimaPoDetailController extends Controller
     public function store(Request $request)
     {
         $produk = Produk::where('kode_produk', '=', $request['kode'])
-        ->where('unit', '=',  Auth::user()->unit)
-        ->first();
-        $pembelian = PembelianTemporaryDetail::where('id_pembelian', '=', $request['idpembelian'])
-        ->where('kode_produk', '=', $request['kode'])
-        // ->where('unit', '=',  Auth::user()->unit)
-        ->first();
+                        ->where('unit', '=',  Auth::user()->unit)
+                        ->first();
+
+        $pembelian = PembelianTemporaryDetail::where('id_pembelian', '=', session('idtemporary'))
+                                            ->where('kode_produk', '=', $request['kode'])
+                                            ->first();
+
+        // dd(session('idtemporary'));
         $detail = new PembelianDetail;
         $detail->id_pembelian = $request['idpembelian'];
         $detail->id_kategori = $produk->id_kategori;
@@ -100,12 +103,13 @@ class TerimaPoDetailController extends Controller
         $detail = PembelianDetail::find($id);
         // $temporary = PembelianTemporaryDetail::where('id_pembelian',$detail->id_pembelian)
         //                                 ->where('kode_produk',$detail->kode_produk)
-        //                                 ->first();
+        //                                ->first();
         // $temporary->jumlah += $detail->jumlah_terima;
         // $temporary->update();
         $detail->delete();
     }
     public function loadForm($diskon, $total){
+        // dd($total);
         $bayar = $total - ($diskon / 100 * $total);
         $data = array(
             "totalrp" => format_uang($total),

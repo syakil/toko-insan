@@ -13,9 +13,7 @@
          <tr>
             <th>Kode Produk</th>
             <th>Nama Produk</th>
-            <th>Harga Julan Member Insan</th>
-            <th>Harga Julan Member Pabrik</th>
-              
+            <th>Harga Beli Terakhir</th>
             <th>Aksi</th>
          </tr>
       </thead>
@@ -24,9 +22,7 @@
          <tr>
             <th>{{ $data->kode_produk }}</th>
             <th>{{ $data->nama_produk }}</th>
-            <th>Rp. {{ format_uang($data->harga_jual_member_insan) }}</th>
-            <th>Rp. {{ format_uang($data->harga_jual_pabrik) }}</th>
-            
+            <th>Rp. {{ format_uang($data->harga_beli) }}</th>
             <th><a onclick="selectItem({{ $data->kode_produk }})" class="btn btn-primary"><i class="fa fa-check-circle"></i> Pilih</a></th>
           </tr>
          @endforeach

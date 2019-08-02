@@ -23,8 +23,6 @@ class TerimaPoController extends Controller
                             ->where('kode_gudang',Auth::user()->unit)
                             ->where('status',null)
                             ->get();
-                            
-        session(['idpembelian' => 9]);
         return view('terima_po.index', compact('pembelian')); 
     }
 
@@ -44,6 +42,7 @@ class TerimaPoController extends Controller
         $row[] = tanggal_indonesia(substr($list->created_at, 0, 10), false);
         $row[] = $list->nama;
         $row[] = $list->total_item;
+        $row[] = $list->total_terima;
         $row[] = "Rp. ".format_uang($list->total_harga);
         $row[] = "Rp. ".format_uang($list->bayar);
         $row[] = '<div class="btn-group">
@@ -77,7 +76,7 @@ class TerimaPoController extends Controller
         $row[] = $list->jumlah;
         $row[] = $list->jumlah_terima;
         $row[] = $list->status_jurnal;
-        $row[] = "Rp. ".format_uang($list->harga_beli * $list->jumlah);
+        $row[] = "Rp. ".format_uang($list->harga_beli * $list->jumlah_terima);
         $data[] = $row;
         }
 
@@ -128,21 +127,22 @@ class TerimaPoController extends Controller
             
         $pembelian->save();
 
-        session(['idpembelian' => $id]);
+        session(['idpembelian' => $pembelian->id_pembelian]);
+        session(['idtemporary' => $id]);
         session(['idsupplier' => $temporary->id_supplier]);
 
         return Redirect::route('terima_po_detail.index');      
     }
 
     public function store(Request $request)
-    {
+    {   
+        // dd($request['idpembelian']);
         $pembelian = Pembelian::find($request['idpembelian']);
-        $pembelian->total_item = $request['totalitem'];
+        $pembelian->total_terima = $request['totalitem'];
         $pembelian->total_harga = $request['total'];
         $pembelian->diskon = $request['diskon'];
         $pembelian->bayar = $request['bayar'];
         $pembelian->update();
-
             // input ke gudang
             
             $produk = DB::table('pembelian_detail','produk')
@@ -194,6 +194,7 @@ class TerimaPoController extends Controller
     
     public function destroy($id)
     {
+        dd($id);
         $pembelian = Pembelian::find($id);
         $pembelian->delete();
 

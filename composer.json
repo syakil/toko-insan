@@ -11,6 +11,7 @@
         "laravel/framework": "5.4.*",
         "laravel/tinker": "~1.0",
         "milon/barcode": "^5.3",
+        "ramsey/uuid": "^3.8",
         "webpatser/laravel-uuid": "2.*",
         "yajra/laravel-datatables-oracle": "^7.10"
     },

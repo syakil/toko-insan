@@ -53,7 +53,8 @@
       <th width="30">No</th>
       <th>Kode Produk</th>
       <th>Nama Produk</th>
-      <th>Jumlah</th>
+      <th>Jumlah Kirim</th>
+      <th>Jumlah Terima</th>
       <th align="right">Tanggal Kadaluarsa</th>
       <th width="100">Aksi</th>
    </tr>
@@ -61,7 +62,6 @@
 <tbody></tbody>
 </table>
 </form>
-
   <!-- <div class="col-md-8">
      <div id="tampil-bayar" style="background: #dd4b39; color: #fff; font-size: 80px; text-align: center; height: 100px"></div>
      <div id="tampil-terbilang" style="background: #3c8dbc; color: #fff; font-weight: bold; padding: 10px"></div>
