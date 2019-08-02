@@ -130,6 +130,13 @@ Route::group(['middleware' => ['web', 'cekuser:2']], function(){
       Route::get('jurnal_umum_admin/approve', 'JurnalUmumAdminController@approve')->name('jurnal_umum_admin.approve');
       Route::post('jurnal_umum_admin/autocomplete', 'JurnalUmumAdminController@autocomplete')->name('jurnal_umum_admin.autocomplete');
       
+      // pricing
+      Route::get('pricing/index', 'PricingController@index')->name('pricing.index');
+      Route::get('pricing/edit/{{id}}', 'PricingController@edit')->name('pricing.edit');
+      Route::post('pricing/update/{id}', 'PricingController@update')->name('pricing.update');
+      Route::put('pricing/update_margin/', 'PricingController@show')->name('pricing.margin');
+      
+      Route::resource('pricing', 'PricingController');
 
    });
 
@@ -171,12 +178,11 @@ Route::group(['middleware' => ['web', 'cekuser:4' ]], function(){
    Route::post('retur/create', 'ReturGudangController@update_status')->name('retur.update_status');
    Route::post('retur/create_stok', 'ReturGudangController@input_stok')->name('retur.input_stok');
    Route::resource('retur', 'ReturGudangController');
-  // sotck gudang
+   // sotck gudang
    Route::get('stock/index','StockController@index')->name('stock.index');
    Route::get('stock/detail/{id}','StockController@detail')->name('stock.detail');
    Route::resource('stock', 'StockController');
-   // stock gudang
-   Route::resource('stock', 'StockController');
+
    // terima barang dari PO
    Route::get('terima/index', 'TerimaController@index')->name('terima.index');
    Route::get('terima/detail/{id}', 'TerimaController@detail')->name('terima.detail');
@@ -219,6 +225,11 @@ Route::group(['middleware' => ['web', 'cekuser:4' ]], function(){
 });
 
 Route::group(['middleware' => ['web', 'cekuser:5' ]], function(){
+   // sotck toko
+   Route::get('stock_toko/index','StockTokoController@index')->name('stockToko.index');
+   Route::get('stock_toko/detail/{id}','StockTokoController@detail')->name('stockToko.detail');
+   Route::resource('stockToko', 'StockTokoController');
+   // 
    Route::get('terima_toko/index', 'TerimaTokoController@index')->name('terimaToko.index');
    Route::get('terima_toko/detail/{id}', 'TerimaTokoController@detail')->name('terimatoko.detail');
    Route::post('terima_toko/create', 'TerimaTokoController@create_jurnal')->name('terimatoko.create_jurnal');

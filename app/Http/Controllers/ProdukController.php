@@ -233,14 +233,9 @@ class ProdukController extends Controller
         // dd($produk->nama_produk);
         $produk = Produk::where('kode_produk',$id)->get();
         foreach($produk as $produk_all){
-        $produk_all->nama_produk    = $request['nama'];
-        $produk_all->id_kategori    = $request['kategori'];
-        $produk_all->merk          = $request['merk'];
-        $produk_all->harga_beli      = $request['harga_beli'];
-        $produk_all->diskon       = $request['diskon'];
-        $produk_all->harga_jual    = $request['harga_jual'];
-        $produk_all->harga_jual_member_insan      = $request['harga_jual_insan'];
-        $produk_all->harga_jual_pabrik      = $request['harga_jual_pabrik']; 
+        $produk_all->harga_jual = $request['harga_jual'];    
+        $produk_all->harga_jual_member_insan= $request['harga_jual_insan'];
+        $produk_all->harga_jual_pabrik       = $request['harga_jual_pabrik']; 
         $produk_all->update();
         }
         

@@ -83,6 +83,7 @@
         <li><a href="{{ route('home') }}"><i class="fa fa-dashboard"></i> <span>Dashboard</span></a></li>
 
       @if( Auth::user()->level == 1 )
+        
         <li><a href="{{ route('member.index') }}"><i class="fa fa-credit-card"></i> <span>Member</span></a></li>
         <li><a href="{{ route('supplier.index') }}"><i class="fa fa-truck"></i> <span>Supplier</span></a></li>
         <li><a href="{{ route('penjualan.index') }}"><i class="fa fa-upload"></i> <span>Penjualan</span></a></li>
@@ -91,7 +92,9 @@
         <li><a href="{{ route('user.index') }}""><i class="fa fa-user"></i> <span>User</span></a></li>       
         <!-- menu approve po  -->
         <li><a href="{{ route('pembelian.admin') }}"><i class="fa fa-file-pdf-o"></i> <span>Pembelian</span></a></li>
-        <!-- menu jurnal umum -->
+        <!-- tambah menu pricing -->
+        <li><a href=" {{ route('pricing.index') }} "><i class="fa fa-dollar"></i> <span>Pricing</span></a></li>
+        
         @elseif( Auth::user()->level == 2 )
       <li><a href="{{ route('transaksi.menu') }}"><i class="fa fa-shopping-cart"></i> <span>Pilih Transaksi</span></a></li>
       <li><a href="{{ route('transaksi.new') }}"><i class="fa fa-cart-plus"></i> <span>Transaksi Baru</span></a></li>
@@ -129,6 +132,9 @@
         @elseif( Auth::user()->level == 5 )
         <li><a href="{{ route('kirim_barang_toko.index') }}"><i class="fa fa-cubes"></i> <span>Surat Jalan</span></a></li>
         <li><a href="{{ route('terimaToko.index') }}"><i class="fa fa-cubes"></i> <span>Terima Barang</span></a></li> 
+        <!-- tambah menu stock barang -->
+        <li><a href="{{ route('stockToko.index') }}"><i class="fa fa-cubes"></i> <span>Sotck</span></a></li>
+        
                       
         @else( Auth::user()->level == 6 )
         <li><a href="{{ route('produk.index') }}"><i class="fa fa-cubes"></i> <span>Produk</span></a></li>
