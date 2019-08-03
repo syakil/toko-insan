@@ -1,8 +1,9 @@
 <?php
 
 namespace App\Http\Controllers;
-
 use Illuminate\Http\Request;
+use Illuminate\Database\Eloquent\Model;
+use Illuminate\Support\Facades\DB;
 use Redirect;
 use Auth;
 use PDF;
@@ -12,6 +13,7 @@ use App\Member;
 use App\Setting;
 use App\PenjualanDetail;
 use App\TabelTransaksi;
+use Yajra\Datatables\Datatables;
 
 
 class PenjualanDetailController extends Controller
@@ -20,8 +22,8 @@ class PenjualanDetailController extends Controller
       $produk = Produk::all() 
       -> where('unit', '=',  Auth::user()->unit)
       -> where('stok', '>', '0');
-      $member = Member::all();
-      $setting = Setting::first();
+      $member = Member::leftjoin('musawamah','musawamah.id_member','=','member.kode_member');
+        $setting = Setting::first();
      
      if(!empty(session('idpenjualan'))){
        $idpenjualan = session('idpenjualan');
@@ -33,7 +35,8 @@ class PenjualanDetailController extends Controller
 
    public function NewMenu(){
       $produk = Produk::all() -> where('unit', '=',  Auth::user()->id);
-      $member = Member::all();
+      $member = Member::leftjoin('musawamah','musawamah.id_member','=','member.kode_member')
+      ->get();
       $setting = Setting::first();
       
      
@@ -61,13 +64,14 @@ class PenjualanDetailController extends Controller
        $row[] = $list->nama_produk;
        $row[] = "Rp. ".format_uang($list->harga_jual);
        $row[] = "<input type='number' class='form-control' name='jumlah_$list->id_penjualan_detail' value='$list->jumlah' onChange='changeCount($list->id_penjualan_detail)'>";
-       $row[] = $list->diskon."%";
+       $row[] = $list->diskon;
+       //$row[] = $list->diskon."%";
        $row[] = "Rp. ".format_uang($list->sub_total);
        $row[] = '<div class="btn-group">
                <a onclick="deleteItem('.$list->id_penjualan_detail.')" class="btn btn-danger btn-sm"><i class="fa fa-trash"></i></a>';
        $data[] = $row;
 
-       $total += $list->harga_jual * $list->jumlah;
+       $total += $list->harga_jual * $list->jumlah - $list->diskon ;
        $total_item += $list->jumlah;
      }
 
@@ -87,7 +91,8 @@ class PenjualanDetailController extends Controller
         $detail->harga_jual = $produk->harga_jual;
         $detail->jumlah = 1;
         $detail->diskon = $produk->diskon;
-        $detail->sub_total = $produk->harga_jual - ($produk->diskon/100 * $produk->harga_jual);
+        $detail->sub_total = $produk->harga_jual - ($produk->diskon);
+        //$detail->sub_total = $produk->harga_jual - ($produk->diskon/100 * $produk->harga_jual);
         $detail->save();
 
           
@@ -99,10 +104,12 @@ class PenjualanDetailController extends Controller
    {
       $nama_input = "jumlah_".$id;
       $detail = PenjualanDetail::find($id);
-      $total_harga = $request[$nama_input] * $detail->harga_jual;
-
+      $total_harga = ($request[$nama_input] * $detail->harga_jual) ;
       $detail->jumlah = $request[$nama_input];
-      $detail->sub_total = $total_harga - ($detail->diskon/100 * $total_harga);
+      //dd($detail->diskon);
+      $detail->sub_total = $total_harga - $detail->diskon ;
+
+      //$detail->sub_total = $total_harga - ($detail->diskon/100 * $total_harga);
       $detail->update();
 
     
@@ -139,15 +146,22 @@ class PenjualanDetailController extends Controller
    public function saveData(Request $request)
    {
       $now = \Carbon\Carbon::now();
+      $penjualan_dis= PenjualanDetail::groupBy('id_penjualan')
+   ->select('id_penjualan', \DB::raw('sum(diskon) as diskon'))
+   ->where('id_penjualan', '=', $request['idpenjualan'])
+   ->first();
+      
+   
       $penjualan = Penjualan::find($request['idpenjualan']);
       $penjualan->kode_member = $request['member'];
       $penjualan->total_item = $request['totalitem'];
       $penjualan->total_harga = $request['total'];
-      $penjualan->diskon = $request['diskon'];
+      $penjualan->diskon = $penjualan_dis->diskon;
       $penjualan->bayar = $request['bayar'];
       $penjualan->diterima = $request['diterima'];
       $penjualan->update();
-
+      
+      if($penjualan_dis->diskon == 0){
       $jurnal = new TabelTransaksi;
         $jurnal->unit =  Auth::user()->unit; 
         $jurnal->kode_transaksi = $request['idpenjualan'];
@@ -168,14 +182,57 @@ class PenjualanDetailController extends Controller
         $jurnal->kode_rekening = 1482000;
         $jurnal->tanggal_transaksi  = $now;
         $jurnal->jenis_transaksi  = 'Jurnal Umum';
-        $jurnal->keterangan_transaksi = 'Pembelian';
+        $jurnal->keterangan_transaksi = 'Penjualan';
         $jurnal->debet =0;
         $jurnal->kredit =$request['bayar'];
         $jurnal->tanggal_posting = '';
         $jurnal->keterangan_posting = '0';
         $jurnal->id_admin = Auth::user()->id; 
         $jurnal->save();
+      }
+      else{
+         $jurnal = new TabelTransaksi;
+        $jurnal->unit =  Auth::user()->unit; 
+        $jurnal->kode_transaksi = $request['idpenjualan'];
+        $jurnal->kode_rekening = 1120000;
+        $jurnal->tanggal_transaksi  = $now;
+        $jurnal->jenis_transaksi  = 'Jurnal Umum';
+        $jurnal->keterangan_transaksi = 'Penjualan';
+        $jurnal->debet =$request['bayar'] - $penjualan_dis->diskon;
+        $jurnal->kredit = 0;
+        $jurnal->tanggal_posting = '';
+        $jurnal->keterangan_posting = '0';
+        $jurnal->id_admin = Auth::user()->id; 
+        $jurnal->save();
 
+        $jurnal = new TabelTransaksi;
+        $jurnal->unit =  Auth::user()->unit; 
+        $jurnal->kode_transaksi = $request['idpenjualan'];
+        $jurnal->kode_rekening = 56412;
+        $jurnal->tanggal_transaksi  = $now;
+        $jurnal->jenis_transaksi  = 'Jurnal Umum';
+        $jurnal->keterangan_transaksi = 'Penjualan';
+        $jurnal->debet =$penjualan_dis->diskon;
+        $jurnal->kredit = 0;
+        $jurnal->tanggal_posting = '';
+        $jurnal->keterangan_posting = '0';
+        $jurnal->id_admin = Auth::user()->id; 
+        $jurnal->save();
+  
+        $jurnal = new TabelTransaksi;
+        $jurnal->unit =  Auth::user()->unit; 
+        $jurnal->kode_transaksi = $request['idpenjualan'];
+        $jurnal->kode_rekening = 1482000;
+        $jurnal->tanggal_transaksi  = $now;
+        $jurnal->jenis_transaksi  = 'Jurnal Umum';
+        $jurnal->keterangan_transaksi = 'Penjualan';
+        $jurnal->debet =0;
+        $jurnal->kredit =$request['bayar'];
+        $jurnal->tanggal_posting = '';
+        $jurnal->keterangan_posting = '0';
+        $jurnal->id_admin = Auth::user()->id; 
+        $jurnal->save();
+      }
 
       $detail = PenjualanDetail::where('id_penjualan', '=', $request['idpenjualan'])->get();
       foreach($detail as $data){
@@ -195,7 +252,15 @@ class PenjualanDetailController extends Controller
    }
    
    public function loadForm($diskon, $total, $diterima){
-     $bayar = $total - ($diskon / 100 * $total);
+   //    $id_t=Penjualan::max('id_penjualan');
+   
+   //    $penjualan_dis= PenjualanDetail::groupBy('id_penjualan')
+   // ->select('id_penjualan', \DB::raw('sum(diskon) as diskon'))
+   // ->where('id_penjualan', '=', $id_t->id_penjualan);
+   // dd($penjualan_dis);
+
+     $bayar = $total -$diskon ;
+ 
      $kembali = ($diterima != 0) ? $diterima - $bayar : 0;
 
      $data = array(
@@ -305,7 +370,8 @@ class PenjualanDetailController extends Controller
    public function notaPDF(){
      $detail = PenjualanDetail::leftJoin('produk', 'produk.kode_produk', '=', 'penjualan_detail.kode_produk')
         ->where('id_penjualan', '=', session('idpenjualan'))
-        ->get();
+        ->where('unit', '=',Auth::user()->unit)
+         ->get();
 
       $penjualan = Penjualan::find(session('idpenjualan'));
       $setting = Setting::find(1);

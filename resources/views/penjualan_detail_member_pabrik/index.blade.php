@@ -12,11 +12,15 @@
 
 @section('content')   
 
+
+
 <div class="row">
   <div class="col-xs-12">
     <div class="box">
    
       <div class="box-body">
+    
+     
 
 <form class="form form-horizontal form-produk" method="post">
 {{ csrf_field() }}  
@@ -44,7 +48,7 @@
       <th>Kode Produk</th>
       <th>Nama Produk</th>
       <th align="right">Harga</th>
-      <th>Jumlah Belanja</th>
+      <th>Jumlah</th>
       <th>Diskon</th>
       <th align="right">Sub Total</th>
       <th width="100">Aksi</th>
@@ -65,6 +69,9 @@
       <input type="hidden" name="total" id="total">
       <input type="hidden" name="totalitem" id="totalitem">
       <input type="hidden" name="bayar" id="bayar">
+     
+     
+      
 
       <div class="form-group">
         <label for="totalrp" class="col-md-4 control-label">Total</label>
@@ -84,13 +91,6 @@
           </div>
         </div>
       </div>
-
-      <div class="form-group">
-        <label for="diskon" class="col-md-4 control-label">Diskon</label>
-        <div class="col-md-8">
-          <input type="text" class="form-control" name="diskon" id="diskon" value="0" readonly>
-        </div>
-      </div>
       <div class="form-group">
         <label for="diskon" class="col-md-4 control-label">Kupon</label>
         <div class="col-md-8">
@@ -98,9 +98,43 @@
         </div>
       </div>
       <div class="form-group">
-        <label for="bayarrp" class="col-md-4 control-label">Bayar</label>
+        <label for="diskon" class="col-md-4 control-label">Diskon</label>
+        <div class="col-md-8">
+          <input type="text" class="form-control" name="diskon" id="diskon" value="0" readonly>
+        </div>
+      </div>
+
+      <div class="form-group">
+        <label for="bayarrp" class="col-md-4 control-label">Transaksi</label>
         <div class="col-md-8">
           <input type="text" class="form-control" id="bayarrp" readonly>
+        </div>
+      </div>
+
+      <div class="form-group">
+        <label for="pla" class="col-md-4 control-label">Plafond</label>
+        <div class="col-md-8">
+          <input type="text" class="form-control" id="pla" readonly>
+        </div>
+      </div>
+      <div class="form-group">
+        <label for="os" class="col-md-4 control-label">Os</label>
+        <div class="col-md-8">
+          <input type="text" class="form-control" name ="os" id="os" readonly>
+        </div>
+      </div>
+
+      <div class="form-group">
+        <label for="musawamah" class="col-md-4 control-label">Musawamah</label>
+        <div class="col-md-8">
+          <input type="text" class="form-control" name="musawamah" id="musawamah" readonly>
+        </div>
+      </div>
+
+      <div class="form-group">
+        <label for="selisih" class="col-md-4 control-label">Harus Bayar</label>
+        <div class="col-md-8">
+          <input type="text" class="form-control" name="selisih" id="selisih" readonly>
         </div>
       </div>
 
@@ -118,6 +152,13 @@
         </div>
       </div>
 
+      <div class="form-group">
+        <label for="donasi" class="col-md-4 control-label">Donasi</label>
+        <div class="col-md-8">
+          <input type="text" class="form-control" id="donasi" name="donasi" value="0">
+        </div>
+      </div>
+
     </form>
   </div>
 
@@ -130,10 +171,14 @@
   </div>
 </div>
 @include('penjualan_detail_member_pabrik.produk')
-@include('penjualan_detail_member_pabrik.member')
+
 @endsection
 
 @section('script')
+  
+
+
+
 <script type="text/javascript">
 var table;
 $(function(){
@@ -260,6 +305,7 @@ function loadForm(diskon=0, diterima=0){
   $('#total').val($('.total').text());
   $('#totalitem').val($('.totalitem').text());
 
+
   $.ajax({
        url : "memberpabrik/loadform/"+diskon+"/"+$('#total').val()+"/"+diterima,
        type : "GET",
@@ -268,10 +314,18 @@ function loadForm(diskon=0, diterima=0){
          $('#totalrp').val("Rp. "+data.totalrp);
          $('#bayarrp').val("Rp. "+data.bayarrp);
          $('#bayar').val(data.bayar);
-         $('#tampil-bayar').html("<small>Bayar:</small> Rp. "+data.bayarrp);
-         $('#tampil-terbilang').text(data.terbilang);
+         $('#pla').val(data.pla);  
+         $('#os').val(data.os);  
         
-         $('#kembali').val("Rp. "+data.kembalirp);
+         $('#musawamah').val(data.musawamah);
+         $('#member').val(data.member);                    
+         //$('#tampil-bayar').html("<small>Bayar:</small> Rp. "+data.bayarrp);
+         $('#tampil-bayar').html("<small>Bayar:</small> Rp. "+data.selisih);
+         
+         $('#tampil-terbilang').text(data.terbilang);
+         $('#selisih').val(data.selisih);  
+               
+          $('#kembali').val("Rp. "+data.kembalirp);
          if($('#diterima').val() != 0){
             $('#tampil-bayar').html("<small>Kembali:</small> Rp. "+data.kembalirp);
             $('#tampil-terbilang').text(data.kembaliterbilang);
@@ -284,5 +338,9 @@ function loadForm(diskon=0, diterima=0){
 }
 
 </script>
+
+   
+
+
 
 @endsection

@@ -15,79 +15,75 @@ Route::get('/logout', 'Auth\LoginController@logout');
 Auth::routes();
 
 Route::group(['middleware' => ['web', 'cekuser:2']], function(){
-      Route::get('user/profil', 'UserController@profil')->name('user.profil');
-      Route::patch('user/{id}/change', 'UserController@changeProfil');
+   Route::get('user/profil', 'UserController@profil')->name('user.profil');
+   Route::patch('user/{id}/change', 'UserController@changeProfil');
+
+   Route::get('transaksi/menu', 'PenjualanDetailController@NewMenu')->name('transaksi.menu');
+   Route::get('transaksi/baru', 'PenjualanDetailController@newSession')->name('transaksi.new');
+   Route::get('transaksi/{id}/data', 'PenjualanDetailController@listData')->name('transaksi.data');
+   Route::get('transaksi/cetaknota', 'PenjualanDetailController@printNota')->name('transaksi.cetak');
+   Route::get('transaksi/notapdf', 'PenjualanDetailController@notaPDF')->name('transaksi.pdf');
+   Route::post('transaksi/simpan', 'PenjualanDetailController@saveData');
+   Route::get('transaksi/loadform/{diskon}/{total}/{diterima}', 'PenjualanDetailController@loadForm');
+   Route::resource('transaksi', 'PenjualanDetailController');
+
    
-      Route::get('transaksi/menu', 'PenjualanDetailController@NewMenu')->name('transaksi.menu');
-      Route::get('transaksi/baru', 'PenjualanDetailController@newSession')->name('transaksi.new');
-      Route::get('transaksi/{id}/data', 'PenjualanDetailController@listData')->name('transaksi.data');
-      Route::get('transaksi/cetaknota', 'PenjualanDetailController@printNota')->name('transaksi.cetak');
-      Route::get('transaksi/notapdf', 'PenjualanDetailController@notaPDF')->name('transaksi.pdf');
-      Route::post('transaksi/simpan', 'PenjualanDetailController@saveData');
-      Route::get('transaksi/loadform/{diskon}/{total}/{diterima}', 'PenjualanDetailController@loadForm');
-      Route::resource('transaksi', 'PenjualanDetailController');
+   //harga member insan
+   Route::get('memberinsan/menu', 'PenjualanDetailMemberInsanController@NewMenu')->name('memberinsan.menu');
+   Route::get('memberinsan/{id}/baru', 'PenjualanDetailMemberInsanController@newSession')->name('memberinsan.new');
+   Route::get('memberinsan/{id}/data', 'PenjualanDetailMemberInsanController@listData')->name('memberinsan.data');
+   Route::get('memberinsan/cetaknota', 'PenjualanDetailMemberInsanController@printNota')->name('memberinsan.cetak');
+   Route::get('memberinsan/notapdf', 'PenjualanDetailMemberInsanController@notaPDF')->name('memberinsan.pdf');
+   Route::post('memberinsan/simpan', 'PenjualanDetailMemberInsanController@saveData');
+   Route::get('memberinsan/loadform/{diskon}/{total}/{diterima}', 'PenjualanDetailMemberInsanController@loadForm');
+   Route::resource('memberinsan', 'PenjualanDetailMemberInsanController');
 
-      
-      //harga member insan
-      Route::get('memberinsan/menu', 'PenjualanDetailMemberInsanController@NewMenu')->name('memberinsan.menu');
-      Route::get('memberinsan/{id}/baru', 'PenjualanDetailMemberInsanController@newSession')->name('memberinsan.new');
-      Route::get('memberinsan/{id}/data', 'PenjualanDetailMemberInsanController@listData')->name('memberinsan.data');
-      Route::get('memberinsan/cetaknota', 'PenjualanDetailMemberInsanController@printNota')->name('memberinsan.cetak');
-      Route::get('memberinsan/notapdf', 'PenjualanDetailMemberInsanController@notaPDF')->name('memberinsan.pdf');
-      Route::post('memberinsan/simpan', 'PenjualanDetailMemberInsanController@saveData');
-      Route::get('memberinsan/loadform/{diskon}/{total}/{diterima}', 'PenjualanDetailMemberInsanController@loadForm');
-      Route::resource('memberinsan', 'PenjualanDetailMemberInsanController');
+   //harga member pbarik
+   Route::get('memberpabrik/menu', 'PenjualanDetailMemberPabrikController@NewMenu')->name('memberpabrik.menu');
+   Route::get('memberpabrik/{id}/baru', 'PenjualanDetailMemberPabrikController@newSession')->name('memberpabrik.new');
+   Route::get('memberpabrik/{id}/data', 'PenjualanDetailMemberPabrikController@listData')->name('memberpabrik.data');
+   Route::get('memberpabrik/cetaknota', 'PenjualanDetailMemberPabrikController@printNota')->name('memberpabrik.cetak');
+   Route::get('memberpabrik/notapdf', 'PenjualanDetailMemberPabrikController@notaPDF')->name('memberpabrik.pdf');
+   Route::post('memberpabrik/simpan', 'PenjualanDetailMemberPabrikController@saveData');
+   Route::get('memberpabrik/loadform/{diskon}/{total}/{diterima}', 'PenjualanDetailMemberPabrikController@loadForm');
+   Route::resource('memberpabrik', 'PenjualanDetailMemberPabrikController');
 
-      //harga member pbarik
-      Route::get('memberpabrik/menu', 'PenjualanDetailMemberPabrikController@NewMenu')->name('memberpabrik.menu');
-      Route::get('memberpabrik/{id}/baru', 'PenjualanDetailMemberPabrikController@newSession')->name('memberpabrik.new');
-      Route::get('memberpabrik/{id}/data', 'PenjualanDetailMemberPabrikController@listData')->name('memberpabrik.data');
-      Route::get('memberpabrik/cetaknota', 'PenjualanDetailMemberPabrikController@printNota')->name('memberpabrik.cetak');
-      Route::get('memberpabrik/notapdf', 'PenjualanDetailMemberPabrikController@notaPDF')->name('memberpabrik.pdf');
-      Route::post('memberpabrik/simpan', 'PenjualanDetailMemberPabrikController@saveData');
-      Route::get('memberpabrik/loadform/{diskon}/{total}/{diterima}', 'PenjualanDetailMemberPabrikController@loadForm');
-      Route::resource('memberpabrik', 'PenjualanDetailMemberPabrikController');
+    //harga cash insan
+    Route::get('cashinsan/menu', 'CashinsanControllerr@NewMenu')->name('cashinsan.menu');
+    Route::get('cashinsan/baru', 'CashinsanController@newSession')->name('cashinsan.new');
+    Route::get('cashinsan/{id}/data', 'CashinsanController@listData')->name('cashinsan.data');
+    Route::get('cashinsan/cetaknota', 'CashinsanController@printNota')->name('cashinsan.cetak');
+    Route::get('cashinsan/notapdf', 'CashinsanController@notaPDF')->name('cashinsan.pdf');
+    Route::post('cashinsan/simpan', 'CashinsanController@saveData');
+    Route::get('cashinsan/loadform/{diskon}/{total}/{diterima}', 'CashinsanController@loadForm');
+    Route::resource('cashinsan', 'CashinsanController');
 
-      //harga cash insan
-      Route::get('cashinsan/menu', 'CashinsanControllerr@NewMenu')->name('cashinsan.menu');
-      Route::get('cashinsan/baru', 'CashinsanController@newSession')->name('cashinsan.new');
-      Route::get('cashinsan/{id}/data', 'CashinsanController@listData')->name('cashinsan.data');
-      Route::get('cashinsan/cetaknota', 'CashinsanController@printNota')->name('cashinsan.cetak');
-      Route::get('cashinsan/notapdf', 'CashinsanController@notaPDF')->name('cashinsan.pdf');
-      Route::post('cashinsan/simpan', 'CashinsanController@saveData');
-      Route::get('cashinsan/loadform/{diskon}/{total}/{diterima}', 'CashinsanController@loadForm');
-      Route::resource('cashinsan', 'CashinsanController');
+    //harga cash Pabrik
+  
+   Route::get('umum/baru', 'PenjualanDetailMemberPabrikController@newSession')->name('umum.new');
+   Route::get('umum/{id}/data', 'PenjualanDetailMemberPabrikController@listData')->name('umum.data');
+   Route::get('umum/cetaknota', 'PenjualanDetailMemberPabrikController@printNota')->name('umum.cetak');
+   Route::get('umum/notapdf', 'PenjualanDetailMemberPabrikController@notaPDF')->name('umum.pdf');
+   Route::post('umum/simpan', 'PenjualanDetailMemberPabrikController@saveData');
+   Route::get('umum/loadform/{diskon}/{total}/{diterima}', 'PenjualanDetailMemberPabrikController@loadForm');
+   Route::resource('umum', 'PenjualanDetailMemberPabrikController');
 
-      //harga cash Pabrik
-      
-      Route::get('umum/baru', 'PenjualanDetailMemberPabrikController@newSession')->name('umum.new');
-      Route::get('umum/{id}/data', 'PenjualanDetailMemberPabrikController@listData')->name('umum.data');
-      Route::get('umum/cetaknota', 'PenjualanDetailMemberPabrikController@printNota')->name('umum.cetak');
-      Route::get('umum/notapdf', 'PenjualanDetailMemberPabrikController@notaPDF')->name('umum.pdf');
-      Route::post('umum/simpan', 'PenjualanDetailMemberPabrikController@saveData');
-      Route::get('umum/loadform/{diskon}/{total}/{diterima}', 'PenjualanDetailMemberPabrikController@loadForm');
-      Route::resource('umum', 'PenjualanDetailMemberPabrikController');
+   //kasa
+   Route::get('kasa/data', 'KasaController@listData')->name('kasa.data');
+   Route::post('kasa/cetak', 'KasaController@printCard');
+   Route::resource('kasa', 'KasaController');
 
-      //kasa
-      Route::get('kasa/data', 'KasaController@listData')->name('kasa.data');
-      Route::post('kasa/cetak', 'KasaController@printCard');
-      Route::resource('kasa', 'KasaController');
+   Route::get('pengeluaran/data', 'PengeluaranController@listData')->name('pengeluaran.data');
+   Route::resource('pengeluaran', 'PengeluaranController');
 
-      Route::get('pengeluaran/data', 'PengeluaranController@listData')->name('pengeluaran.data');
-      Route::resource('pengeluaran', 'PengeluaranController');
+   Route::get('musawamahdetail/data', 'MusawamahDetailController@listData')->name('musawamahdetail.data');
+   Route::post('musawamahdetail/cetak', 'MusawamahDetailController@printCard');
+   Route::resource('musawamahdetail', 'MusawamahDetailController');
 
-      Route::get('musawamahdetail/data', 'MusawamahDetailController@listData')->name('musawamahdetail.data');
-      Route::post('musawamahdetail/cetak', 'MusawamahDetailController@printCard');
-      Route::resource('musawamahdetail', 'MusawamahDetailController');
 
-      // controller menu jurnal di user admin
-      Route::get('jurnal_umum_admin/index', 'JurnalUmumAdminController@index')->name('jurnal_umum_admin.index');
-      Route::post('jurnal_umum_admin/create','JurnalUmumAdminController@create')->name('jurnal_umum_admin.create');
-      Route::get('jurnal_umum_admin/destroy/{id}', 'JurnalUmumAdminController@destroy')->name('jurnal_umum_admin.destroy');
-      Route::get('jurnal_umum_admin/approve', 'JurnalUmumAdminController@approve')->name('jurnal_umum_admin.approve');
-      Route::post('jurnal_umum_admin/autocomplete', 'JurnalUmumAdminController@autocomplete')->name('jurnal_umum_admin.autocomplete');
-      
-   });
+   
+});
+
    
    Route::group(['middleware' => ['web', 'cekuser:1' ]], function(){
       Route::get('kategori/data', 'KategoriController@listData')->name('kategori.data');

@@ -21,7 +21,6 @@ class MusawamahDetailController extends Controller
    {
    
      $musawamah = Musawamah::leftJoin('member', 'member.kode_member', '=', 'musawamah.id_member')
-     -> where('musawamah.unit', '=',  Auth::user()->unit)
      -> orderBy('musawamah.id_member', 'desc')->get();
      $no = 0;
      $data = array();
@@ -50,6 +49,9 @@ class MusawamahDetailController extends Controller
     
      $jml = Member::where('kode_member', '=', $request['kode'])->count();
      $musawamah = Musawamah::find($request['kode']);
+
+     $unit_member=$musawamah->unit;
+    
      if($jml > 0){
       $member = new MusawamahDetail;
       $member->buss_date = $now;
@@ -65,6 +67,9 @@ class MusawamahDetailController extends Controller
       $member->cao =$musawamah->cao;
       $member->save();
 
+
+      if ($unit_member == Auth::user()->unit)
+      {
       $jurnal = new TabelTransaksi;
                $jurnal->unit =  Auth::user()->unit; 
                $jurnal->kode_transaksi = $request['kode'];
@@ -82,7 +87,7 @@ class MusawamahDetailController extends Controller
                $jurnal = new TabelTransaksi;
                $jurnal->unit =  Auth::user()->unit; 
                $jurnal->kode_transaksi = $request['kode'];
-               $jurnal->kode_rekening = 2853000;
+               $jurnal->kode_rekening = 2891000;
                $jurnal->tanggal_transaksi = '2019-07-03';
                $jurnal->jenis_transaksi  = 'Jurnal System';
                $jurnal->keterangan_transaksi = 'Setoran angsuran Musawamah ';
@@ -92,6 +97,37 @@ class MusawamahDetailController extends Controller
                $jurnal->keterangan_posting = ' ';
                $jurnal->id_admin = Auth::user()->id; 
                $jurnal->save();
+
+      }else{
+         $jurnal = new TabelTransaksi;
+         $jurnal->unit =  Auth::user()->unit; 
+         $jurnal->kode_transaksi = $request['kode'];
+         $jurnal->kode_rekening = 1120000;
+         $jurnal->tanggal_transaksi = $now;
+         $jurnal->jenis_transaksi  = 'Jurnal System';
+         $jurnal->keterangan_transaksi = 'Setoran angsuran Musawamah ';
+         $jurnal->debet = $request['setoran'];
+         $jurnal->kredit = 0;
+         $jurnal->tanggal_posting = '2019-07-03';
+         $jurnal->keterangan_posting = '0';
+         $jurnal->id_admin = Auth::user()->id; 
+         $jurnal->save();
+
+         $jurnal = new TabelTransaksi;
+         $jurnal->unit =  Auth::user()->unit; 
+         $jurnal->kode_transaksi = $request['kode'];
+         $jurnal->kode_rekening = 2853000;
+         $jurnal->tanggal_transaksi = $now;
+         $jurnal->jenis_transaksi  = 'Jurnal System';
+         $jurnal->keterangan_transaksi = 'Setoran angsuran Musawamah ';
+         $jurnal->debet =0;
+         $jurnal->kredit = $request['setoran'];
+         $jurnal->tanggal_posting = '2019-07-03';
+         $jurnal->keterangan_posting = ' ';
+         $jurnal->id_admin = Auth::user()->id; 
+         $jurnal->save();
+
+      }
 
                return view('musawamah_detail.index'); 
      }else{

@@ -52,7 +52,7 @@
        <td>{{ $data->nama_produk }}</td>
        <td align="right">{{ format_uang($data->harga_jual) }}</td>
        <td>{{ $data->jumlah }}</td>
-       <td align="right">{{ format_uang($data->diskon) }}%</td>
+       <td align="right">{{ format_uang($data->diskon) }}</td>
        <td align="right">{{ format_uang($data->sub_total) }}</td>
     </tr>
     @endforeach
@@ -60,7 +60,7 @@
    </tbody>
    <tfoot>
     <tr><td colspan="6" align="right"><b>Total Harga</b></td><td align="right"><b>{{ format_uang($penjualan->total_harga) }}</b></td></tr>
-    <tr><td colspan="6" align="right"><b>Diskon</b></td><td align="right"><b>{{ format_uang($penjualan->diskon) }}%</b></td></tr>
+    <tr><td colspan="6" align="right"><b>Diskon</b></td><td align="right"><b>{{ format_uang($penjualan->diskon) }}</b></td></tr>
     <tr><td colspan="6" align="right"><b>Total Bayar</b></td><td align="right"><b>{{ format_uang($penjualan->bayar) }}</b></td></tr>
     <tr><td colspan="6" align="right"><b>Diterima</b></td><td align="right"><b>{{ format_uang($penjualan->diterima) }}</b></td></tr>
     <tr><td colspan="6" align="right"><b>Kembali</b></td><td align="right"><b>{{ format_uang($penjualan->diterima - $penjualan->bayar) }}</b></td></tr>

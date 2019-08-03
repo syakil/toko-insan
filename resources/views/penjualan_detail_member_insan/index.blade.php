@@ -12,11 +12,15 @@
 
 @section('content')   
 
+
+
 <div class="row">
   <div class="col-xs-12">
     <div class="box">
    
       <div class="box-body">
+    
+     
 
 <form class="form form-horizontal form-produk" method="post">
 {{ csrf_field() }}  
@@ -43,6 +47,7 @@
       <th width="30">No</th>
       <th>Kode Produk</th>
       <th>Nama Produk</th>
+      <th>Stok</th>
       <th align="right">Harga</th>
       <th>Jumlah</th>
       <th>Diskon</th>
@@ -65,6 +70,9 @@
       <input type="hidden" name="total" id="total">
       <input type="hidden" name="totalitem" id="totalitem">
       <input type="hidden" name="bayar" id="bayar">
+     
+     
+      
 
       <div class="form-group">
         <label for="totalrp" class="col-md-4 control-label">Total</label>
@@ -105,11 +113,32 @@
       </div>
 
       <div class="form-group">
-        <label for="bayarrp" class="col-md-4 control-label">Musawamah</label>
+        <label for="pla" class="col-md-4 control-label">Plafond</label>
         <div class="col-md-8">
-          <input type="text" class="form-control" id="musawamah" readonly>
+          <input type="text" class="form-control" id="pla" readonly>
         </div>
       </div>
+      <div class="form-group">
+        <label for="os" class="col-md-4 control-label">Os</label>
+        <div class="col-md-8">
+          <input type="text" class="form-control" name ="os" id="os" readonly>
+        </div>
+      </div>
+
+      <div class="form-group">
+        <label for="musawamah" class="col-md-4 control-label">Musawamah</label>
+        <div class="col-md-8">
+          <input type="text" class="form-control" name="musawamah" id="musawamah" readonly>
+        </div>
+      </div>
+
+      <div class="form-group">
+        <label for="selisih" class="col-md-4 control-label">Harus Bayar</label>
+        <div class="col-md-8">
+          <input type="text" class="form-control" name="selisih" id="selisih" readonly>
+        </div>
+      </div>
+
       <div class="form-group">
         <label for="diterima" class="col-md-4 control-label">Diterima</label>
         <div class="col-md-8">
@@ -121,6 +150,13 @@
         <label for="kembali" class="col-md-4 control-label">Kembali</label>
         <div class="col-md-8">
           <input type="text" class="form-control" id="kembali" value="0" readonly>
+        </div>
+      </div>
+
+      <div class="form-group">
+        <label for="donasi" class="col-md-4 control-label">Donasi</label>
+        <div class="col-md-8">
+          <input type="text" class="form-control" id="donasi" name="donasi" value="0">
         </div>
       </div>
 
@@ -136,10 +172,14 @@
   </div>
 </div>
 @include('penjualan_detail_member_insan.produk')
-@include('penjualan_detail_member_insan.member')
+
 @endsection
 
 @section('script')
+  
+
+
+
 <script type="text/javascript">
 var table;
 $(function(){
@@ -262,9 +302,10 @@ function deleteItem(id){
    }
 }
 
-function loadForm(diskon=0, diterima=0, musawamah=0){
+function loadForm(diskon=0, diterima=0){
   $('#total').val($('.total').text());
   $('#totalitem').val($('.totalitem').text());
+
 
   $.ajax({
        url : "memberinsan/loadform/"+diskon+"/"+$('#total').val()+"/"+diterima,
@@ -274,17 +315,17 @@ function loadForm(diskon=0, diterima=0, musawamah=0){
          $('#totalrp').val("Rp. "+data.totalrp);
          $('#bayarrp').val("Rp. "+data.bayarrp);
          $('#bayar').val(data.bayar);
-                  
-         $('#tampil-bayar').html("<small>Bayar:</small> Rp. "+data.bayarrp);
-         $('#tampil-terbilang').text(data.terbilang);
+         $('#pla').val(data.pla);  
+         $('#os').val(data.os);  
         
-         if($('#bayar').val() >= 500000){
-          $('#musawamah').val("Rp. 500.000");
-          }else{
-          $('#musawamah').val("Rp. "+data.bayar);
-           
-         }
+         $('#musawamah').val(data.musawamah);
+         $('#member').val(data.member);                    
+         //$('#tampil-bayar').html("<small>Bayar:</small> Rp. "+data.bayarrp);
+         $('#tampil-bayar').html("<small>Bayar:</small> Rp. "+data.selisih);
          
+         $('#tampil-terbilang').text(data.terbilang);
+         $('#selisih').val(data.selisih);  
+               
           $('#kembali').val("Rp. "+data.kembalirp);
          if($('#diterima').val() != 0){
             $('#tampil-bayar').html("<small>Kembali:</small> Rp. "+data.kembalirp);
@@ -298,6 +339,8 @@ function loadForm(diskon=0, diterima=0, musawamah=0){
 }
 
 </script>
+
+   
 
 
 

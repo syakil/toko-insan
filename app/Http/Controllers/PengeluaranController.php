@@ -5,14 +5,20 @@ namespace App\Http\Controllers;
 use Illuminate\Http\Request;
 use App\Pengeluaran;
 use App\Coa;
+use App\Branch;
+use Auth;
+use App\TabelTransaksi;
 use Yajra\Datatables\Datatables;
+use Ramsey\Uuid\Uuid;
 
 class PengeluaranController extends Controller
 {
     public function index()
     {
-      $coa = Coa::all()->where('gr_sub', '=', '1310000'); 
+      $coa = Coa::all()->where('gr_sub', '=', '1310000');
+    
        return view('pengeluaran.index', compact('coa')); 
+
     }
 
     public function listData()
@@ -40,12 +46,79 @@ class PengeluaranController extends Controller
 
     public function store(Request $request)
     {
+      $now = \Carbon\Carbon::now();
+      $kode=Uuid::uuid4()->getHex();
+      $kode_t=substr($kode,25);
+      $unit=Auth::user()->unit;
+      $kode_t="BU/-".$unit.$kode_t;
+      $branch_coa_aktiva_user = Branch::find(Auth::user()->unit);
+      $coa_aktiva_user=$branch_coa_aktiva_user->aktiva;
+
         $pengeluaran = new Pengeluaran;
         $pengeluaran->jenis_pengeluaran   = $request['ket'];
         $pengeluaran->jenis_transaksi   = $request['trns'];        
         $pengeluaran->nominal = $request['nominal'];
         $pengeluaran->save();
+        
+        $jurnal = new TabelTransaksi;
+         $jurnal->unit =  Auth::user()->unit; 
+         $jurnal->kode_transaksi = $kode_t;
+         $jurnal->kode_rekening = 2500000;
+         $jurnal->tanggal_transaksi = $now;
+         $jurnal->jenis_transaksi  = 'Jurnal System';
+         $jurnal->keterangan_transaksi = 'Setoran Toko ';
+         $jurnal->debet = $request['nominal'];
+         $jurnal->kredit = 0;
+         $jurnal->tanggal_posting = ' ';
+         $jurnal->keterangan_posting = '0';
+         $jurnal->id_admin = Auth::user()->id; 
+         $jurnal->save();
+
+         $jurnal = new TabelTransaksi;
+         $jurnal->unit =  Auth::user()->unit; 
+         $jurnal->kode_transaksi =$kode_t;
+         $jurnal->kode_rekening = 1120000;
+         $jurnal->tanggal_transaksi = $now;
+         $jurnal->jenis_transaksi  = 'Jurnal System';
+         $jurnal->keterangan_transaksi = 'Setoran Toko ';
+         $jurnal->debet =0;
+         $jurnal->kredit = $request['nominal'];
+         $jurnal->tanggal_posting = ' ';
+         $jurnal->keterangan_posting = '0';
+         $jurnal->id_admin = Auth::user()->id; 
+         $jurnal->save();
+
+         $jurnal = new TabelTransaksi;
+         $jurnal->unit =  Auth::user()->unit; 
+         $jurnal->kode_transaksi = $kode_t;
+         $jurnal->kode_rekening =("1010-".$request['coa']);
+         $jurnal->tanggal_transaksi = $now;
+         $jurnal->jenis_transaksi  = 'Jurnal System';
+         $jurnal->keterangan_transaksi = 'Setoran Toko ';
+         $jurnal->debet = $request['nominal'];
+         $jurnal->kredit = 0;
+         $jurnal->tanggal_posting = ' ';
+         $jurnal->keterangan_posting = '0';
+         $jurnal->id_admin = Auth::user()->id; 
+         $jurnal->save();
+
+         $jurnal = new TabelTransaksi;
+         $jurnal->unit =  Auth::user()->unit; 
+         $jurnal->kode_transaksi =$kode_t;
+         $jurnal->kode_rekening = $coa_aktiva_user;
+         $jurnal->tanggal_transaksi = $now;
+         $jurnal->jenis_transaksi  = 'Jurnal System';
+         $jurnal->keterangan_transaksi = 'Setoran Toko';
+         $jurnal->debet =0;
+         $jurnal->kredit = $request['nominal'];
+         $jurnal->tanggal_posting = ' ';
+         $jurnal->keterangan_posting = '0';
+         $jurnal->id_admin = Auth::user()->id; 
+         $jurnal->save();       
+        
         return view('pengeluaran.index');
+
+
     }
 
     public function edit($id)

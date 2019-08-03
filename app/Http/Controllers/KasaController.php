@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
 use App\Kasa;
+use App\TabelTransaksi;
 use PDF;
 use Auth;
 
@@ -11,7 +12,17 @@ class KasaController extends Controller
 {
    public function index()
    {
-      return view('kasa.index'); 
+      $now = \Carbon\Carbon::now();
+      $now=$now->format('Y-m-d');
+      //dd($now);
+      $pendapatan= TabelTransaksi::groupBy('kode_rekening')
+   ->select('kode_rekening', \DB::raw('sum(debet-kredit) as pendapatan'))
+   ->where('tanggal_transaksi', '=', $now)
+   ->where('kode_rekening', '=', '1120000')
+   ->first();
+   
+
+      return view('kasa.index',compact('pendapatan')); 
    }
 
    public function listData()
@@ -49,7 +60,8 @@ class KasaController extends Controller
 
    public function store(Request $request)
    {
-     $jml = Kasa::where('id_kasa', '=', $request['id_kasa'])->count();
+     if($request['id_kasa']==$request['pendapatan']){
+      $jml = Kasa::where('id_kasa', '=', $request['id_kasa'])->count();
      if($jml < 1){
       $kasa = new Kasa;
       $kasa->seratus_ribu = $request['seratus_ribu'];
@@ -72,6 +84,10 @@ class KasaController extends Controller
      }else{
       echo json_encode(array('msg'=>'error'));
      }
+   }else{
+      echo json_encode(array('msg'=>'tidaksama'));
+   }
+
    }
 
    public function edit($id)

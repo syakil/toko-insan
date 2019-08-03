@@ -22,17 +22,17 @@
 
           <br><br>
           @if($setting->tipe_nota==0)
-            <a class="btn btn-warning btn-lg" href="{{ route('memberinsan.cetak') }}">Cetak Ulang Nota</a>
+            <a class="btn btn-warning btn-lg" href="{{ route('memberpabrik.cetak') }}">Cetak Ulang Nota</a>
           @else
             <a class="btn btn-warning btn-lg" onclick="tampilNota()">Cetak Ulang Nota</a>
             <script type="text/javascript">
               tampilNota();
               function tampilNota(){
-                window.open("{{ route('memberinsan.pdf') }}", "Nota PDF", "height=650,width=1024,left=150,scrollbars=yes");
+                window.open("{{ route('memberpabrik.pdf') }}", "Nota PDF", "height=650,width=1024,left=150,scrollbars=yes");
               }              
             </script>
           @endif
-          <a class="btn btn-primary btn-lg" href="{{ route('memberinsan.new') }}">Transaksi Baru</a>
+          <a class="btn btn-primary btn-lg" href="{{ route('memberpabrik.new') }}">Transaksi Baru</a>
           <br><br><br><br>
       </div>
    </div>

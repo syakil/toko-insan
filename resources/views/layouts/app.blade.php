@@ -102,7 +102,7 @@
       <li><a href="{{ route('pengeluaran.index') }}"><i class="fa fa-money"></i> <span>Pengeluaran</span></a></li>
       <li><a href="{{ route('musawamahdetail.index') }}"><i class="fa fa-money"></i> <span>Setor Angsuran</span></a></li>
       <li><a href=""><i class="fa fa-cart-plus"></i> <span>Laporan Penjualan</span></a></li>
-      <!-- menu jurnal umum -->
+       <!-- menu jurnal umum -->
       <li><a href="{{ route('jurnal_umum_admin.index') }}"><i class="fa fa-file-pdf-o"></i> <span>Jurnal</span></a></li>
       
         @elseif( Auth::user()->level == 3 )

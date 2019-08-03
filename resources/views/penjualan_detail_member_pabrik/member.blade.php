@@ -8,13 +8,14 @@
    </div>
             
 <div class="modal-body">
-   <table class="table table-striped tabel-produk">
+   <table class="table table-striped tabel-member-awal">
       <thead>
          <tr>
             <th>Kode Member</th>
             <th>Member</th>
             <th>Unit</th>
             <th>Plafond</th>
+            <th>Musawamah</th>
             <th>Status</th>
             <th>Aksi</th>
          </tr>
@@ -26,7 +27,8 @@
             <th>{{ $data->nama }}</th>
             <th>{{ $data->unit }}</th>
             <th>{{ $data->plafond }}</th>
-            <th>{{ $data->status }}</th>
+            <th>{{ $data->os }}</th>
+            <th>{{ $data->status_member }}</th>
             <th><a href="/toko/memberpabrik/{{ $data->kode_member }}/baru" class="btn btn-primary"><i class="fa fa-check-circle"></i> Pilih</a></th>
                               
           </tr>
@@ -39,3 +41,12 @@
          </div>
       </div>
    </div>
+
+   @section('script')
+   
+   <script>
+      $(document).ready( function () {
+       $('.tabel-member-awal').DataTable();
+   } );
+   </script>
+      @endsection

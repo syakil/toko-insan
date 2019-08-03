@@ -10,30 +10,48 @@ use App\Penjualan;
 use App\Produk;
 use App\Member;
 use App\Setting;
+use Yajra\Datatables\Datatables;
 use App\PenjualanDetail;
 use App\TabelTransaksi; 
 use App\Branch;
 use App\Musawamah;  
 use App\MusawamahDetail;  
+use Alert;
 
 class PenjualanDetailMemberInsanController extends Controller
 {
    public function index(){
+      $member = Member::all();
       $produk = Produk::all() -> where('unit', '=',  Auth::user()->unit);
-      $member = Member:: all() -> where('jenis', '=', '1');
-      $setting = Setting::first();
+            $setting = Setting::first();
      
      if(!empty(session('idpenjualan'))){
+      $member_id=session('idmember');
+      $memberr = Member::leftjoin('musawamah','musawamah.id_member','=','member.kode_member')
+      ->where('kode_member','=',$member_id)
+      ->first();
+
+      $status=$memberr->status_member;
+      if($status=='active'){
        $idpenjualan = session('idpenjualan');
+            
+             
        return view('penjualan_detail_member_insan.index', compact('produk', 'member', 'setting', 'idpenjualan'));
-     }else{
+      }
+
+     else{
+      $idpenjualan = session('idpenjualan');
+      session()->flash('status', 'Maaf Status Member blokir');
+      return Redirect::route('transaksi.menu');
+     }
+      }else{
        return Redirect::route('home');  
      }
    }
 
    public function NewMenu(){
       $produk = Produk::all() -> where('unit', '=',  Auth::user()->unit);
-      $member = Member::all()-> where('unit', '=',  Auth::user()->unit);;
+      $member = Member::leftjoin('musawamah','musawamah.id_member','=','member.kode_member');
       $setting = Setting::first();
       
      
@@ -50,34 +68,32 @@ class PenjualanDetailMemberInsanController extends Controller
         -> where('unit', '=',  Auth::user()->id)
         ->get();
         $no = 0;
-        $data = array();
-        $total = 0;
-        $total_item = 0;
-        $stok=0;
-        $in=0;
+     $data = array();
+     $total = 0;
+     $total_item = 0;
         foreach($detail as $list){
           $no ++;
           $row = array();
           $row[] = $no;
           $row[] = $list->kode_produk;
           $row[] = $list->nama_produk;
+          $row[] = $list->stok;
+       
           $row[] = "Rp. ".format_uang($list->harga_jual_member_insan);
           $row[] = "<input type='number' class='form-control' name='jumlah_$list->id_penjualan_detail' value='$list->jumlah' onChange='changeCount($list->id_penjualan_detail)'>";
-          $row[] = $list->diskon."%";
+          $row[] = $list->diskon;
           $row[] = "Rp. ".format_uang($list->sub_total);
           $row[] = '<div class="btn-group">
                   <a onclick="deleteItem('.$list->id_penjualan_detail.')" class="btn btn-danger btn-sm"><i class="fa fa-trash"></i></a>';
           $data[] = $row;
    
-          $total += $list->harga_jual_member_insan * $list->jumlah;
+          $total += $list->harga_jual_member_insan * $list->jumlah - $list->diskon ;
           $total_item += $list->jumlah;
-          $stok= $list->stok;
-          $in=$list->jumlah;
 
         }
         
    
-        $data[] = array("<span class='hide total'>$total</span><span class='hide totalitem'>$total_item</span>", "", "", "", "", "", "", "");
+        $data[] = array("<span class='hide total'>$total</span><span class='hide totalitem'>$total_item</span>", "", "", "", "", "", "", "","");
        
         $output = array("data" => $data);
         return response()->json($output);
@@ -97,7 +113,7 @@ class PenjualanDetailMemberInsanController extends Controller
         $detail->harga_jual = $produk->harga_jual_member_insan;
         $detail->jumlah = 1;
         $detail->diskon = $produk->diskon;
-        $detail->sub_total = $produk->harga_jual_member_insan - ($produk->diskon/100 * $produk->harga_jual_member_insan);
+        $detail->sub_total = $produk->harga_jual_member_insan - ($produk->diskon);
         $detail->save();
 
       
@@ -107,11 +123,10 @@ class PenjualanDetailMemberInsanController extends Controller
    public function update(Request $request, $id)
    {
       $nama_input = "jumlah_".$id;
-      $detail = PenjualanDetail::find($id);
-      $total_harga = $request[$nama_input] * $detail->harga_jual_member_insan;
-
+      $detail = PenjualanDetail::find($id);       
+      $total_harga = ($request[$nama_input] * $detail->harga_jual);
       $detail->jumlah = $request[$nama_input];
-      $detail->sub_total = $total_harga - ($detail->diskon/100 * $total_harga);
+      $detail->sub_total = $total_harga - $detail->diskon;  
       $detail->update();
    }
 
@@ -136,6 +151,8 @@ class PenjualanDetailMemberInsanController extends Controller
       session(['idpenjualan' => $penjualan->id_penjualan]);
       session(['idmember' => $penjualan->kode_member]);
 
+     
+
       return Redirect::route('memberinsan.index');    
    }
 
@@ -144,8 +161,8 @@ class PenjualanDetailMemberInsanController extends Controller
    public function saveData(Request $request)
    {
       $now = \Carbon\Carbon::now();
+           
       $penjualan = Penjualan::find($request['idpenjualan']);
-      
       $penjualan->total_item = $request['totalitem'];
       $penjualan->total_harga = $request['total'];
       $penjualan->diskon = $request['diskon'];
@@ -153,26 +170,28 @@ class PenjualanDetailMemberInsanController extends Controller
       $penjualan->diterima = $request['diterima'];
       $penjualan->update();
 
+      $os_tambah=$request['musawamah'] - $request['os'];
+      
       $musawamah = Musawamah::find(session('idmember'));
-      $musawamah->os += $request['bayar'];
+      $musawamah->os += $os_tambah;
       $musawamah->saldo_margin =$musawamah->os * 5/100;
       $musawamah->angsuran = $musawamah->os / $musawamah->Tenor;
       $musawamah->margin_minggon =$musawamah->angsuran * 5/100;
       $musawamah->update();
      
+      
       $musa = Musawamah::where('id_member', '=', session('idmember'))
-      -> where('unit', '=',  Auth::user()->unit)
       ->first();
-
+      
       $Mdetail = new MusawamahDetail;
       $Mdetail->buss_date = $now;
-      $Mdetail->norek = $musa->no_akad;
+      $Mdetail->norek = $musa->id_member;
       $Mdetail->unit = $musa->unit;
       $Mdetail->id_member = $musa->id_member;
       $Mdetail->code_kel = $musa->code_kel;
       $Mdetail->debet = 0;
       $Mdetail->type = 3;
-      $Mdetail->kredit =  $request['bayar'];
+      $Mdetail->kredit =   $os_tambah;
       $Mdetail->userid =  Auth::user()->id;
       $Mdetail->ket =  'musawamah';
       $Mdetail->cao =  $musa->cao;
@@ -183,12 +202,19 @@ class PenjualanDetailMemberInsanController extends Controller
     
       $saha = Member::where('kode_member', session('idmember'))->first();
       $unit_member =$saha->unit;
-     
-
+      
       $branch_coa_aktiva_member = Branch::find($unit_member);
       $coa_aktiva_member=$branch_coa_aktiva_member->aktiva;
 
-      $param=500000;  
+      $param=$musa->os;  
+      
+      if($param >= 500000){
+         $saha->status_member = 'Blokir';
+         $saha->update();
+
+            }
+      
+      $saldo_musa=500000-$param;
       
       $branch_coa_aktiva_user = Branch::find(Auth::user()->unit);
       $coa_aktiva_user=$branch_coa_aktiva_user->aktiva;
@@ -199,20 +225,20 @@ class PenjualanDetailMemberInsanController extends Controller
          {
 
          $transaksi = $request['bayar'];
-         $sisa=$transaksi - $param;    
+         $sisa=$transaksi - $saldo_musa;    
          
-            if ($transaksi>=$param)
+            if ($transaksi > $os_tambah)
             {
                $jurnal = new TabelTransaksi;
                $jurnal->unit =  Auth::user()->unit; 
                $jurnal->kode_transaksi = $request['idpenjualan'];
-               $jurnal->kode_rekening = 1420000;
+               $jurnal->kode_rekening = 1412000;
                $jurnal->tanggal_transaksi = $now;
                $jurnal->jenis_transaksi  = 'Jurnal System';
                $jurnal->keterangan_transaksi = 'Musawamah ';
-               $jurnal->debet = $param;
+               $jurnal->debet = $os_tambah;
                $jurnal->kredit = 0;
-               $jurnal->tanggal_posting = '2019-07-03';
+               $jurnal->tanggal_posting = ' ';
                $jurnal->keterangan_posting = '0';
                $jurnal->id_admin = Auth::user()->id; 
                $jurnal->save();
@@ -220,52 +246,37 @@ class PenjualanDetailMemberInsanController extends Controller
                $jurnal = new TabelTransaksi;
                $jurnal->unit =  Auth::user()->unit; 
                $jurnal->kode_transaksi = $request['idpenjualan'];
-               $jurnal->kode_rekening = 1421000;
-               $jurnal->tanggal_transaksi = '2019-07-03';
+               $jurnal->kode_rekening = 1120000;
+               $jurnal->tanggal_transaksi = $now;
                $jurnal->jenis_transaksi  = 'Jurnal System';
                $jurnal->keterangan_transaksi = 'Musawamah ';
-               $jurnal->debet =0;
-               $jurnal->kredit = $param;
-               $jurnal->tanggal_posting = '2019-07-03';
-               $jurnal->keterangan_posting = ' ';
-               $jurnal->id_admin = Auth::user()->id; 
-               $jurnal->save();
-   
-               $jurnal = new TabelTransaksi;
-               $jurnal->unit =  Auth::user()->unit; 
-               $jurnal->kode_transaksi = $request['idpenjualan'];
-               $jurnal->kode_rekening = 1420000;
-               $jurnal->tanggal_transaksi = '2019-07-03';
-               $jurnal->jenis_transaksi  = 'Jurnal System';
-               $jurnal->keterangan_transaksi = 'Musawamah ';
-               $jurnal->debet = $sisa;
+               $jurnal->debet = $request['selisih'];
                $jurnal->kredit = 0;
-               $jurnal->tanggal_posting = '2019-07-03';
+               $jurnal->tanggal_posting = ' ';
                $jurnal->keterangan_posting = ' ';
                $jurnal->id_admin = Auth::user()->id; 
-               $jurnal->save();
-   
-               $jurnal = new TabelTransaksi;
-               $jurnal->unit =  Auth::user()->unit; 
-               $jurnal->kode_transaksi = $request['idpenjualan'];
-               $jurnal->kode_rekening = 111000;
-               $jurnal->tanggal_transaksi = '2019-07-03';
-               $jurnal->jenis_transaksi  = 'Jurnal System';
-               $jurnal->keterangan_transaksi = 'Musawamah ';
-               $jurnal->debet =0;
-               $jurnal->kredit = $sisa;
-               $jurnal->tanggal_posting = '2019-07-03';
-               $jurnal->keterangan_posting = ' ';
-               $jurnal->id_admin = Auth::user()->id; 
-               $jurnal->save();
-   
+               $jurnal->save();                  
+
+            $jurnal = new TabelTransaksi;
+            $jurnal->unit =  Auth::user()->unit; 
+            $jurnal->kode_transaksi = $request['idpenjualan'];
+            $jurnal->kode_rekening = 1482000;
+            $jurnal->tanggal_transaksi = $now;
+            $jurnal->jenis_transaksi  = 'Jurnal System';
+            $jurnal->keterangan_transaksi = 'Musawamah ';
+            $jurnal->debet =0;
+            $jurnal->kredit =$request['bayar'] ;
+            $jurnal->tanggal_posting = ' ';
+            $jurnal->keterangan_posting = ' ';
+            $jurnal->id_admin = Auth::user()->id; 
+            $jurnal->save();            
    
             }else  
             {         
             $jurnal = new TabelTransaksi;
             $jurnal->unit =  Auth::user()->unit; 
             $jurnal->kode_transaksi = $request['idpenjualan'];
-            $jurnal->kode_rekening = 1420000;
+            $jurnal->kode_rekening = 1412000;
             $jurnal->tanggal_transaksi = $now;
             $jurnal->jenis_transaksi  = 'Jurnal System';
             $jurnal->keterangan_transaksi = 'Musawamah';
@@ -289,40 +300,42 @@ class PenjualanDetailMemberInsanController extends Controller
             $jurnal->keterangan_posting = '0';
             $jurnal->id_admin = Auth::user()->id; 
             $jurnal->save();
+
+            
              }
   
     
       }else{
       
       $transaksi = $request['bayar'];
-      $sisa=$transaksi - $param;    
+      $sisa=$transaksi - $saldo_musa;    
       
-         if ($transaksi>=$param)
+         if ($transaksi>$os_tambah)
          {
             $jurnal = new TabelTransaksi;
-            $jurnal->unit =  Auth::user()->unit; 
+            $jurnal->unit =  $unit_member; 
             $jurnal->kode_transaksi = $request['idpenjualan'];
-            $jurnal->kode_rekening = 1420000;
+            $jurnal->kode_rekening = 1412000;
             $jurnal->tanggal_transaksi = $now;
             $jurnal->jenis_transaksi  = 'Jurnal System';
             $jurnal->keterangan_transaksi = 'Musawamah ';
-            $jurnal->debet = $param;
+            $jurnal->debet = $os_tambah;
             $jurnal->kredit = 0;
-            $jurnal->tanggal_posting = '2019-07-03';
+            $jurnal->tanggal_posting = ' ';
             $jurnal->keterangan_posting = '0';
             $jurnal->id_admin = Auth::user()->id; 
             $jurnal->save();
 
             $jurnal = new TabelTransaksi;
-            $jurnal->unit =  Auth::user()->unit; 
+            $jurnal->unit =  $unit_member; 
             $jurnal->kode_transaksi = $request['idpenjualan'];
-            $jurnal->kode_rekening = 1421000;
-            $jurnal->tanggal_transaksi = '2019-07-03';
+            $jurnal->kode_rekening = 2500000;
+            $jurnal->tanggal_transaksi = $now;
             $jurnal->jenis_transaksi  = 'Jurnal System';
             $jurnal->keterangan_transaksi = 'Musawamah ';
             $jurnal->debet =0;
-            $jurnal->kredit = $param;
-            $jurnal->tanggal_posting = '2019-07-03';
+            $jurnal->kredit = $os_tambah;
+            $jurnal->tanggal_posting = ' ';
             $jurnal->keterangan_posting = ' ';
             $jurnal->id_admin = Auth::user()->id; 
             $jurnal->save();
@@ -330,13 +343,13 @@ class PenjualanDetailMemberInsanController extends Controller
             $jurnal = new TabelTransaksi;
             $jurnal->unit =  Auth::user()->unit; 
             $jurnal->kode_transaksi = $request['idpenjualan'];
-            $jurnal->kode_rekening = 1420000;
-            $jurnal->tanggal_transaksi = '2019-07-03';
+            $jurnal->kode_rekening = 2500000;
+            $jurnal->tanggal_transaksi = $now;
             $jurnal->jenis_transaksi  = 'Jurnal System';
             $jurnal->keterangan_transaksi = 'Musawamah ';
-            $jurnal->debet = $sisa;
+            $jurnal->debet = $os_tambah;
             $jurnal->kredit = 0;
-            $jurnal->tanggal_posting = '2019-07-03';
+            $jurnal->tanggal_posting = ' ';
             $jurnal->keterangan_posting = ' ';
             $jurnal->id_admin = Auth::user()->id; 
             $jurnal->save();
@@ -344,13 +357,27 @@ class PenjualanDetailMemberInsanController extends Controller
             $jurnal = new TabelTransaksi;
             $jurnal->unit =  Auth::user()->unit; 
             $jurnal->kode_transaksi = $request['idpenjualan'];
-            $jurnal->kode_rekening = 111000;
-            $jurnal->tanggal_transaksi = '2019-07-03';
+            $jurnal->kode_rekening = 1120000;
+            $jurnal->tanggal_transaksi = $now;
+            $jurnal->jenis_transaksi  = 'Jurnal System';
+            $jurnal->keterangan_transaksi = 'Musawamah ';
+            $jurnal->debet =$request['selisih'];
+            $jurnal->kredit = 0;
+            $jurnal->tanggal_posting = ' ';
+            $jurnal->keterangan_posting = ' ';
+            $jurnal->id_admin = Auth::user()->id; 
+            $jurnal->save();
+
+            $jurnal = new TabelTransaksi;
+            $jurnal->unit =  Auth::user()->unit; 
+            $jurnal->kode_transaksi = $request['idpenjualan'];
+            $jurnal->kode_rekening = 1482000;
+            $jurnal->tanggal_transaksi = $now;
             $jurnal->jenis_transaksi  = 'Jurnal System';
             $jurnal->keterangan_transaksi = 'Musawamah ';
             $jurnal->debet =0;
-            $jurnal->kredit = $sisa;
-            $jurnal->tanggal_posting = '2019-07-03';
+            $jurnal->kredit = $request['bayar'];
+            $jurnal->tanggal_posting = ' ';
             $jurnal->keterangan_posting = ' ';
             $jurnal->id_admin = Auth::user()->id; 
             $jurnal->save();
@@ -359,12 +386,12 @@ class PenjualanDetailMemberInsanController extends Controller
             $jurnal->unit = '1010'; 
             $jurnal->kode_transaksi = $request['idpenjualan'];
             $jurnal->kode_rekening = $coa_aktiva_member;
-            $jurnal->tanggal_transaksi = '2019-07-03';
+            $jurnal->tanggal_transaksi = $now;
             $jurnal->jenis_transaksi  = 'Jurnal System';
             $jurnal->keterangan_transaksi = 'Musawamah ';
-            $jurnal->debet = $transaksi;
+            $jurnal->debet = $os_tambah;
             $jurnal->kredit = 0;
-            $jurnal->tanggal_posting = '2019-07-03';
+            $jurnal->tanggal_posting = ' ';
             $jurnal->keterangan_posting = '0';
             $jurnal->id_admin = Auth::user()->id; 
             $jurnal->save();
@@ -373,12 +400,12 @@ class PenjualanDetailMemberInsanController extends Controller
             $jurnal->unit =  '1010'; 
             $jurnal->kode_transaksi = $request['idpenjualan'];
             $jurnal->kode_rekening = $coa_aktiva_user;
-            $jurnal->tanggal_transaksi = '2019-07-03';
+            $jurnal->tanggal_transaksi = $now;
             $jurnal->jenis_transaksi  = 'Jurnal System';
             $jurnal->keterangan_transaksi = 'Musawamah ';
             $jurnal->debet =0;
-            $jurnal->kredit = $transaksi;
-            $jurnal->tanggal_posting = '2019-07-03';
+            $jurnal->kredit = $os_tambah;
+            $jurnal->tanggal_posting = ' ';
             $jurnal->keterangan_posting = '0';
             $jurnal->id_admin = Auth::user()->id; 
             $jurnal->save();
@@ -390,12 +417,12 @@ class PenjualanDetailMemberInsanController extends Controller
             $jurnal->unit =  $unit_member; 
             $jurnal->kode_transaksi = $request['idpenjualan'];
             $jurnal->kode_rekening = 1412000;
-            $jurnal->tanggal_transaksi = '2019-07-03';
+            $jurnal->tanggal_transaksi = $now;
             $jurnal->jenis_transaksi  = 'Jurnal System';
             $jurnal->keterangan_transaksi = 'Musawamah ';
             $jurnal->debet = $transaksi;
             $jurnal->kredit = 0;
-            $jurnal->tanggal_posting = '2019-07-03';
+            $jurnal->tanggal_posting = ' ';
             $jurnal->keterangan_posting = ' ';
             $jurnal->id_admin = Auth::user()->id; 
             $jurnal->save();
@@ -404,12 +431,12 @@ class PenjualanDetailMemberInsanController extends Controller
             $jurnal->unit = $unit_member; 
             $jurnal->kode_transaksi = $request['idpenjualan'];
             $jurnal->kode_rekening = 2500000;
-            $jurnal->tanggal_transaksi = '2019-07-03';
+            $jurnal->tanggal_transaksi = $now;
             $jurnal->jenis_transaksi  = 'Jurnal System';
             $jurnal->keterangan_transaksi = 'Musawamah ';
             $jurnal->debet =0;
             $jurnal->kredit = $transaksi;
-            $jurnal->tanggal_posting = '2019-07-03';
+            $jurnal->tanggal_posting = ' ';
             $jurnal->keterangan_posting = ' ';
             $jurnal->id_admin = Auth::user()->id; 
             $jurnal->save();
@@ -418,12 +445,12 @@ class PenjualanDetailMemberInsanController extends Controller
             $jurnal->unit =  Auth::user()->unit; 
             $jurnal->kode_transaksi = $request['idpenjualan'];
             $jurnal->kode_rekening = 2500000;
-            $jurnal->tanggal_transaksi = '2019-07-03';
+            $jurnal->tanggal_transaksi = $now;
             $jurnal->jenis_transaksi  = 'Jurnal System';
             $jurnal->keterangan_transaksi = 'Musawamah ';
             $jurnal->debet = $transaksi;
             $jurnal->kredit = 0;
-            $jurnal->tanggal_posting = '2019-07-03';
+            $jurnal->tanggal_posting = ' ';
             $jurnal->keterangan_posting = '0';
             $jurnal->id_admin = Auth::user()->id; 
             $jurnal->save();
@@ -432,12 +459,12 @@ class PenjualanDetailMemberInsanController extends Controller
             $jurnal->unit =  Auth::user()->unit; 
             $jurnal->kode_transaksi = $request['idpenjualan'];
             $jurnal->kode_rekening = 1482000;
-            $jurnal->tanggal_transaksi = '2019-07-03';
+            $jurnal->tanggal_transaksi = $now;
             $jurnal->jenis_transaksi  = 'Jurnal System';
             $jurnal->keterangan_transaksi = 'Musawamah ';
             $jurnal->debet =0;
             $jurnal->kredit = $transaksi;
-            $jurnal->tanggal_posting = '2019-07-03';
+            $jurnal->tanggal_posting = ' ';
             $jurnal->keterangan_posting = '0';
             $jurnal->id_admin = Auth::user()->id; 
             $jurnal->save();
@@ -447,12 +474,12 @@ class PenjualanDetailMemberInsanController extends Controller
             $jurnal->unit = '1010'; 
             $jurnal->kode_transaksi = $request['idpenjualan'];
             $jurnal->kode_rekening = $coa_aktiva_member;
-            $jurnal->tanggal_transaksi = '2019-07-03';
+            $jurnal->tanggal_transaksi = $now;
             $jurnal->jenis_transaksi  = 'Jurnal System';
             $jurnal->keterangan_transaksi = 'Musawamah ';
             $jurnal->debet = $transaksi;
             $jurnal->kredit = 0;
-            $jurnal->tanggal_posting = '2019-07-03';
+            $jurnal->tanggal_posting = ' ';
             $jurnal->keterangan_posting = '0';
             $jurnal->id_admin = Auth::user()->id; 
             $jurnal->save();
@@ -461,19 +488,49 @@ class PenjualanDetailMemberInsanController extends Controller
             $jurnal->unit =  '1010'; 
             $jurnal->kode_transaksi = $request['idpenjualan'];
             $jurnal->kode_rekening = $coa_aktiva_user;
-            $jurnal->tanggal_transaksi = '2019-07-03';
+            $jurnal->tanggal_transaksi = $now;
             $jurnal->jenis_transaksi  = 'Jurnal System';
             $jurnal->keterangan_transaksi = 'Musawamah ';
             $jurnal->debet =0;
             $jurnal->kredit = $transaksi;
-            $jurnal->tanggal_posting = '2019-07-03';
+            $jurnal->tanggal_posting = ' ';
             $jurnal->keterangan_posting = '0';
             $jurnal->id_admin = Auth::user()->id; 
             $jurnal->save();
-         
-         
+                
          
          }
+      }
+
+      if($request['donasi']>0){
+         $jurnal = new TabelTransaksi;
+         $jurnal->unit =  Auth::user()->unit; 
+         $jurnal->kode_transaksi = $request['idpenjualan'];
+         $jurnal->kode_rekening = 1120000;
+         $jurnal->tanggal_transaksi = $now;
+         $jurnal->jenis_transaksi  = 'Jurnal System';
+         $jurnal->keterangan_transaksi = 'Musawamah ';
+         $jurnal->debet = $request['donasi'];
+         $jurnal->kredit = 0;
+         $jurnal->tanggal_posting = ' ';
+         $jurnal->keterangan_posting = '0';
+         $jurnal->id_admin = Auth::user()->id; 
+         $jurnal->save();
+
+         $jurnal = new TabelTransaksi;
+         $jurnal->unit =  Auth::user()->unit; 
+         $jurnal->kode_transaksi = $request['idpenjualan'];
+         $jurnal->kode_rekening = 1482000;
+         $jurnal->tanggal_transaksi = $now;
+         $jurnal->jenis_transaksi  = 'Jurnal System';
+         $jurnal->keterangan_transaksi = 'Donasi dari Penjualan ';
+         $jurnal->debet =0;
+         $jurnal->kredit = $request['donasi'];
+         $jurnal->tanggal_posting = ' ';
+         $jurnal->keterangan_posting = '0';
+         $jurnal->id_admin = Auth::user()->id; 
+         $jurnal->save();
+      
       }
       $detail = PenjualanDetail::where('id_penjualan', '=', $request['idpenjualan'])->get();
       foreach($detail as $data){
@@ -487,14 +544,55 @@ class PenjualanDetailMemberInsanController extends Controller
    }
    
    public function loadForm($diskon, $total, $diterima){
-     $bayar = $total - ($diskon / 100 * $total);
-     $kembali = ($diterima != 0) ? $diterima - $bayar : 0;
+      //$bayar = $total - ($diskon / 100 * $total);
+      
+      $idmember=session('idmember');
+      $datam = Musawamah::where('id_member', '=', $idmember)->first();
+      $musawamah=$datam->os;
+      $os=$datam->os;
+      $pla=$datam->Plafond;
+      
+      
+      $bayar = $total - ($diskon);
+      $selisih =($os + $bayar)-$pla;
+      
 
-     $data = array(
+      if($selisih > 0){
+         $bayar_cash=$selisih;
+      }elseif($selisih < 0)
+      {
+         $bayar_cash=0;
+
+      }else{
+
+         $bayar_cash=$selisih;
+      }      
+       
+
+      $sisa_os=$pla-$os;
+
+      if($bayar < $sisa_os){
+         $musawamah=$os + $bayar;
+      }else{
+         $musawamah=$pla;
+      }   
+
+
+
+      
+       $kembali = ($diterima != 0) ? $bayar_cash - $diterima : 0;
+      
+
+      $data = array(
         "totalrp" => format_uang($total),
         "bayar" => $bayar,
+        "pla" => $pla,      
+        "os" => $os, 
+        "musawamah" => $musawamah,
+        "member" => $idmember,    
+        "selisih" => $bayar_cash,                       
         "bayarrp" => format_uang($bayar),
-        "terbilang" => ucwords(terbilang($bayar))." Rupiah",
+        "terbilang" => ucwords(terbilang($selisih))." Rupiah",
         "kembalirp" => format_uang($kembali),
         "kembaliterbilang" => ucwords(terbilang($kembali))." Rupiah"
       );
@@ -594,7 +692,8 @@ class PenjualanDetailMemberInsanController extends Controller
    }
    public function notaPDF(){
      $detail = PenjualanDetail::leftJoin('produk', 'produk.kode_produk', '=', 'penjualan_detail.kode_produk')
-        ->where('id_penjualan', '=', session('idpenjualan'))
+     ->where('id_penjualan', '=', session('idpenjualan'))
+     ->where('unit', '=',Auth::user()->unit)
         ->get();
 
       $penjualan = Penjualan::find(session('idpenjualan'));
