@@ -15,6 +15,7 @@
     <div class="box">
     
 
+
       <div class="box-header">
         <a onclick="addForm()" class="btn btn-success"><i class="fa fa-plus-circle"></i> Surat Jalan Baru</a>
         @if(!empty(session('idpembelian')))

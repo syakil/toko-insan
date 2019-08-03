@@ -29,7 +29,7 @@ class PembelianAdminController extends Controller
     public function detail($id){
 
         $detail = DB::table('pembelian_temporary_detail','produk')
-                    ->select('pembelian_temporary_detail.*','produk.kode_produk','produk.nama_produk','produk.satuan','produk.isi_pack')
+                    ->select('pembelian_temporary_detail.*','produk.kode_produk','produk.nama_produk','produk.satuan','produk.isi_satuan')
                     ->leftJoin('produk','pembelian_temporary_detail.kode_produk','=','produk.kode_produk')
                     ->where('unit',Auth::user()->unit)
                     ->where('id_pembelian',$id)
@@ -51,28 +51,27 @@ class PembelianAdminController extends Controller
 
         
         $pembelian = PembelianDetail::where('kode_produk',$detail->kode_produk)
-                                    ->where('id_pembelian',$detail->id_pembelian)
                                     ->get();
 
         foreach($pembelian as $param){
 
             $param->harga_beli = $detail->harga_beli;
             $param->update();
-            $param->sub_total = round($param->harga_beli * $param->jumlah);
+            $param->sub_total = round($param->harga_beli * $param->jumlah_terima);
             $param->update();
             
             $produks_detail = ProdukDetail::where('kode_produk',$param->kode_produk)
                                             ->where('expired_date',$param->expired_date)
                                             ->get();
             foreach ($produks_detail as $produk ) {
-                $produk->harga_beli = round($param->harga_beli / $produk->isi_pack_detail);
+                $produk->harga_beli = round($param->harga_beli / $produk->isi_satuan_detail);
                 $produk->update();
             }
 
             $produks = Produk::where('kode_produk',$param->kode_produk)
                             ->get();
             foreach ($produks as $produk ) {
-                $produk->harga_beli = round($param->harga_beli / $produk->isi_pack);
+                $produk->harga_beli = round($param->harga_beli / $produk->isi_satuan);
                 $produk->update();
             }
         }

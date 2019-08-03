@@ -39,8 +39,14 @@ class TerimaTokoController extends Controller
 
     public function update_jumlah_terima(Request $request,$id){
 
-        $kirim_detail = KirimDetail::where('id_pembelian_detail',$id);
+        $kirim_detail = KirimDetail::where('id_pembelian_detail',$id)->first();
         $kirim_detail->update(['jumlah_terima'=>$request->value]);
+        
+        $total = KirimDetail::where('id_pembelian',$kirim_detail->id_pembelian)->sum('jumlah_terima');
+
+        $kirim = Kirim::where('id_pembelian',$kirim_detail->id_pembelian)->first();
+        $kirim->total_terima = $total;
+        $kirim->update();
 
 
         
@@ -51,10 +57,18 @@ class TerimaTokoController extends Controller
         foreach($produk_detail as $detail){
 
             // harga sub total kirim_barang_detail
-            $sub_total = $detail->harga_beli * $request->value;
+            $sub_total = $detail->harga_jual * $request->value;
             $produk_sub_total = KirimDetail::where('id_pembelian_detail',$id);
             $produk_sub_total->update(['sub_total_terima'=>$sub_total]);
+
         }
+
+        
+        $total_terima = KirimDetail::where('id_pembelian',$kirim_detail->id_pembelian)->sum('sub_total_terima');
+
+        $kirim = Kirim::where('id_pembelian',$kirim_detail->id_pembelian)->first();
+        $kirim->total_harga_terima = $total_terima;
+        $kirim->update();
 
     }
 
@@ -93,7 +107,7 @@ class TerimaTokoController extends Controller
                 $insert_produk->id_kategori = $p->id_kategori;
                 $insert_produk->nama_produk = $p->nama_produk;
                 $insert_produk->stok_detail = $p->jumlah_terima;
-                $insert_produk->harga_beli = $p->harga_beli;
+                $insert_produk->harga_beli = $produk_main->harga_beli;
                 $insert_produk->expired_date = $p->expired_date;
                 $insert_produk->unit = Auth::user()->unit;
                 $insert_produk->save();

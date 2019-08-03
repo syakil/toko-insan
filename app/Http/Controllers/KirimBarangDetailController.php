@@ -14,8 +14,8 @@ use DB;
 class KirimBarangDetailController extends Controller
 {
    public function  index(){
-      $produk = ProdukDetail:: all() 
-      ->where('unit', '=', Auth::user()->unit);
+      $produk = Produk:: all() 
+                        ->where('unit', '=', Auth::user()->unit);
       $idpembelian = session('idpembelian');
       $supplier = Supplier::find(session('idsupplier'));
       $branch = Branch::find(session('kode_toko'));
@@ -25,7 +25,7 @@ class KirimBarangDetailController extends Controller
     public function listData($id)
    {
    
-     $detail = KirimDetail::leftJoin('produk_detail', 'produk_detail.kode_produk', '=', 'kirim_barang_detail.kode_produk')
+     $detail = KirimDetail::leftJoin('produk', 'produk.kode_produk', '=', 'kirim_barang_detail.kode_produk')
         ->where('id_pembelian', '=', $id)
         ->where('unit', '=', Auth::user()->unit)        
         ->get();
@@ -39,12 +39,12 @@ class KirimBarangDetailController extends Controller
        $row[] = $no;
        $row[] = $list->kode_produk;
        $row[] = $list->nama_produk;
-       $row[] = "Rp. ".format_uang($list->harga_beli);
+       $row[] = "Rp. ".format_uang($list->harga_jual);
        $row[] = "<input type='number' class='form-control' name='jumlah_$list->id_pembelian_detail' value='$list->jumlah' onChange='changeCount($list->id_pembelian_detail)'>";
-       $row[] = "Rp. ".format_uang($list->harga_beli * $list->jumlah);
+       $row[] = "<input type='date' class='form-control' name='expired_$list->id_pembelian_detail' value='$list->expired_date' onChange='changeCount($list->id_pembelian_detail)'>";
        $row[] = '<a onclick="deleteItem('.$list->id_pembelian_detail.')" class="btn btn-danger btn-sm"><i class="fa fa-trash"></i></a>';
        $data[] = $row;
-       $total += $list->harga_beli * $list->jumlah;
+       $total += $list->harga_jual * $list->jumlah;
        $total_item += $list->jumlah;
      }
      $data[] = array("<span class='hide total'>$total</span><span class='hide totalitem'>$total_item</span>", "", "", "", "", "", "");
@@ -67,7 +67,7 @@ class KirimBarangDetailController extends Controller
       $detail->jumlah = 1;
       $detail->expired_date =$produk->expired_date;
       $detail->jumlah_terima = 0;
-      $detail->sub_total = $produk->harga_beli;
+      $detail->sub_total = $produk->harga_jual;
       $detail->sub_total_terima = 0;
       $detail->jurnal_status = 0;
       $detail->save();
@@ -75,9 +75,12 @@ class KirimBarangDetailController extends Controller
    public function update(Request $request, $id)
    {
       $nama_input = "jumlah_".$id;
+      $exp_input = "expired_".$id;
+
       $detail = KirimDetail::find($id);
       $detail->jumlah = $request[$nama_input];
-      $detail->sub_total = $detail->harga_beli * $request[$nama_input];
+      $detail->expired_date = $request[$exp_input];
+      $detail->sub_total = $detail->harga_jual * $request[$nama_input];
       $detail->update();
    }
    public function destroy($id)

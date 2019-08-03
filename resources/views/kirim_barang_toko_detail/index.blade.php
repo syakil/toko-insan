@@ -21,7 +21,7 @@
   <tr><td width="150">Supplier</td><td><b>{{ $branch->nama_toko }}</b></td></tr>
   <tr><td>Alamat</td><td><b>{{ $branch->alamat }}</b></td></tr>
   <tr><td>Telpon</td><td><b>{{ $branch->telpon }}</b></td></tr>
-  <tr><td>Kode Toko</td><td><b>{{ $branch->kode_toko }}</b></td></tr>
+  <tr><td>Kode Gudang</td><td><b>{{ $branch->kode_gudang }}</b></td></tr>
 </table>
 <hr>
 

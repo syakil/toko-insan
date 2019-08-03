@@ -89,7 +89,6 @@ class KirimBarangTokoController extends Controller{
 
 
 
-
   public function cetak($id){
     $data['produk'] = KirimDetail::leftJoin('produk_detail','kirim_barang_detail.kode_produk','=','produk_detail.kode_produk')
                                       ->where('id_pembelian',$id)

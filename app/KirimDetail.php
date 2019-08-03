@@ -9,4 +9,6 @@ class KirimDetail extends Model
     protected $table = 'kirim_barang_detail';
     protected $primaryKey = 'id_pembelian_detail';
 
+    protected $fillable = ['jumlah_terima'];
+
 }

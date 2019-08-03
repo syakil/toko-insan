@@ -87,7 +87,6 @@ class KirimBarangController extends Controller{
 
 
 
-
   public function cetak($id){
     $data['produk'] = KirimDetail::leftJoin('produk_detail','kirim_barang_detail.kode_produk','=','produk_detail.kode_produk')
                                       ->where('id_pembelian',$id)
@@ -169,7 +168,9 @@ class KirimBarangController extends Controller{
         // jika produk ybs kosong krim pesan eror
         // dd($produk_detail);
         if ($produk_detail == null) {
-          return view('kirim_barang.index')->with(['error' => 'Stock Kosong/Kadaluarsa']);
+          $supplier = Supplier::all();
+          $branch = Branch::all();
+          return back()->with(['error' => 'Stock Kosong/Kadaluarsa']);
         }
         // else
 
@@ -249,9 +250,11 @@ class KirimBarangController extends Controller{
         $jurnal->save();
       }
       // --- /kode syakil ---
-
-      return Redirect::route('kirim_barang.index');
       
+      $supplier = Supplier::all();
+      $branch = Branch::all();
+      // dd($branch);
+      return view('kirim_barang.index', compact('supplier','branch')); 
       
     }
 

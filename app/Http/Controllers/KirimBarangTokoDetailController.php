@@ -9,21 +9,24 @@ use App\Produk;
 use App\ProdukDetail;
 use App\KirimDetail;
 use App\Branch;
+use DB;
+
 class KirimBarangTokoDetailController extends Controller
 {
    public function  index(){
-      $produk = ProdukDetail:: all() 
+      
+      $produk = Produk:: all() 
          ->where('unit', '=', Auth::user()->unit);
       $idpembelian = session('idpembelian');
       $branch = Branch::where('kode_gudang',session('idsupplier'))->first();
       $supplier = Branch::where('kode_gudang',session('kode_toko'))->first();
 
-      return view('kirim_barang_toko_detail.index', compact('produk', 'idpembelian', 'supplier','branch'));
+      return view('kirim_barang_toko_detail.index', compact('produk', 'idpembelian', 'supplier','branch'));   
    }
     public function listData($id)
    {
    
-     $detail = KirimDetail::leftJoin('produk_detail', 'produk_detail.kode_produk', '=', 'kirim_barang_detail.kode_produk')
+     $detail = KirimDetail::leftJoin('produk', 'produk.kode_produk', '=', 'kirim_barang_detail.kode_produk')
         ->where('id_pembelian', '=', $id)
         ->where('unit', '=', Auth::user()->unit)        
         ->get();
@@ -37,32 +40,35 @@ class KirimBarangTokoDetailController extends Controller
        $row[] = $no;
        $row[] = $list->kode_produk;
        $row[] = $list->nama_produk;
-       $row[] = "Rp. ".format_uang($list->harga_beli);
+       $row[] = "Rp. ".format_uang($list->harga_jual);
        $row[] = "<input type='number' class='form-control' name='jumlah_$list->id_pembelian_detail' value='$list->jumlah' onChange='changeCount($list->id_pembelian_detail)'>";
-       $row[] = "Rp. ".format_uang($list->harga_beli * $list->jumlah);
+       $row[] = "<input type='date' class='form-control' name='expired_$list->id_pembelian_detail' value='$list->expired_date' onChange='changeCount($list->id_pembelian_detail)'>";
        $row[] = '<a onclick="deleteItem('.$list->id_pembelian_detail.')" class="btn btn-danger btn-sm"><i class="fa fa-trash"></i></a>';
        $data[] = $row;
-       $total += $list->harga_beli * $list->jumlah;
+       $total += $list->harga_jual * $list->jumlah;
        $total_item += $list->jumlah;
      }
      $data[] = array("<span class='hide total'>$total</span><span class='hide totalitem'>$total_item</span>", "", "", "", "", "", "");
     
-      $output = array("data" => $data);
-      return response()->json($output);
+     $output = array("data" => $data);
+     return response()->json($output);
    }
    public function store(Request $request)
    {
-      $produk = ProdukDetail::where('kode_produk', '=', $request['kode'])
-      ->where('unit', '=',  Auth::user()->unit)
-      ->first();
+      $produk = DB::table('produk_detail','produk')
+                  ->leftJoin('produk','produk_detail.kode_produk','=','produk.kode_produk')
+                  ->select('produk_detail.*','produk.kode_produk','produk.harga_jual')
+                  ->where('produk_detail.kode_produk',$request['kode'])
+                  ->where('produk_detail.unit',Auth::user()->unit)
+                  ->first();
       $detail = new KirimDetail;
       $detail->id_pembelian = $request['idpembelian'];
       $detail->kode_produk = $request['kode'];
-      $detail->harga_beli = $produk->harga_beli;
+      $detail->harga_jual = $produk->harga_jual;
       $detail->jumlah = 1;
       $detail->expired_date =$produk->expired_date;
       $detail->jumlah_terima = 0;
-      $detail->sub_total = $produk->harga_beli;
+      $detail->sub_total = $produk->harga_jual;
       $detail->sub_total_terima = 0;
       $detail->jurnal_status = 0;
       $detail->save();
@@ -70,9 +76,12 @@ class KirimBarangTokoDetailController extends Controller
    public function update(Request $request, $id)
    {
       $nama_input = "jumlah_".$id;
+      $exp_input = "expired_".$id;
+
       $detail = KirimDetail::find($id);
       $detail->jumlah = $request[$nama_input];
-      $detail->sub_total = $detail->harga_beli * $request[$nama_input];
+      $detail->expired_date = $request[$exp_input];
+      $detail->sub_total = $detail->harga_jual * $request[$nama_input];
       $detail->update();
    }
    public function destroy($id)
