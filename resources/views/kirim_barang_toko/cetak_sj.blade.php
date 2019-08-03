@@ -64,21 +64,21 @@
 
     <div class="box1">
         <strong>Penerima Barang :</strong><br>
-        @foreach ($alamat as $s)
+        
         <table cellspacing="0">
         <tr>
         <td>Nama Toko</td>
-        <td>: {{$s->nama_gudang}}</td>
+        <td>: {{$alamat->nama_gudang}}</td>
         </tr>
         <tr>
         <td>Kode Gudang</td>
-        <td>: {{$s->kode_gudang}}</td>
+        <td>: {{$alamat->kode_gudang}}</td>
         </tr>
         <tr>
         <td>Alamat</td>
-        <td>: {{$s->alamat}} - {{$s->region}}</td>
+        <td>: {{$alamat->alamat}} - {{$alamat->region}}</td>
         </tr>
-        @endforeach
+        
         </table>
     </div>
 
@@ -103,9 +103,8 @@
             @endforeach
             <tr>
                 <td>Pengirim</td>
-                @foreach($alamat as $d)
-                <td>: {{$d->nama_toko}} ({{$d->kode_toko}})</td>
-                @endforeach
+                <td>: {{$alamat->nama_toko}} ({{$alamat->kode_toko}})</td>
+                
             </tr>
         </table>
     </div>

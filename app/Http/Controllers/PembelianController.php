@@ -42,7 +42,6 @@ class PembelianController extends Controller
        $row[] = "Rp. ".format_uang($list->bayar);
        $row[] = '<div class="btn-group">
                <a onclick="showDetail('.$list->id_pembelian.')" class="btn btn-primary btn-sm"><i class="fa fa-eye"></i></a>
-               <a onclick="deleteData('.$list->id_pembelian.')" class="btn btn-danger btn-sm"><i class="fa fa-trash"></i></a>
                <a href="/toko-master/pembelian/'.$list->id_pembelian.'/poPDF" class="btn btn-print btn-sm" target="_blank"><i class="fa fa-print"></i></a>
               </div>';
        $data[] = $row;

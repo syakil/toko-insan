@@ -49,7 +49,7 @@
                         <td>{{$p->jumlah}}</td>
                         <td>{{$p->satuan}}</td>
                         <td>{{$p->isi_satuan}}</td>
-                        <td><a href="#" class="edit" data-type="number" data-pk="{{$p->id_pembelian_detail}}" data-url="{{ route('ubah.harga',$p->id_pembelian_detail)}}" data-title="Masukan Harga">{{$p->sub_total}}</a></td>        
+                        <td><a href="#" class="edit" data-type="number" data-pk="{{$p->id_pembelian_detail}}" data-url="{{ route('ubah.harga',$p->id_pembelian_detail)}}" data-title="Masukan Harga">{{$p->sub_total_terima}}</a></td>        
                     </tr>
                     @endforeach
                 </tbody>

@@ -33,14 +33,11 @@ class UserController extends Controller
    public function store(Request $request)
    {
       $user = new User;
-      $user->id = 'spvs';
-
       $user->name = $request['nama'];
       $user->unit = $request['unit'];
-  
+      $user->level = $request['level'];
       $user->email = $request['email'];
       $user->password = bcrypt($request['password']);
-      $user->level = 2;
       $user->foto = "user.png";
       $user->save();
    }

@@ -6,6 +6,7 @@ use Illuminate\Http\Request;
 use App\Kirim;
 use App\KirimDetail;
 use Auth;
+use App\TabelTransaksi;
 use PDF;
 use DB;
 use App\Produk;
@@ -16,7 +17,7 @@ class ReturGudangController extends Controller
     public function index(){
         // menampilkan data Kirim where status app = gudang
         // barang dari gudang ke toko
-        $transfer = Kirim::leftJoin('branch','kirim_barang.id_user','=','branch.kode_toko')
+        $transfer = Kirim::leftJoin('branch','kirim_barang.kode_gudang','=','branch.kode_toko')
                         ->where('status_kirim','retur')
                         ->where('tujuan','gudang')
                         ->get();
@@ -165,12 +166,47 @@ class ReturGudangController extends Controller
                     $insert_produk->expired_date = $p->expired_date;
                     $insert_produk->unit = $p->unit;
                     $insert_produk->save();
-    
+                    
+                                
+                $data = Kirim::leftJoin('branch','kirim_barang.id_supplier','=','branch.kode_toko')
+                            ->where('id_pembelian',$p->id_pembelian)
+                            ->get();
+                            
+                foreach($data as $d){
+                    $jurnal = new TabelTransaksi;
+                    $jurnal->unit =  Auth::user()->unit; 
+                    $jurnal->kode_transaksi = $d->id_pembelian;
+                    $jurnal->kode_rekening = 1482000;
+                    $jurnal->tanggal_transaksi  = date('Y-m-d');
+                    $jurnal->jenis_transaksi  = 'Jurnal System';
+                    $jurnal->keterangan_transaksi = 'ReturGudang' . ' ' . $d->id_pembelian . ' ' . $d->nama_toko;
+                    $jurnal->debet =$d->total_harga;
+                    $jurnal->kredit = 0;
+                    $jurnal->tanggal_posting = '';
+                    $jurnal->keterangan_posting = '0';
+                    $jurnal->id_admin = Auth::user()->id; 
+                    $jurnal->save();
+
+                    $jurnal = new TabelTransaksi;
+                    $jurnal->unit =  Auth::user()->unit; 
+                    $jurnal->kode_transaksi = $d->id_pembelian;
+                    $jurnal->kode_rekening = 2500000;
+                    $jurnal->tanggal_transaksi  = date('Y-m-d');
+                    $jurnal->jenis_transaksi  = 'Jurnal System';
+                    $jurnal->keterangan_transaksi = 'ReturGudang' . ' ' . $d->id_pembelian . ' ' . $d->nama_toko;
+                    $jurnal->debet =0;
+                    $jurnal->kredit =$d->total_harga;
+                    $jurnal->tanggal_posting = '';
+                    $jurnal->keterangan_posting = '0';
+                    $jurnal->id_admin = Auth::user()->id; 
+                    $jurnal->save();
                 }
             }
+
+        }
             
             return redirect()->route('retur.index');
-        }
+    }
     
         
 }

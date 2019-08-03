@@ -14,7 +14,9 @@ use Yajra\Datatables\Datatables;
 use App\PenjualanDetail;
 use App\TabelTransaksi; 
 use App\Branch;
-use App\Musawamah;  
+use App\Musawamah;
+
+use App\ProdukDetail;  
 use App\MusawamahDetail;  
 use Alert;  
 

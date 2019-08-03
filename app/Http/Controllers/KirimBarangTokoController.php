@@ -94,10 +94,10 @@ class KirimBarangTokoController extends Controller{
                                       ->where('produk_detail.unit',Auth::user()->unit)
                                       ->get();
 
-    $data['alamat'] = Kirim::leftJoin('branch','kirim_barang.id_supplier','=','branch.kode_gudang')
-                            ->where('id_pembelian',$id)
-                            ->get();
-                                
+    $data['alamat']= Kirim::leftJoin('branch','kirim_barang.kode_gudang','=','branch.kode_toko')
+                          ->where('id_pembelian',$id)
+                          ->first();                            
+    
     $data['nosurat'] = Kirim::where('id_pembelian',$id)->get();
     $data['no'] =1;
     $pdf = PDF::loadView('kirim_barang_toko.cetak_sj', $data);
@@ -237,7 +237,7 @@ class KirimBarangTokoController extends Controller{
         $jurnal = new TabelTransaksi;
         $jurnal->unit =  Auth::user()->unit; 
         $jurnal->kode_transaksi = $d->id_pembelian;
-        $jurnal->kode_rekening = 1482000;
+        $jurnal->kode_rekening = 2500000;
         $jurnal->tanggal_transaksi  = date('Y-m-d');
         $jurnal->jenis_transaksi  = 'Jurnal System';
         $jurnal->keterangan_transaksi = 'ReturGudang' . ' ' . $d->id_pembelian . ' ' . $d->nama_toko;

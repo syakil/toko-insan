@@ -92,10 +92,9 @@ class KirimBarangController extends Controller{
                                       ->where('produk_detail.unit',Auth::user()->unit)
                                       ->get();
 
-    $data['alamat'] = Kirim::leftJoin('branch','kirim_barang.kode_gudang','=','branch.kode_gudang')
+    $data['alamat']= Kirim::leftJoin('branch','kirim_barang.kode_gudang','=','branch.kode_gudang')
                             ->where('id_pembelian',$id)
-                            ->get();
-                                
+                            -first();
     $data['nosurat'] = Kirim::where('id_pembelian',$id)->get();
     $data['no'] =1;
     $pdf = PDF::loadView('kirim_barang.cetak_sj', $data);

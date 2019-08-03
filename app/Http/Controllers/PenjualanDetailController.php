@@ -9,6 +9,8 @@ use Auth;
 use PDF;
 use App\Penjualan;
 use App\Produk;
+
+use App\ProdukDetail;
 use App\Member;
 use App\Setting;
 use App\PenjualanDetail;

@@ -54,7 +54,7 @@
                         <td>{{$p->kode_gudang}}</td>
                         <td>{{$p->nama}}</td>
                         <td>{{ tanggal_indonesia(substr($p->created_at, 0, 10), false)}}</td>
-                        <td>{{$p->total_harga}}</td>
+                        <td>{{$p->total_harga_terima}}</td>
                         <td>
                         <!-- <a href="#" class="tanggal" data-type="combodate" data-pk="1" data-url="/post" data-value="{{date('Y-m-d')}}" data-title="Select date">{{$p->jatuh_tempo}}</a> -->
                         <a href="#" class="tanggal" data-type="combodate" data-pk="{{$p->id_pembelian}}" data-url="{{ route('ubah.jatuh_tempo',$p->id_pembelian)}}" data-value="{{date('Y-m-d')}}" data-title="Masukan Tanggal"></a>

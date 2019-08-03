@@ -13,6 +13,7 @@ use App\Setting;
 use Yajra\Datatables\Datatables;
 use App\PenjualanDetail;
 use App\TabelTransaksi; 
+use App\ProdukDetail;
 use App\Branch;
 use App\Musawamah;  
 use App\MusawamahDetail;  

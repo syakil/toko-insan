@@ -28,7 +28,7 @@
                         <th width='1%'>No.</th>
                         <th>No. Surat Jalan</th>
                         <th>Unit</th>
-                        <th>Supplier</th>
+                        <th>Nama Toko</th>
                         <th>Tanggal</th>
                         <th>Total Item</th>
                         <th>Total Terima</th>
@@ -43,7 +43,7 @@
                         <td>{{$no++}}</td>
                         <td>{{$p->id_pembelian}}</td>
                         <td>{{$p->kode_gudang}}</td>
-                        <td>{{$p->nama}}</td>
+                        <td>{{$p->nama_toko}}</td>
                         <td>{{tanggal_indonesia(substr($p->created_at, 0, 10), false)}}</td>
                         <td>{{$p->total_item}}</td>
                         <td>{{$p->total_terima}}</td>

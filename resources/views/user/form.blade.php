@@ -28,6 +28,13 @@
       </div>
    </div>
    <div class="form-group">
+      <label for="level" class="col-md-3 control-label">Level</label>
+      <div class="col-md-6">
+         <input id="level" type="text" class="form-control" name="level" autofocus required>
+         <span class="help-block with-errors"></span>
+      </div>
+   </div>
+   <div class="form-group">
       <label for="email" class="col-md-3 control-label">Email</label>
       <div class="col-md-6">
          <input id="email" type="email" class="form-control" name="email" required>

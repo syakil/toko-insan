@@ -45,7 +45,7 @@ class PembelianAdminController extends Controller
 
         $detail = PembelianTemporaryDetail::where('id_pembelian_detail',$id)->first();
         // dd($detail);
-        $detail->sub_total = $request->value;
+        $detail->sub_total_terima = $request->value;
         $detail->harga_beli = round($request->value/$detail->jumlah);
         $detail->update();
 
@@ -57,7 +57,7 @@ class PembelianAdminController extends Controller
 
             $param->harga_beli = $detail->harga_beli;
             $param->update();
-            $param->sub_total = round($param->harga_beli * $param->jumlah_terima);
+            $param->sub_total_terima = $detail->harga_beli;
             $param->update();
             
             $produks_detail = ProdukDetail::where('kode_produk',$param->kode_produk)
@@ -76,9 +76,9 @@ class PembelianAdminController extends Controller
             }
         }
         
-        $total_harga = PembelianTemporaryDetail::where('id_pembelian',$detail->id_pembelian)->sum('sub_total');
+        $total_harga = PembelianTemporaryDetail::where('id_pembelian',$detail->id_pembelian)->sum('sub_total_terima');
         $total = PembelianTemporary::where('id_pembelian',$detail->id_pembelian)->first();
-        $total->total_harga = $total_harga;
+        $total->total_harga_terima = $total_harga;
         $total->update();
         
         
@@ -142,10 +142,11 @@ class PembelianAdminController extends Controller
     // simpan ke tabel transaksi jika di pilih beberapa PO
     public function store_jurnal(Request $request){
         $data = $request->check;    
-        foreach ($data as $d) {    
+        foreach ($data as $id) {    
+
             //insert jurnal 
             $jurnal = PembelianTemporary::leftJoin('supplier','supplier.id_supplier','=','pembelian_temporary.id_supplier')
-            ->where('id_pembelian',$d)
+            ->where('id_pembelian',$id)
             ->get();
 
             foreach($jurnal as $d){
@@ -157,7 +158,7 @@ class PembelianAdminController extends Controller
                     $jurnal->tanggal_transaksi  = date('Y-m-d');
                     $jurnal->jenis_transaksi  = 'Jurnal System';
                     $jurnal->keterangan_transaksi = 'Pembelian' . ' ' . $d->id_pembelian . ' ' . $d->nama;
-                    $jurnal->debet = $d->total_harga;
+                    $jurnal->debet = $d->total_harga_terima;
                     $jurnal->kredit = 0;
                     $jurnal->tanggal_posting = '';
                     $jurnal->keterangan_posting = '0';
@@ -172,7 +173,7 @@ class PembelianAdminController extends Controller
                     $jurnal->jenis_transaksi  = 'Jurnal System';
                     $jurnal->keterangan_transaksi = 'Pembelian' . ' ' . $d->id_pembelian . ' ' . $d->nama;
                     $jurnal->debet =0;
-                    $jurnal->kredit = $d->total_harga;
+                    $jurnal->kredit = $d->total_harga_terima;
                     $jurnal->tanggal_posting = '';
                     $jurnal->keterangan_posting = '0';
                     $jurnal->id_admin = Auth::user()->id; 
@@ -185,7 +186,7 @@ class PembelianAdminController extends Controller
                 $jurnal->tanggal_transaksi  = date('Y-m-d');
                 $jurnal->jenis_transaksi  = 'Jurnal System';
                 $jurnal->keterangan_transaksi = 'Pembelian' . ' ' . $d->id_pembelian . ' ' . $d->nama;
-                $jurnal->debet = $d->total_harga;
+                $jurnal->debet = $d->total_harga_terima;
                 $jurnal->kredit = 0;
                 $jurnal->tanggal_posting = '';
                 $jurnal->keterangan_posting = '0';
@@ -200,7 +201,7 @@ class PembelianAdminController extends Controller
                 $jurnal->jenis_transaksi  = 'Jurnal System';
                 $jurnal->keterangan_transaksi = 'Pembelian' . ' ' . $d->id_pembelian . ' ' . $d->nama;
                 $jurnal->debet =0;
-                $jurnal->kredit = $d->total_harga;
+                $jurnal->kredit = $d->total_harga_terima;
                 $jurnal->tanggal_posting = '';
                 $jurnal->keterangan_posting = '0';
                 $jurnal->id_admin = Auth::user()->id; 
@@ -208,8 +209,9 @@ class PembelianAdminController extends Controller
                 }
             }
             // updates status menjadi 2
-            // $data = PembelianTemporary::where('id_pembelian',$d)->first();
-            // $data->update(['status'=>2]);
+            $data = PembelianTemporary::where('id_pembelian',$id)->first();
+            $data->status = 2;
+            $data->update();
         }
         return redirect('pembelian_admin/index');
     }
@@ -236,7 +238,7 @@ class PembelianAdminController extends Controller
                 $jurnal->tanggal_transaksi  = date('Y-m-d');
                 $jurnal->jenis_transaksi  = 'Jurnal System';
                 $jurnal->keterangan_transaksi = 'Pembelian' . ' ' . $d->id_pembelian . ' ' . $d->nama;
-                $jurnal->debet = $d->total_harga;
+                $jurnal->debet = $d->total_harga_terima;
                 $jurnal->kredit = 0;
                 $jurnal->tanggal_posting = '';
                 $jurnal->keterangan_posting = '0';
@@ -251,7 +253,7 @@ class PembelianAdminController extends Controller
                 $jurnal->jenis_transaksi  = 'Jurnal System';
                 $jurnal->keterangan_transaksi = 'Pembelian' . ' ' . $d->id_pembelian . ' ' . $d->nama;
                 $jurnal->debet =0;
-                $jurnal->kredit = $d->total_harga;
+                $jurnal->kredit = $d->total_harga_terima;
                 $jurnal->tanggal_posting = '';
                 $jurnal->keterangan_posting = '0';
                 $jurnal->id_admin = Auth::user()->id; 
@@ -264,7 +266,7 @@ class PembelianAdminController extends Controller
                     $jurnal->tanggal_transaksi  = date('Y-m-d');
                     $jurnal->jenis_transaksi  = 'Jurnal System';
                     $jurnal->keterangan_transaksi = 'Pembelian' . ' ' . $d->id_pembelian . ' ' . $d->nama;
-                    $jurnal->debet = $d->total_harga;
+                    $jurnal->debet = $d->total_harga_terima;
                     $jurnal->kredit = 0;
                     $jurnal->tanggal_posting = '';
                     $jurnal->keterangan_posting = '0';
@@ -279,13 +281,17 @@ class PembelianAdminController extends Controller
                     $jurnal->jenis_transaksi  = 'Jurnal System';
                     $jurnal->keterangan_transaksi = 'Pembelian' . ' ' . $d->id_pembelian . ' ' . $d->nama;
                     $jurnal->debet =0;
-                    $jurnal->kredit = $d->total_harga;
+                    $jurnal->kredit = $d->total_harga_terima;
                     $jurnal->tanggal_posting = '';
                     $jurnal->keterangan_posting = '0';
                     $jurnal->id_admin = Auth::user()->id; 
                     $jurnal->save();
             }
         }
+
+        $data = PembelianTemporary::where('id_pembelian',$request->id)->first();
+        $data->update(['status'=>2]);
+
         return redirect('pembelian_admin/index');
     }
 }
