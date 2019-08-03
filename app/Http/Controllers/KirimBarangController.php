@@ -49,7 +49,6 @@ class KirimBarangController extends Controller{
         $row[] = "Rp. ".format_uang($list->bayar);
         $row[] = '<div class="btn-group">
                 <a onclick="showDetail('.$list->id_pembelian.')" class="btn btn-primary btn-sm"><i class="fa fa-eye"></i></a>
-                <a onclick="deleteData('.$list->id_pembelian.')" class="btn btn-danger btn-sm"><i class="fa fa-trash"></i></a>
                 <a href="/toko-master/kirim_barang/'.$list->id_pembelian.'/poPDF" class="btn btn-print btn-sm" target="_blank"><i class="fa fa-print"></i></a>
               </div>';
         $data[] = $row;
@@ -137,14 +136,6 @@ class KirimBarangController extends Controller{
       $pembelian->update();
 
       $detail = KirimDetail::where('id_pembelian', '=', $request['idpembelian'])->get();
-      
-      // delete
-      // foreach($detail as $data){
-      //   $produk = Produk::where('kode_produk', '=', $data->kode_produk)->first();
-      //   $produk->stok += $data->jumlah;
-      //   $produk->update();
-      // }
-      
       //code syakil
       
       // code mengurangi produk
@@ -264,8 +255,10 @@ class KirimBarangController extends Controller{
 
       $detail = KirimDetail::where('id_pembelian', '=', $id)->get();
       foreach($detail as $data){
-        $produk = ProdukDetail::where('kode_produk', '=', $data->kode_produk)->first();
-        $produk->stok -= $data->jumlah;
+        $produk = ProdukDetail::where('kode_produk', '=', $data->kode_produk)
+                                ->where('expired_date',$data->expired_date)                      
+                                ->first();
+        $produk->stok += $data->jumlah;
         $produk->update();
         $data->delete();
       }

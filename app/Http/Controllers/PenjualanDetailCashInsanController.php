@@ -220,11 +220,81 @@ class PenjualanDetailCashInsanController extends Controller
       }
 
       $detail = PenjualanDetail::where('id_penjualan', '=', $request['idpenjualan'])->get();
-      foreach($detail as $data){
-        $produk = Produk::where('kode_produk', '=', $data->kode_produk)->first();
-        $produk->stok -= $data->jumlah;
-        $produk->update();
-      }
+      
+      // ____ //
+
+      foreach($detail as $d){
+         // kode produk
+         $kode = $d->kode_produk;
+         
+         // buat variable stok_dikirim dari field jumlah dari table kirim_detail
+         $stok_dikirim = $d->jumlah;
+         $stok_dikirim2 = $d->jumlah;
+         $now = \Carbon\Carbon::now();
+         
+         // mengaambil stok di produk_detail berdasar barcode dan expired date lebih awal yang terdapat di kirim_detail
+         produk:
+         $produk_detail = ProdukDetail::where('kode_produk',$kode)
+         ->where('unit',Auth::user()->unit)
+         ->where('expired_date','>',$now)
+         ->where('stok_detail','>','0')
+         ->orderBy('expired_date','ASC')
+         ->first();
+         // jika produk ybs kosong krim pesan eror
+         // dd($produk_detail);
+         if ($produk_detail == null) {
+           $supplier = Supplier::all();
+           $branch = Branch::all();
+           return back()->with(['error' => 'Stock Kosong/Kadaluarsa']);
+         }
+         // else
+ 
+         // buat variable stok gudan dari field stok_detail dari table produk_detail
+         $stok_gudang = $produk_detail->stok_detail;
+         
+         // mengurangi stok kirim dengan stok gudang
+         $stok = $stok_dikirim - $stok_gudang;
+         // sisa pengurangan diatas menjadi stok yang dkirim
+         $stok_dikirim = $stok;
+         
+         // jika hasilnya lebih dari nol
+         if ($stok >= 0) {
+             // update produk_detail->stok_detail menjadi nol berdasar barcode dan tgl expired
+             $produk_detail->update(['stok_detail'=>0]);
+ 
+             // mengulangi looping
+             goto produk;
+           }else if($stok < 0){
+             // else
+             // update stok berdasar sisa pengurangan
+             $produk_detail->update(['stok_detail'=>abs($stok)]);
+         }
+         
+       }
+ 
+       foreach($detail as $d){
+         // kode produk
+         $kode = $d->kode_produk;
+         
+         // buat variable stok_dikirim dari field jumlah dari table kirim_detail
+         $stok_dikirim = $d->jumlah;
+         
+         // update stok-> produk
+         $produk_inti = Produk::where('kode_produk',$kode)
+         ->where('unit',Auth::user()->unit)->get();
+         // dd($stok_baru);
+         foreach ($produk_inti as $prod) {
+           $update = Produk::where('kode_produk',$kode)
+                                 ->where('unit',Auth::user()->unit);
+           $stok_baru = $prod->stok - $stok_dikirim;
+           $update->update(['stok'=> $stok_baru]);
+         }
+       }
+ 
+
+
+      //____ //
+
       return Redirect::route('memberinsan.cetak');
    }
    
