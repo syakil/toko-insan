@@ -15,7 +15,7 @@ class PengeluaranController extends Controller
 {
     public function index()
     {
-      $coa = Coa::all()->where('gr_sub', '=', '1310000');
+      $coa = Coa::all()->where('gr_head', '=', '1300000');
     
        return view('pengeluaran.index', compact('coa')); 
 
@@ -46,7 +46,10 @@ class PengeluaranController extends Controller
 
     public function store(Request $request)
     {
-      $now = \Carbon\Carbon::now();
+      //$now = \Carbon\Carbon::now();
+$param_tgl = \App\ParamTgl::where('nama_param_tgl','tanggal_transaksi')->where('unit',Auth::user()->id)->first();
+      $now = $param_tgl->param_tgl;
+
       $kode=Uuid::uuid4()->getHex();
       $kode_t=substr($kode,25);
       $unit=Auth::user()->unit;
@@ -56,6 +59,7 @@ class PengeluaranController extends Controller
 
         $pengeluaran = new Pengeluaran;
         $pengeluaran->jenis_pengeluaran   = $request['ket'];
+$pengeluaran->jenis_pengeluaran   = $unit;
         $pengeluaran->jenis_transaksi   = $request['trns'];        
         $pengeluaran->nominal = $request['nominal'];
         $pengeluaran->save();

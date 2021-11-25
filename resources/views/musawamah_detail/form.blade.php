@@ -33,7 +33,7 @@
 </div>
    
    <div class="modal-footer">
-      <button type="submit" class="btn btn-primary btn-save"><i class="fa fa-floppy-o"></i> Simpan </button>
+      <button type="submit" class="btn btn-primary btn-save tombol-simpan"><i class="fa fa-floppy-o"></i> Simpan </button>
       <button type="button" class="btn btn-warning" data-dismiss="modal"><i class="fa fa-arrow-circle-left"></i> Batal</button>
    </div>
       

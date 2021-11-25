@@ -19,7 +19,6 @@
             <th>Jumlah</th>
             <th>Diterima</th>
             <th>Status</th>
-             <th align="right">Sub Total</th>
          </tr>
       </thead>
       <tbody></tbody>   
@@ -31,3 +30,4 @@
         </div>
     </div>
 </div>
+

@@ -21,8 +21,8 @@
          @foreach($supplier as $data)
          <tr>
             <th>{{ $data->nama }}</th>
-            <th>{{ $data->alamat }}</th>
-            <th>{{ $data->telpon }}</th>
+            <th>{{ $data->alamat_supplier }}</th>
+            <th>{{ $data->telepon }}</th>
             <th><a href="pembelian/{{ $data->id_supplier }}/tambah" class="btn btn-primary"><i class="fa fa-check-circle"></i> Pilih</a></th>
           </tr>
          @endforeach

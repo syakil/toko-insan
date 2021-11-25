@@ -10,6 +10,19 @@
 @endsection
 
 @section('content')     
+
+@if ($message = Session::get('error'))
+  <script>
+    var pesan = "{{$message}}"
+    swal("Maaf !", pesan, "error"); 
+  </script>
+@elseif ($message = Session::get('success'))
+  <script>
+    var pesan = "{{$message}}"
+    swal("Selamat !", pesan, "success"); 
+  </script>
+@endif
+
 <div class="row">
   <div class="col-xs-12">
     <div class="box">
@@ -18,13 +31,17 @@
       </div>
       <div class="box-body">  
 
-<table class="table table-striped">
+<table class="table table-striped supplier">
 <thead>
    <tr>
       <th width="30">No</th>
       <th>Nama Supplier</th>
       <th>Alamat</th>
       <th>Telpon</th>
+      <th>PIC</th>
+      <th>No Rekening</th>
+      <th>Bank</th>
+      <th>Metode Bayar</th>
       <th width="100">Aksi</th>
    </tr>
 </thead>
@@ -40,86 +57,58 @@
 @endsection
 
 @section('script')
+
 <script type="text/javascript">
 var table, save_method;
-$(function(){
-   table = $('.table').DataTable({
-     "processing" : true,
-     "ajax" : {
-       "url" : "{{ route('supplier.data') }}",
-       "type" : "GET"
-     }
-   }); 
+
+$(document).ready(function() {
+  table = $('.supplier').DataTable({
+    "processing" : true,
+    "ajax" : {
+      "url" : "{{ route('supplier.data') }}",
+      "type" : "GET"
+    }
+  })  
    
-   $('#modal-form form').validator().on('submit', function(e){
-      if(!e.isDefaultPrevented()){
-         var id = $('#id').val();
-         if(save_method == "add") url = "{{ route('supplier.store') }}";
-         else url = "supplier/"+id;
-         
-         $.ajax({
-           url : url,
-           type : "POST",
-           data : $('#modal-form form').serialize(),
-           success : function(data){
-             $('#modal-form').modal('hide');
-             table.ajax.reload();
-           },
-           error : function(){
-             alert("Tidak dapat menyimpan data!");
-           }   
-         });
-         return false;
-     }
-   });
-});
+  
+}); 
 
 function addForm(){
-   save_method = "add";
-   $('input[name=_method]').val('POST');
    $('#modal-form').modal('show');
+   $('#form_action').attr('action', "{{route('supplier.tambah')}}")
    $('#modal-form form')[0].reset();            
    $('.modal-title').text('Tambah Supplier');
 }
 
 function editForm(id){
-   save_method = "edit";
-   $('input[name=_method]').val('PATCH');
-   $('#modal-form form')[0].reset();
-   $.ajax({
-     url : "supplier/"+id+"/edit",
-     type : "GET",
-     dataType : "JSON",
-     success : function(data){
-       $('#modal-form').modal('show');
-       $('.modal-title').text('Edit Supplier');
-       
-       $('#id').val(data.id_supplier);
-       $('#nama').val(data.nama);
-       $('#alamat').val(data.alamat);
-       $('#telepon').val(data.telpon);
-       
-     },
-     error : function(){
-       alert("Tidak dapat menampilkan data!");
-     }
-   });
+  $('#modal-form form')[0].reset();   
+  url = "{{route('supplier.edit',':id')}}";
+  url = url.replace(':id',id);
+  $.ajax({
+    url : url,
+    type : "GET",
+    dataType : "JSON",
+    success : function(data){
+      $('#modal-form').modal('show');
+      $('.modal-title').text('Edit Supplier');
+      link = "{{route('supplier.update_supplier',':id')}}";
+      link = link.replace(':id',id);
+      $('#form_action').attr('action', link);
+      $('#id').val(data.id_supplier);
+      $('#nama').val(data.nama);
+      $('#alamat').val(data.alamat);
+      $('#telepon').val(data.telpon);
+      $('#pic').val(data.pic);
+      $('#norek').val(data.norek);
+      $('#nama_rek').val(data.nama_rek);
+      $('#bank').val(data.bank);
+      $('#metode').val(data.metode);     
+    },
+    error : function(){
+      alert("Tidak dapat menampilkan data!");
+    }
+  });
 }
 
-function deleteData(id){
-   if(confirm("Apakah yakin data akan dihapus?")){
-     $.ajax({
-       url : "supplier/"+id,
-       type : "POST",
-       data : {'_method' : 'DELETE', '_token' : $('meta[name=csrf-token]').attr('content')},
-       success : function(data){
-         table.ajax.reload();
-       },
-       error : function(){
-         alert("Tidak dapat menghapus data!");
-       }
-     });
-   }
-}
 </script>
 @endsection

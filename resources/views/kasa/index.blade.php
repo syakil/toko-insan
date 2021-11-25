@@ -10,6 +10,17 @@
 @endsection
 
 @section('content')     
+@if ($message = Session::get('error'))
+      <script>
+        var pesan = "{{$message}}"
+        swal("Maaf !", pesan, "error"); 
+      </script>
+    @elseif ($message = Session::get('success'))
+      <script>
+        var pesan = "{{$message}}"
+        swal("Selamat !", pesan, "success"); 
+      </script>
+    @endif
 <div class="row">
   <div class="col-xs-12">
     <div class="box">
@@ -36,9 +47,11 @@
       <th>2 Ribu</th>
       <th>1 Ribu</th>
       <th>100</th>
-      <th>50</th>
-      <th>total</th>
-      <th width="100">Aksi</th>
+      <th>Jumlah Cash</th>
+      <th>Penjualan Cash</th>
+      <th>Penjualan Musawamah</th>
+      <th>Total</th>
+      <th>Selisih</th>
    </tr>
 </thead>
 <tbody></tbody>
@@ -59,6 +72,7 @@ var table, save_method;
 $(function(){
    table = $('.table').DataTable({
      "processing" : true,
+"scrollX" : "100%",
      "ajax" : {
        "url" : "{{ route('kasa.data') }}",
        "type" : "GET"
@@ -159,7 +173,7 @@ function printCard(){
   if($('input:checked').length < 1){
     alert('Pilih data yang akan dicetak!');
   }else{
-    $('#form-member').attr('target', '_blank').attr('action', "kasa/cetak").submit();
+    $('#form-member').attr('target', '_blank').attr('action', "kasa/printeod").submit();
   }
 }
 </script>
@@ -270,7 +284,7 @@ function total_jml() {
          var g = document.getElementById('jml_seribu').value;
          var h = document.getElementById('jml_limaratus').value;
          var i = document.getElementById('jml_seratus').value;
-         var j = document.getElementById('jml_lima_puluh').value;
+         var j = 0;
          var tot = parseInt(a) + parseInt(b) + parseInt(c) + parseInt(d) + parseInt(e) + parseInt(f) + parseInt(g) + parseInt(h) + parseInt(i)+ parseInt(j);
       if (!isNaN(tot)) {
          document.getElementById('jumlah').value = tot;
@@ -279,3 +293,4 @@ function total_jml() {
 }
 </script>
 @endsection
+

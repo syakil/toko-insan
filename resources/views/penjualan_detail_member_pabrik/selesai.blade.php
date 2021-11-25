@@ -32,7 +32,7 @@
               }              
             </script>
           @endif
-          <a class="btn btn-primary btn-lg" href="{{ route('memberpabrik.new') }}">Transaksi Baru</a>
+          <a class="btn btn-primary btn-lg" href="{{ route('memberpabrik.menu') }}">Transaksi Baru</a>
           <br><br><br><br>
       </div>
    </div>

@@ -9,113 +9,125 @@ use App\Produk;
 use App\ProdukDetail;
 use App\Member;
 use App\Setting;
+use DB;
+use App\PenjualanDetailTemporary;
 use App\TabelTransaksi;
-use App\PenjualanDetail;   
+use App\KartuStok;
+use App\PenjualanDetail; 
+use App\Branch; 
+
 
 
 class PenjualanDetailCashInsanController extends Controller
 {
    public function index(){
-      $produk = Produk::all() -> where('stok', '>', '0');
-      $member = Member:: all() -> where('jenis', '=', '1');
+      
+      $produk = Produk::where('stok', '>', '0')
+      -> where('unit', '=',  Auth::user()->unit)->get();
+      $member = Member::where('jenis', '=', '1')->get();
       $setting = Setting::first();
      
-     if(!empty(session('idpenjualan'))){
-       $idpenjualan = session('idpenjualan');
-       return view('penjualan_detail_member_insan.index', compact('produk', 'member', 'setting', 'idpenjualan'));
-     }else{
-       return Redirect::route('home');  
-     }
-   }
-
-
-
-   public function listData($id)
-   {
-
       
-     $detail = PenjualanDetail::leftJoin('produk', 'produk.kode_produk', '=', 'penjualan_detail.kode_produk')
-        ->where('id_penjualan', '=', $id)
-        ->get();
-        $no = 0;
-        $data = array();
-        $total = 0;
-        $total_item = 0;
-        $stok=0;
-        $in=0;
-        foreach($detail as $list){
-          $no ++;
-          $row = array();
-          $row[] = $no;
-          $row[] = $list->kode_produk;
-          $row[] = $list->nama_produk;
-          $row[] = "Rp. ".format_uang($list->harga_jual_member_insan);
-          $row[] = "<input type='number' class='form-control' name='jumlah_$list->id_penjualan_detail' value='$list->jumlah' onChange='changeCount($list->id_penjualan_detail)'>";
-          $row[] = $list->diskon;
-          $row[] = "Rp. ".format_uang($list->sub_total);
-          $row[] = '<div class="btn-group">
-                  <a onclick="deleteItem('.$list->id_penjualan_detail.')" class="btn btn-danger btn-sm"><i class="fa fa-trash"></i></a>';
-          $data[] = $row;
-   
-          $total += $list->harga_jual_member_insan * $list->jumlah;
-          $total_item += $list->jumlah;
-          $stok= $list->stok;
-          $in=$list->jumlah;
-
-        }
-        if($stok<$in){
-         $data[] = array("Stok kurang");
-       
-         $output = array("data" => $data);
-         return response()->json($output);
-        }else{
-   
-        $data[] = array("<span class='hide total'>$total</span><span class='hide totalitem'>$total_item</span>", "", "", "", "", "", "", "");
-       
-        $output = array("data" => $data);
-        return response()->json($output);
-        }
+      if(!empty(session('idpenjualan'))){
+         $idpenjualan = session('idpenjualan');
+         return view('penjualan_detail_cashinsan.index', compact('produk', 'member', 'setting', 'idpenjualan'));
+      }else{
+         return Redirect::route('home');  
       }
+
+   }
+
+
+
+   public function listData($id){
+      
+      $detail = PenjualanDetailTemporary::leftJoin('produk', 'produk.kode_produk', '=', 'penjualan_detail_temporary.kode_produk')
+         ->where('id_penjualan', '=', $id)
+         -> where('unit', '=',  Auth::user()->unit)
+         ->orderBy('id_penjualan_detail','desc')
+         ->get();
+         
+      $no = 0;
+      $data = array();
+      $total = 0;
+      $total_item = 0;
+      foreach($detail as $list){
+         
+         $no ++;
+         $row = array();
+         $row[] = $no;
+         $row[] = $list->kode_produk;
+         $row[] = $list->nama_produk;
+         $row[] = $list->stok;
+         $row[] = "Rp. ".format_uang($list->harga_jual_member_insan);
+         $row[] = "<input type='number' class='form-control' name='jumlah_$list->id_penjualan_detail' value='$list->jumlah' onChange='changeCount($list->id_penjualan_detail)'>";
+         $row[] = $list->diskon;
+         $row[] = "Rp. ".format_uang($list->sub_total);
+         $row[] = '<div class="btn-group">
+                  <a onclick="deleteItem('.$list->id_penjualan_detail.')" class="btn btn-danger btn-sm"><i class="fa fa-trash"></i></a>';
+         $data[] = $row;
    
+         $total += $list->harga_jual_member_insan * $list->jumlah - $list->diskon ;
+         $total_item += $list->jumlah;
 
-   public function store(Request $request)
-   {
-        $produk = Produk::where('kode_produk', '=', $request['kode'])->first();
+      }   
+        
+   
+      $data[] = array("<span class='hide total'>$total</span><span class='hide totalitem'>$total_item</span>", "", "", "", "", "", "", "","");
+      
+      $output = array("data" => $data);
+      return response()->json($output);     
+      
+         
+   }
+   
+   public function store(Request $request){
 
-        $detail = new PenjualanDetail;
-        $detail->id_penjualan = $request['idpenjualan'];
-        $detail->kode_produk = $request['kode'];
-        $detail->harga_jual = $produk->harga_jual;
-        $detail->jumlah = 1;
-        $detail->diskon = $produk->diskon;
-        $detail->sub_total = $produk->harga_jual_member_insan - ($produk->diskon);
-        $detail->save();
+      $produk = DB::select('select kode_produk,harga_jual_member_insan,harga_beli,promo,diskon from produk where kode_produk = '.$request["kode"] .' and unit = '.Auth::user()->unit);
+
+      $detail = new PenjualanDetailTemporary;
+      $detail->id_penjualan = $request['idpenjualan'];
+      $detail->kode_produk = $produk[0]->kode_produk;
+      $detail->harga_jual = $produk[0]->harga_jual_member_insan;
+      $detail->harga_beli = $produk[0]->harga_beli;
+      $detail->promo = $produk[0]->promo;
+      $detail->jumlah = '';
+      $detail->diskon = $produk[0]->diskon;
+      $detail->sub_total = ($produk[0]->harga_jual_member_insan - ($produk[0]->diskon)) * $detail->jumlah;
+      $detail->sub_total_beli = $produk[0]->harga_beli;  
+      $detail->save();
 
    }
 
-   public function update(Request $request, $id)
-   {
+   public function update(Request $request, $id){
+      
       $nama_input = "jumlah_".$id;
-      $detail = PenjualanDetail::find($id);
-      $total_harga = $request[$nama_input] * $detail->harga_jual;
-
+      $detail = PenjualanDetailTemporary::where('id_penjualan_detail',$id)->first();       
+      $total_harga = ($request[$nama_input] * $detail->harga_jual);
       $detail->jumlah = $request[$nama_input];
-      $detail->sub_total = $total_harga - ($detail->diskon/100 * $total_harga);
+      $detail->sub_total = $total_harga - $detail->diskon;  
+      $detail->sub_total_beli = ($request[$nama_input] * $detail->harga_beli);
       $detail->update();
+
    }
 
-   public function destroy($id)
-   {
-      $detail = PenjualanDetail::find($id);
+   
+   public function destroy($id){
+
+      $detail = PenjualanDetailTemporary::find($id);
       $detail->delete();
+
    }
 
-   public function newSession()
-   {
+   public function newSession(){
+
       $penjualan = new Penjualan; 
       $penjualan->kode_member = 0;    
       $penjualan->total_item = 0;    
       $penjualan->total_harga = 0;    
+      $penjualan->total_harga_beli = 0;    
+      $penjualan->unit = Auth::user()->unit;
+      $penjualan->type_transaksi = 'cash';
       $penjualan->diskon = 0;    
       $penjualan->bayar = 0;    
       $penjualan->diterima = 0;    
@@ -124,179 +136,498 @@ class PenjualanDetailCashInsanController extends Controller
       
       session(['idpenjualan' => $penjualan->id_penjualan]);
 
-      return Redirect::route('memberinsan.index');    
+      return Redirect::route('cashinsan.index');    
+   
    }
 
  
 
-   public function saveData(Request $request)
-   {
+   public function saveData(Request $request){
 
-      $now = \Carbon\Carbon::now();
-      $penjualan_dis= PenjualanDetail::groupBy('id_penjualan')
-   ->select('id_penjualan', \DB::raw('sum(diskon) as diskon'))
-   ->where('id_penjualan', '=', $request['idpenjualan'])
-   ->first();
+      try{
 
-    $penjualan = Penjualan::find($request['idpenjualan']);
-      $penjualan->kode_member = $request['member'];
-      $penjualan->total_item = $request['totalitem'];
-      $penjualan->total_harga = $request['total'];
-      $penjualan->diskon = $penjualan_dis->diskon;
-      $penjualan->bayar = $request['bayar'];
-      $penjualan->diterima = $request['diterima'];
-      $penjualan->update();
+         DB::beginTransaction();
+
+         $details = PenjualanDetailTemporary::where('id_penjualan', '=', $request['idpenjualan'])->get();
       
-      if($penjualan_dis->diskon == 0){
-      $jurnal = new TabelTransaksi;
-        $jurnal->unit =  Auth::user()->unit; 
-        $jurnal->kode_transaksi = $request['idpenjualan'];
-        $jurnal->kode_rekening = 1120000;
-        $jurnal->tanggal_transaksi  = $now;
-        $jurnal->jenis_transaksi  = 'Jurnal Umum';
-        $jurnal->keterangan_transaksi = 'Penjualan';
-        $jurnal->debet =$request['bayar'];
-        $jurnal->kredit = 0;
-        $jurnal->tanggal_posting = '';
-        $jurnal->keterangan_posting = '0';
-        $jurnal->id_admin = Auth::user()->id; 
-        $jurnal->save();
-  
-        $jurnal = new TabelTransaksi;
-        $jurnal->unit =  Auth::user()->unit; 
-        $jurnal->kode_transaksi = $request['idpenjualan'];
-        $jurnal->kode_rekening = 1482000;
-        $jurnal->tanggal_transaksi  = $now;
-        $jurnal->jenis_transaksi  = 'Jurnal Umum';
-        $jurnal->keterangan_transaksi = 'Penjualan';
-        $jurnal->debet =0;
-        $jurnal->kredit =$request['bayar'];
-        $jurnal->tanggal_posting = '';
-        $jurnal->keterangan_posting = '0';
-        $jurnal->id_admin = Auth::user()->id; 
-        $jurnal->save();
-      }
-      else{
+         // cek stok tersedia, jika melibih akan kembali kemenu transaksi dan memberikan notifikasi bahwa stok kurang/kosong
+         foreach($details as $list){
+
+            $cek_sum_penjualan = PenjualanDetailTemporary::where('id_penjualan', $list->id_penjualan)->where('kode_produk',$list->kode_produk)->sum('jumlah');
+            $produk = Produk::where('kode_produk',$list->kode_produk)->where('unit',Auth::user()->unit)->first();
+            $produk_detail = ProdukDetail::where('kode_produk',$list->kode_produk)
+            ->where('unit',Auth::user()->unit)
+            ->sum('stok_detail');
+                           
+            if($cek_sum_penjualan > $produk->stok){
+               return back()->with(['error' => 'Stock '. $list->kode_produk . ' Kurang']);
+            }
+
+            if($cek_sum_penjualan > $produk_detail){
+               return back()->with(['error' => 'Stock '. $list->kode_produk . ' Kurang']);
+            }
+            
+            if($list->jumlah == 0){
+               return back()->with(['error' => 'Masukan Qty '. $list->kode_produk]);
+            }
+
+         }
+
+         // looping mengurangi stok pada table produk_detail
+         foreach($details as $d){
+
+            $kode = $d->kode_produk;
+            $jumlah_penjualan = $d->jumlah;
+            $id_penjualan = $d->id_penjualan;
+
+            $now = \Carbon\Carbon::now();
+
+            // mengaambil stok di produk_detail berdasar barcode dan harga beli lebih rendah (stok yang tesedria) yang terdapat di penjualan_detail_temporary
+            produk:
+            $produk_detail = ProdukDetail::where('kode_produk',$kode)
+            ->where('unit',Auth::user()->unit)
+            ->where('stok_detail','>','0')
+            ->orderBy('tanggal_masuk','ASC')
+            ->first();
+            
+            // buat variable stok toko dari column stok_detail dari table produk_detail
+            $stok_toko = $produk_detail->stok_detail;
+            // buat variable harga_beli dari column harga_beli dari table produk_detail
+            $harga_beli = $produk_detail->harga_beli;
+      
+            // jika qty penjualan == jumlah stok yang tersedia ditoko
+            if ($jumlah_penjualan == $stok_toko) {
+            
+               if ($d->harga_jual > $produk_detail->harga_beli) {
+                  
+                  $harga_beli_0 = $stok_toko * $produk_detail->harga_beli; 
+                  $harga_jual_0 = $stok_toko * $d->harga_jual;
+                  
+                  $jurnal = new TabelTransaksi;
+                  $jurnal->unit =  Auth::user()->unit; 
+                  $jurnal->kode_transaksi = $request['idpenjualan'];
+                  $jurnal->kode_rekening = 1482000;
+                  $jurnal->tanggal_transaksi  = $now;
+                  $jurnal->jenis_transaksi  = 'Jurnal System';
+                  $jurnal->keterangan_transaksi = 'Persediaan Barang Dagang '.$produk_detail->kode_produk;
+                  $jurnal->debet = 0;
+                  $jurnal->kredit = $harga_jual_0;
+                  $jurnal->tanggal_posting = '';
+                  $jurnal->keterangan_posting = '0';
+                  $jurnal->id_admin = Auth::user()->id; 
+                  $jurnal->save();
+                  
+               }else {
+                  
+                  $harga_beli_promo_0 = $produk_detail->stok_detail * $produk_detail->harga_beli; 
+                  $harga_jual_promo_0 = $produk_detail->stok_detail * $d->harga_jual;
+                  
+                  $jurnal = new TabelTransaksi;
+                  $jurnal->unit =  Auth::user()->unit; 
+                  $jurnal->kode_transaksi = $request['idpenjualan'];
+                  $jurnal->kode_rekening = 1482000;
+                  $jurnal->tanggal_transaksi  = $now;
+                  $jurnal->jenis_transaksi  = 'Jurnal System';
+                  $jurnal->keterangan_transaksi = 'Persediaan Barang Dagang '.$produk_detail->kode_produk;
+                  $jurnal->debet = 0;
+                  $jurnal->kredit = $harga_beli_promo_0;
+                  $jurnal->tanggal_posting = '';
+                  $jurnal->keterangan_posting = '0';
+                  $jurnal->id_admin = Auth::user()->id; 
+                  $jurnal->save();
+
+               }
+               
+               
+               $produk_detail->update(['stok_detail'=>0]);
+
+               // crate penjualan_detail berdasarkan penjualan_detail_temporary
+               $new_detail = new PenjualanDetail;
+               $new_detail->id_penjualan = $id_penjualan;
+               $new_detail->kode_produk = $kode;
+               // harga_jual disesuaikan dengan yang ada dimaster produk/table produk, yang sudah ter record pada penjualan_detail_temporary
+               $new_detail->harga_jual = $d->harga_jual;
+               // harga_beli disesuaikan dengan produk_detail
+               $new_detail->harga_beli = $produk_detail->harga_beli;
+               $new_detail->promo = $d->promo;
+               $new_detail->jumlah = $jumlah_penjualan;
+               $new_detail->diskon = $d->diskon;
+               $new_detail->sub_total = $d->harga_jual * $stok_toko;
+               $new_detail->sub_total_beli = $produk_detail->harga_beli * $stok_toko;  
+               $new_detail->no_faktur = $produk_detail->no_faktur;
+               $new_detail->save();
+                
+               $kartu_stok = new KartuStok;
+               $kartu_stok->buss_date = date('Y-m-d');
+               $kartu_stok->kode_produk = $kode;
+               $kartu_stok->masuk = 0;
+               $kartu_stok->keluar = $jumlah_penjualan;
+               $kartu_stok->status = 'penjualan';
+               $kartu_stok->kode_transaksi = $id_penjualan;
+               $kartu_stok->unit = Auth::user()->unit;
+               $kartu_stok->save();
+            // jika selisih qty penjualan dengan jumlah stok yang tersedia
+            }else {
+            
+               // mengurangi qty penjualan dengan stok toko berdasarkan stok_detail(table produk_detail)
+               $stok = $jumlah_penjualan - $stok_toko;
+
+               // jika hasilnya lebih dari nol atau tidak minus, stok_detail tsb tidak memenuhi qty penjualan dan harus ambil lagi record pada produk detail~
+               // ~ yang stok nya lebih dari nol
+
+               if ($stok >= 0) {
+               
+                  if ($d->harga_jual > $produk_detail->harga_beli) {
+                  
+                     $harga_beli_0 = $produk_detail->stok_detail * $produk_detail->harga_beli; 
+                     $harga_jual_0 = $produk_detail->stok_detail * $d->harga_jual;
+                     
+                     $jurnal = new TabelTransaksi;
+                     $jurnal->unit =  Auth::user()->unit; 
+                     $jurnal->kode_transaksi = $request['idpenjualan'];
+                     $jurnal->kode_rekening = 1482000;
+                     $jurnal->tanggal_transaksi  = $now;
+                     $jurnal->jenis_transaksi  = 'Jurnal System';
+                     $jurnal->keterangan_transaksi = 'Persediaan Barang Dagang '.$produk_detail->kode_produk;
+                     $jurnal->debet = 0;
+                     $jurnal->kredit = $harga_jual_0;
+                     $jurnal->tanggal_posting = '';
+                     $jurnal->keterangan_posting = '0';
+                     $jurnal->id_admin = Auth::user()->id; 
+                     $jurnal->save();
+                     
+                  }else {
+                     
+                     $harga_beli_promo_0 = $produk_detail->stok_detail * $produk_detail->harga_beli; 
+                     $harga_jual_promo_0 = $produk_detail->stok_detail * $d->harga_jual;
+                     
+                     $jurnal = new TabelTransaksi;
+                     $jurnal->unit =  Auth::user()->unit; 
+                     $jurnal->kode_transaksi = $request['idpenjualan'];
+                     $jurnal->kode_rekening = 1482000;
+                     $jurnal->tanggal_transaksi  = $now;
+                     $jurnal->jenis_transaksi  = 'Jurnal System';
+                     $jurnal->keterangan_transaksi = 'Persediaan Barang Dagang '.$produk_detail->kode_produk;
+                     $jurnal->debet = 0;
+                     $jurnal->kredit = $harga_beli_promo_0;
+                     $jurnal->tanggal_posting = '';
+                     $jurnal->keterangan_posting = '0';
+                     $jurnal->id_admin = Auth::user()->id; 
+                     $jurnal->save();
+      
+                  }
+                  
+                  $produk_detail->update(['stok_detail'=>0]);
+                  
+                  // crate penjualan_detail berdasarkan penjualan_detail_temporarary
+                  $new_detail = new PenjualanDetail;
+                  $new_detail->id_penjualan = $id_penjualan;
+                  $new_detail->kode_produk = $kode;
+                  // harga_jual disesuaikan dengan yang ada dimaster produk/table produk, yang sudah ter record pada penjualan_detail_temporary
+                  $new_detail->harga_jual = $d->harga_jual;
+                  // harga_beli disesuaikan dengan produk_detail   
+                  $new_detail->harga_beli = $produk_detail->harga_beli;
+                  $new_detail->promo = $d->promo;
+                  // jumlah yang di record adalah jumlah stok_detail pada produk_detail yang harganya paling rendah
+                  $new_detail->jumlah = $stok_toko;
+                  $new_detail->diskon = $d->diskon;
+                  $new_detail->sub_total = $d->harga_jual * $stok_toko;
+                  $new_detail->sub_total_beli = $produk_detail->harga_beli * $stok_toko;
+                  $new_detail->no_faktur = $produk_detail->no_faktur;
+                  $new_detail->save();
+
+                   
+                  $kartu_stok = new KartuStok;
+                  $kartu_stok->buss_date = date('Y-m-d');
+                  $kartu_stok->kode_produk = $kode;
+                  $kartu_stok->masuk = 0;
+                  $kartu_stok->keluar = $stok_toko;
+                  $kartu_stok->status = 'penjualan';
+                  $kartu_stok->kode_transaksi = $id_penjualan;
+                  $kartu_stok->unit = Auth::user()->unit;
+                  $kartu_stok->save();
+
+                  // sisa qty penjualan yang dikurangi stok toko yang harganya paling rendah
+                  $jumlah_penjualan = $stok;
+
+                  // mengulangi looping untuk mencari harga yang paling rendah
+                  goto produk;
+                  
+               // jika pengurangan qty penjualan dengan stok toko hasilnya kurang dari 0 atau minus
+               }else if($stok < 0){
+
+                  if ($d->harga_jual > $produk_detail->harga_beli) {
+                  
+                     $harga_beli_0 = $jumlah_penjualan * $produk_detail->harga_beli; 
+                     $harga_jual_0 = $jumlah_penjualan * $d->harga_jual;
+                     
+                     $jurnal = new TabelTransaksi;
+                     $jurnal->unit =  Auth::user()->unit; 
+                     $jurnal->kode_transaksi = $request['idpenjualan'];
+                     $jurnal->kode_rekening = 1482000;
+                     $jurnal->tanggal_transaksi  = $now;
+                     $jurnal->jenis_transaksi  = 'Jurnal System';
+                     $jurnal->keterangan_transaksi = 'Persediaan Barang Dagang '.$produk_detail->kode_produk;
+                     $jurnal->debet = 0;
+                     $jurnal->kredit = $harga_jual_0;
+                     $jurnal->tanggal_posting = '';
+                     $jurnal->keterangan_posting = '0';
+                     $jurnal->id_admin = Auth::user()->id; 
+                     $jurnal->save();
+                     
+                  }else {
+                     
+                     
+                     $harga_beli_promo_0 = $jumlah_penjualan * $produk_detail->harga_beli; 
+                     $harga_jual_promo_0 = $jumlah_penjualan * $d->harga_jual;
+                  
+                     $jurnal = new TabelTransaksi;
+                     $jurnal->unit =  Auth::user()->unit; 
+                     $jurnal->kode_transaksi = $request['idpenjualan'];
+                     $jurnal->kode_rekening = 1482000;
+                     $jurnal->tanggal_transaksi  = $now;
+                     $jurnal->jenis_transaksi  = 'Jurnal System';
+                     $jurnal->keterangan_transaksi = 'Persediaan Barang Dagang '.$produk_detail->kode_produk;
+                     $jurnal->debet = 0;
+                     $jurnal->kredit = $harga_beli_promo_0;
+                     $jurnal->tanggal_posting = '';
+                     $jurnal->keterangan_posting = '0';
+                     $jurnal->id_admin = Auth::user()->id; 
+                     $jurnal->save();
+      
+                  }
+                  
+                  // update stok_detail berdasar sisa pengurangan qty penjualan dengan stok toko hasilnya kurang dari 0 atau minus
+                  $produk_detail->update(['stok_detail'=>abs($stok)]);
+                  
+                  $new_detail = new PenjualanDetail;
+                  $new_detail->id_penjualan = $id_penjualan;
+                  $new_detail->kode_produk = $kode;
+                  $new_detail->harga_jual = $d->harga_jual;
+                  $new_detail->harga_beli = $produk_detail->harga_beli;
+                  $new_detail->promo = $d->promo;
+                  $new_detail->jumlah = $jumlah_penjualan;
+                  $new_detail->diskon = $d->diskon;
+                  $new_detail->sub_total = $d->harga_jual * $jumlah_penjualan;
+                  $new_detail->sub_total_beli = $produk_detail->harga_beli * $jumlah_penjualan;
+                  $new_detail->no_faktur = $produk_detail->no_faktur;
+                  $new_detail->save();
+
+                   
+                  $kartu_stok = new KartuStok;
+                  $kartu_stok->buss_date = date('Y-m-d');
+                  $kartu_stok->kode_produk = $kode;
+                  $kartu_stok->masuk = 0;
+                  $kartu_stok->keluar = $jumlah_penjualan;
+                  $kartu_stok->status = 'penjualan';
+                  $kartu_stok->kode_transaksi = $id_penjualan;
+                  $kartu_stok->unit = Auth::user()->unit;
+                  $kartu_stok->save();
+               
+               }
+            }
+         }
+         
+         foreach($details as $list){
+
+            $produk = Produk::where('kode_produk',$list->kode_produk)->where('unit',Auth::user()->unit)->first();
+            $produk->stok -= $list->jumlah;
+            $produk->update();
+
+         }
+
+         $param_tgl = \App\ParamTgl::where('nama_param_tgl','tanggal_transaksi')->where('unit',Auth::user()->id)->first();
+
+         $now = $param_tgl->param_tgl;           
+
+         $penjualan = Penjualan::find($request['idpenjualan']);
+
+         $total_item = PenjualanDetail::where('id_penjualan',$request['idpenjualan'])->sum('jumlah');
+         
+         $total_harga_beli_non_promo = PenjualanDetail::where('id_penjualan',$request['idpenjualan'])->whereRaw('harga_beli < harga_jual')->sum('sub_total_beli');
+         $total_harga_jual_non_promo = PenjualanDetail::where('id_penjualan',$request['idpenjualan'])->whereRaw('harga_beli < harga_jual')->sum('sub_total');
+
+         $total_harga_jual_keseluruhan = PenjualanDetail::where('id_penjualan',$request['idpenjualan'])->sum('sub_total');
+         $total_harga_beli_keseluruhan = PenjualanDetail::where('id_penjualan',$request['idpenjualan'])->sum('sub_total_beli');
+         
+         $cek_promo = PenjualanDetail::where('id_penjualan',$request['idpenjualan'])->whereRaw('harga_beli > harga_jual')->first();
+         
+         $total_diskon = PenjualanDetail::where('id_penjualan',$request['idpenjualan'])->sum('diskon');
+         
+         $total_belanja = $total_harga_jual_keseluruhan - $total_diskon;
+         
+         $harus_dibayar = $total_belanja;
+         
+         $margin = $total_harga_jual_non_promo - $total_harga_beli_non_promo;
+
+         $donasi = $request['donasi'];
+
+         $os_baru = $total_belanja - max($harus_dibayar,0);
+         
+         if ($cek_promo) {
+            
+            $total_harga_beli_barang_promo = PenjualanDetail::where('id_penjualan',$request['idpenjualan'])->whereRaw('harga_beli > harga_jual')->sum('sub_total_beli');
+            $total_harga_jual_barang_promo = PenjualanDetail::where('id_penjualan',$request['idpenjualan'])->whereRaw('harga_beli > harga_jual')->sum('sub_total');
+         
+            $bol = $total_harga_beli_barang_promo - $total_harga_jual_barang_promo;
+         
+            $persediaan_barang_dagang = $total_harga_beli_barang_promo + $total_harga_jual_non_promo;
+
+         }else {
+
+            $persediaan_barang_dagang = $total_harga_jual_keseluruhan;
+         
+         }
+      
+         $penjualan->total_item = $total_item;
+         $penjualan->total_harga = $total_harga_jual_keseluruhan;
+         $penjualan->total_harga_beli = $total_harga_beli_keseluruhan;
+         $penjualan->diskon = $total_diskon;
+         $penjualan->bayar = $harus_dibayar;
+         $penjualan->diterima = $request['diterima'];
+         $penjualan->update();
+         
+         // Kas 
          $jurnal = new TabelTransaksi;
-        $jurnal->unit =  Auth::user()->unit; 
-        $jurnal->kode_transaksi = $request['idpenjualan'];
-        $jurnal->kode_rekening = 1120000;
-        $jurnal->tanggal_transaksi  = $now;
-        $jurnal->jenis_transaksi  = 'Jurnal Umum';
-        $jurnal->keterangan_transaksi = 'Penjualan';
-        $jurnal->debet =$request['bayar'] - $penjualan_dis->diskon;
-        $jurnal->kredit = 0;
-        $jurnal->tanggal_posting = '';
-        $jurnal->keterangan_posting = '0';
-        $jurnal->id_admin = Auth::user()->id; 
-        $jurnal->save();
+         $jurnal->unit =  Auth::user()->unit; 
+         $jurnal->kode_transaksi = $request['idpenjualan'];
+         $jurnal->kode_rekening = 1120000;
+         $jurnal->tanggal_transaksi  = $now;
+         $jurnal->jenis_transaksi  = 'Jurnal Umum';
+         $jurnal->keterangan_transaksi = 'Penjualan';
+         $jurnal->debet = $total_belanja;
+         $jurnal->kredit = 0;
+         $jurnal->tanggal_posting = '';
+         $jurnal->keterangan_posting = '0';
+         $jurnal->id_admin = Auth::user()->id; 
+         $jurnal->save();
+         
+         // jurnal margin
+         // PMYD-PYD Musawamah
 
-        $jurnal = new TabelTransaksi;
-        $jurnal->unit =  Auth::user()->unit; 
-        $jurnal->kode_transaksi = $request['idpenjualan'];
-        $jurnal->kode_rekening = 56412;
-        $jurnal->tanggal_transaksi  = $now;
-        $jurnal->jenis_transaksi  = 'Jurnal Umum';
-        $jurnal->keterangan_transaksi = 'Penjualan';
-        $jurnal->debet =$penjualan_dis->diskon;
-        $jurnal->kredit = 0;
-        $jurnal->tanggal_posting = '';
-        $jurnal->keterangan_posting = '0';
-        $jurnal->id_admin = Auth::user()->id; 
-        $jurnal->save();
-  
-        $jurnal = new TabelTransaksi;
-        $jurnal->unit =  Auth::user()->unit; 
-        $jurnal->kode_transaksi = $request['idpenjualan'];
-        $jurnal->kode_rekening = 1482000;
-        $jurnal->tanggal_transaksi  = $now;
-        $jurnal->jenis_transaksi  = 'Jurnal Umum';
-        $jurnal->keterangan_transaksi = 'Penjualan';
-        $jurnal->debet =0;
-        $jurnal->kredit =$request['bayar'];
-        $jurnal->tanggal_posting = '';
-        $jurnal->keterangan_posting = '0';
-        $jurnal->id_admin = Auth::user()->id; 
-        $jurnal->save();
+
+         if ($margin > 0) {
+
+            $jurnal = new TabelTransaksi;
+            $jurnal->unit =  Auth::user()->unit; 
+            $jurnal->kode_transaksi = $request['idpenjualan'];
+            $jurnal->kode_rekening = 1483000;
+            $jurnal->tanggal_transaksi  = $now;
+            $jurnal->jenis_transaksi  = 'Jurnal Umum';
+            $jurnal->keterangan_transaksi = 'Margin Penjualan';
+            $jurnal->debet = $margin;
+            $jurnal->kredit = 0;
+            $jurnal->tanggal_posting = '';
+            $jurnal->keterangan_posting = '0';
+            $jurnal->id_admin = Auth::user()->id; 
+            $jurnal->save();
+            
+         
+            $jurnal = new TabelTransaksi;
+            $jurnal->unit =  Auth::user()->unit; 
+            $jurnal->kode_transaksi = $request['idpenjualan'];
+            $jurnal->kode_rekening = 41001;
+            $jurnal->tanggal_transaksi  = $now;
+            $jurnal->jenis_transaksi  = 'Jurnal Umum';
+            $jurnal->keterangan_transaksi = 'Margin Penjualan';
+            $jurnal->debet = 0;
+            $jurnal->kredit = $margin;
+            $jurnal->tanggal_posting = '';
+            $jurnal->keterangan_posting = '0';
+            $jurnal->id_admin = Auth::user()->id; 
+            $jurnal->save();
+
+         }
+
+         if ($cek_promo) {     
+            //BOL-TI Promo/Discount/Kupon
+            $jurnal = new TabelTransaksi;
+            $jurnal->unit =  Auth::user()->unit; 
+            $jurnal->kode_transaksi = $request['idpenjualan'];
+            $jurnal->kode_rekening = 56412;
+            $jurnal->tanggal_transaksi = $now;
+            $jurnal->jenis_transaksi  = 'Jurnal System';
+            $jurnal->keterangan_transaksi = 'BOL-TI Promo 1';
+            $jurnal->debet = $bol;
+            $jurnal->kredit = 0;
+            $jurnal->tanggal_posting = ' ';
+            $jurnal->keterangan_posting = '0';
+            $jurnal->id_admin = Auth::user()->id; 
+            $jurnal->save();
+            
+            $jurnal = new TabelTransaksi;
+            $jurnal->unit =  Auth::user()->unit; 
+            $jurnal->kode_transaksi = $request['idpenjualan'];
+            $jurnal->kode_rekening = 1482000;
+            $jurnal->tanggal_transaksi = $now;
+            $jurnal->jenis_transaksi  = 'Jurnal System';
+            $jurnal->keterangan_transaksi = 'BOL-TI Promo 1';
+            $jurnal->debet = $bol;
+            $jurnal->kredit = 0;
+            $jurnal->tanggal_posting = ' ';
+            $jurnal->keterangan_posting = '0';
+            $jurnal->id_admin = Auth::user()->unit; 
+            $jurnal->save();
+
+            $jurnal = new TabelTransaksi;
+            $jurnal->unit =  Auth::user()->unit; 
+            $jurnal->kode_transaksi = $request['idpenjualan'];
+            $jurnal->kode_rekening = 1483000;
+            $jurnal->tanggal_transaksi = $now;
+            $jurnal->jenis_transaksi  = 'Jurnal System';
+            $jurnal->keterangan_transaksi = 'BOL-TI Promo 1';
+            $jurnal->debet = 0;
+            $jurnal->kredit = $bol;
+            $jurnal->tanggal_posting = ' ';
+            $jurnal->keterangan_posting = '0';
+            $jurnal->id_admin = Auth::user()->unit; 
+            $jurnal->save();
+
+         }
+
+         // jika ada donasi
+         if($request['donasi']>0){
+            
+            $jurnal = new TabelTransaksi;
+            $jurnal->unit =  Auth::user()->unit; 
+            $jurnal->kode_transaksi = $request['idpenjualan'];
+            $jurnal->kode_rekening = 1120000;
+            $jurnal->tanggal_transaksi = $now;
+            $jurnal->jenis_transaksi  = 'Jurnal System';
+            $jurnal->keterangan_transaksi = 'donasi ';
+            $jurnal->debet = $request['donasi'];
+            $jurnal->kredit = 0;
+            $jurnal->tanggal_posting = ' ';
+            $jurnal->keterangan_posting = '0';
+            $jurnal->id_admin = Auth::user()->id; 
+            $jurnal->save();
+
+            $jurnal = new TabelTransaksi;
+            $jurnal->unit =  Auth::user()->unit; 
+            $jurnal->kode_transaksi = $request['idpenjualan'];
+            $jurnal->kode_rekening = 1482000;
+            $jurnal->tanggal_transaksi = $now;
+            $jurnal->jenis_transaksi  = 'Jurnal System';
+            $jurnal->keterangan_transaksi = 'Donasi dari Penjualan ';
+            $jurnal->debet =0;
+            $jurnal->kredit = $request['donasi'];
+            $jurnal->tanggal_posting = ' ';
+            $jurnal->keterangan_posting = '0';
+            $jurnal->id_admin = Auth::user()->id; 
+            $jurnal->save();
+         
+         }
+
+         PenjualanDetailTemporary::where('id_penjualan', '=', $request['idpenjualan'])->delete();
+         DB::commit();
+      }catch(\Exception $e){
+         
+         DB::rollback();
+         return back()->with(['error' => $e->getmessage()]);
+
       }
-
-      $detail = PenjualanDetail::where('id_penjualan', '=', $request['idpenjualan'])->get();
-      
-      // ____ //
-
-      foreach($detail as $d){
-         // kode produk
-         $kode = $d->kode_produk;
-         
-         // buat variable stok_dikirim dari field jumlah dari table kirim_detail
-         $stok_dikirim = $d->jumlah;
-         $stok_dikirim2 = $d->jumlah;
-         $now = \Carbon\Carbon::now();
-         
-         // mengaambil stok di produk_detail berdasar barcode dan expired date lebih awal yang terdapat di kirim_detail
-         produk:
-         $produk_detail = ProdukDetail::where('kode_produk',$kode)
-         ->where('unit',Auth::user()->unit)
-         ->where('expired_date','>',$now)
-         ->where('stok_detail','>','0')
-         ->orderBy('expired_date','ASC')
-         ->first();
-         // jika produk ybs kosong krim pesan eror
-         // dd($produk_detail);
-         if ($produk_detail == null) {
-           $supplier = Supplier::all();
-           $branch = Branch::all();
-           return back()->with(['error' => 'Stock Kosong/Kadaluarsa']);
-         }
-         // else
- 
-         // buat variable stok gudan dari field stok_detail dari table produk_detail
-         $stok_gudang = $produk_detail->stok_detail;
-         
-         // mengurangi stok kirim dengan stok gudang
-         $stok = $stok_dikirim - $stok_gudang;
-         // sisa pengurangan diatas menjadi stok yang dkirim
-         $stok_dikirim = $stok;
-         
-         // jika hasilnya lebih dari nol
-         if ($stok >= 0) {
-             // update produk_detail->stok_detail menjadi nol berdasar barcode dan tgl expired
-             $produk_detail->update(['stok_detail'=>0]);
- 
-             // mengulangi looping
-             goto produk;
-           }else if($stok < 0){
-             // else
-             // update stok berdasar sisa pengurangan
-             $produk_detail->update(['stok_detail'=>abs($stok)]);
-         }
-         
-       }
- 
-       foreach($detail as $d){
-         // kode produk
-         $kode = $d->kode_produk;
-         
-         // buat variable stok_dikirim dari field jumlah dari table kirim_detail
-         $stok_dikirim = $d->jumlah;
-         
-         // update stok-> produk
-         $produk_inti = Produk::where('kode_produk',$kode)
-         ->where('unit',Auth::user()->unit)->get();
-         // dd($stok_baru);
-         foreach ($produk_inti as $prod) {
-           $update = Produk::where('kode_produk',$kode)
-                                 ->where('unit',Auth::user()->unit);
-           $stok_baru = $prod->stok - $stok_dikirim;
-           $update->update(['stok'=> $stok_baru]);
-         }
-       }
- 
-
-
-      //____ //
-
-      return Redirect::route('memberinsan.cetak');
+     
+      return Redirect::route('cashinsan.cetak');
    }
    
    public function loadForm($diskon, $total, $diterima){
@@ -318,7 +649,7 @@ class PenjualanDetailCashInsanController extends Controller
    {
       $detail = PenjualanDetail::leftJoin('produk', 'produk.kode_produk', '=', 'penjualan_detail.kode_produk')
         ->where('id_penjualan', '=', session('idpenjualan'))
-        ->where('produk.unit', '=', Auth::user()->id) 
+        ->where('produk.unit', '=', Auth::user()->unit) 
          ->get();
 
       $penjualan = Penjualan::find(session('idpenjualan'));
@@ -404,21 +735,33 @@ class PenjualanDetailCashInsanController extends Controller
         printer_close($handle);
       }
        
-      return view('penjualan_detail.selesai', compact('setting'));
+      return view('penjualan_detail_cashinsan.selesai', compact('setting'));
    }
 
    public function notaPDF(){
-     $detail = PenjualanDetail::leftJoin('produk', 'produk.kode_produk', '=', 'penjualan_detail.kode_produk')
-        ->where('id_penjualan', '=', session('idpenjualan'))
-        ->where('unit', '=',Auth::user()->unit)
-         ->get();
+
+      $detail = PenjualanDetail::select(\DB::raw('penjualan_detail.kode_produk,
+                                    nama_produk,
+                                    SUM(jumlah) as jumlah,
+                                    SUM(sub_total) as sub_total,
+                                    penjualan_detail.harga_jual'))
+                              ->leftJoin('produk', 'produk.kode_produk', '=', 'penjualan_detail.kode_produk')
+                              ->where('id_penjualan', '=', session('idpenjualan'))
+                              ->where('unit', '=',Auth::user()->unit)
+                              ->groupBy('penjualan_detail.kode_produk')
+                              ->get();
 
       $penjualan = Penjualan::find(session('idpenjualan'));
       $setting = Setting::find(1);
+      $toko=Branch::where('kode_toko','=',Auth::user()->unit)->first();
       $no = 0;
      
-     $pdf = PDF::loadView('penjualan_detail.notapdf', compact('detail', 'penjualan', 'setting', 'no'));
-     $pdf->setPaper(array(0,0,550,440), 'potrait');      
+      $pdf = PDF::loadView('penjualan_detail_cashinsan.notapdf', compact('detail','toko', 'penjualan', 'setting', 'no'));
+      $pdf->setPaper(array(0,0,700,600), 'potrait');      
       return $pdf->stream();
+      Session::forget('idpenjualan');
+   
    }
+
 }
+

@@ -4,6 +4,13 @@
   Daftar Produk
 @endsection
 
+@section('header')
+    <link rel="stylesheet" href="https://cdn.datatables.net/buttons/1.5.6/css/buttons.dataTables.min.css">
+    <link href="//cdnjs.cloudflare.com/ajax/libs/x-editable/1.5.0/bootstrap3-editable/css/bootstrap-editable.css" rel="stylesheet"/>
+@endsection
+
+
+
 @section('breadcrumb')
    @parent
    <li>produk</li>
@@ -19,7 +26,7 @@
       <div class="box-body"> 
                 <form action="{{ route('approve.store') }}" method="post">
                 {{ csrf_field() }}
-            <table class="table table-striped" id="tables">
+            <table class="table table-striped tabel-pembelian">
             <input type="checkbox" name="select-all" id="select-all" class="checkbox"> Pilih Semua
                 <thead>
                     <tr>
@@ -29,23 +36,9 @@
                         <th>Barcode</th>
                         <th>Nama Produk</th>
                         <th>Stock</th>
-                        <th>Tanggal Kadaluarsa</th>
                     </tr>
                 </thead>
-                <tbody>
-                @php $no =1 ; @endphp
-                    @foreach ($produk as $p)
-                    <tr>
-                        <td><input type="checkbox" name="kode[]" id="kode" value="{{$p->id_produk_detail}}" ></td>
-                        <td>{{$no++}}</td>
-                        <td>{{$p->unit}}</td>
-                        <td>{{$p->kode_produk}}</td>
-                        <td>{{$p->nama_produk}}</td>
-                        <td>{{$p->stok_detail}}</td>
-                        <td>{{$p->expired_date}}</td>
-                    </tr>
-                    @endforeach
-                </tbody>
+                <tbody></tbody>
             </table>
                 <button type="submit" class="btn btn-danger">Approve</button>
                 </form>
@@ -74,5 +67,41 @@ $('#select-all').click(function(event) {
     }
 });
 </script>
+
+
+<script src="https://cdn.datatables.net/buttons/1.5.6/js/dataTables.buttons.min.js"></script>
+<script src="https://cdn.datatables.net/buttons/1.5.6/js/buttons.flash.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.1.3/jszip.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/pdfmake/0.1.53/pdfmake.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/pdfmake/0.1.53/vfs_fonts.js"></script>
+<script src="https://cdn.datatables.net/buttons/1.5.6/js/buttons.html5.min.js"></script>
+<script src="https://cdn.datatables.net/buttons/1.5.6/js/buttons.print.min.js"></script>
+
+
+<script>
+$(document).ready(function() {
+    $('#table-print').DataTable( {
+        dom: 'Bfrtip',
+        buttons: [
+            'copy', 'csv', 'excel', 'pdf', 'print'
+        ]
+    } );
+} );
+</script>
+
+<script type="text/javascript">
+var table, save_method, table1;
+$(function(){
+   table = $('.tabel-pembelian').DataTable({
+     "processing" : true,
+     "serverside" : true,
+     "ajax" : {
+       "url" : "{{ route('approve.data') }}",
+       "type" : "GET"
+     }
+   }); 
+});
+</script>
+
 
 @endsection

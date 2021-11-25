@@ -10,6 +10,20 @@
 @endsection
 
 @section('content')     
+
+@if ($message = Session::get('error'))
+<script>
+  var pesan = "{{$message}}"
+  swal("Maaf !", pesan, "error"); 
+</script>
+@elseif ($message = Session::get('success'))
+<script>
+  var pesan = "{{$message}}"
+  swal("Selamat !", pesan, "success"); 
+</script>
+@endif
+
+
 <div class="row">
   <div class="col-xs-12">
     <div class="box">
@@ -52,6 +66,7 @@ $(function(){
    table = $('.tabel-pembelian').DataTable({
      "processing" : true,
      "serverside" : true,
+     "responsive" : true,
      "ajax" : {
        "url" : "{{ route('terima_po.data') }}",
        "type" : "GET"

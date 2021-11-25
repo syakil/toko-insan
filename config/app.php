@@ -162,11 +162,12 @@ return [
         Illuminate\Translation\TranslationServiceProvider::class,
         Illuminate\Validation\ValidationServiceProvider::class,
         Illuminate\View\ViewServiceProvider::class,
-
+        
         /*
-         * Package Service Providers...
-         */
+        * Package Service Providers...
+        */
         Laravel\Tinker\TinkerServiceProvider::class,
+        Maatwebsite\Excel\ExcelServiceProvider::class,
 
         /*
          * Application Service Providers...
@@ -176,7 +177,7 @@ return [
         // App\Providers\BroadcastServiceProvider::class,
         App\Providers\EventServiceProvider::class,
         App\Providers\RouteServiceProvider::class,
-        Yajra\Datatables\DataTablesServiceProvider::class,
+        //Yajra\Datatables\DataTablesServiceProvider::class,
         Milon\Barcode\BarcodeServiceProvider::class,
         Barryvdh\DomPDF\ServiceProvider::class,
 
@@ -208,6 +209,7 @@ return [
         'DB' => Illuminate\Support\Facades\DB::class,
         'Eloquent' => Illuminate\Database\Eloquent\Model::class,
         'Event' => Illuminate\Support\Facades\Event::class,
+        'Excel' => Maatwebsite\Excel\Facades\Excel::class,
         'File' => Illuminate\Support\Facades\File::class,
         'Gate' => Illuminate\Support\Facades\Gate::class,
         'Hash' => Illuminate\Support\Facades\Hash::class,
@@ -228,10 +230,10 @@ return [
         'URL' => Illuminate\Support\Facades\URL::class,
         'Validator' => Illuminate\Support\Facades\Validator::class,
         'View' => Illuminate\Support\Facades\View::class,
-        'DataTables' => Yajra\Datatables\Facades\DataTables::class,
+        //'DataTables' => Yajra\Datatables\Facades\DataTables::class,
         'DNS1D' => Milon\Barcode\Facades\DNS1DFacade::class,
               'PDF' => Barryvdh\DomPDF\Facade::class,
-              'Uuid' => Webpatser\Uuid\Uuid::class,
+        'Uuid' => Webpatser\Uuid\Uuid::class,
 
     ],
 

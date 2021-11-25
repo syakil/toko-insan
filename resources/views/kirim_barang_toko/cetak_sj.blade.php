@@ -8,7 +8,7 @@
     }
     .box1{
         width:320px;
-        height:70px;
+        height:95px;
         padding-top: 5px;
         padding-left: 5px;
         margin-top: 40px;
@@ -68,17 +68,16 @@
         <table cellspacing="0">
         <tr>
         <td>Nama Toko</td>
-        <td>: {{$alamat->nama_gudang}}</td>
+        <td>: {{$alamat_penerima->nama_gudang}}</td>
         </tr>
         <tr>
         <td>Kode Gudang</td>
-        <td>: {{$alamat->kode_gudang}}</td>
+        <td>: {{$alamat_penerima->kode_gudang}}</td>
         </tr>
         <tr>
         <td>Alamat</td>
-        <td>: {{$alamat->alamat}} - {{$alamat->region}}</td>
+        <td>: {{$alamat_penerima->alamat}} - {{$alamat->region}}</td>
         </tr>
-        
         </table>
     </div>
 
@@ -90,12 +89,12 @@
 
     <div class="box2">
         <table>
-            @foreach ($nosurat as $d)
                 
             <tr>
                 <td>No Purchase Order</td>
-            <td>: RTR-{{$d->id_pembelian}}</td>
+            <td>: {{$nomer_surat}}</td>
             </tr>
+            @foreach ($data_surat as $d)
             <tr>
                 <td>Date</td>
                 <td>: {{tanggal_indonesia(substr($d->created_at, 0, 10), false)}}</td>
@@ -103,8 +102,9 @@
             @endforeach
             <tr>
                 <td>Pengirim</td>
-                <td>: {{$alamat->nama_toko}} ({{$alamat->kode_toko}})</td>
                 
+                <td>: {{$alamat_pengirim->nama_toko}} ({{$alamat_pengirim->kode_toko}})</td>
+               
             </tr>
         </table>
     </div>
@@ -119,8 +119,7 @@
             <th style="text-align:center;">Product Name</th>
             <th width="70px" style="text-align:center;">Qty</th>
             <th width="100px" style="text-align:center;">Expired Date</th>
-            <th width="100px" style="text-align:center;">Harga Beli</th>
-        </tr>
+            </tr>
         </thead>
         <tbody>
             @foreach ($produk as $d)
@@ -131,9 +130,18 @@
                 <td style="text-align:left;" width="240px">{{$d->nama_produk}}</td>
                 <td style="text-align:center;" width="70px" >{{$d->jumlah}}</td>
                 <td style="text-align:center;" width="70px" >{{$d->expired_date}}</td>
-                <td style="text-align:center;" width="100px" >{{$d->harga_beli}}</td>
-            </tr>
+                    </tr>
             @endforeach
+            
+
+            <tr>
+                <td style="text-align:center;" width="30px" ></td>
+                <td style="text-align:center;" width="90px" ></td>
+                <td style="text-align:right;" width="240px"><i><b>TOTAL </i></b></td>
+                <td style="text-align:center;" width="70px" >{{$alamat['total_item']}}</td>
+                <td style="text-align:center;" width="70px" ></td>
+            </tr>
+            
         </tbody>
     </table>
 <br><br><br>
@@ -158,3 +166,4 @@
 
 </body>
 </html>
+

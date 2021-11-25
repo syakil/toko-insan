@@ -15,7 +15,19 @@
 <div class="row">
   <div class="col-xs-12">
     <div class="box">
+   <div class="box-header">
    
+    <!-- pesan error -->
+    @if ($message = Session::get('error'))
+      <div class="alert alert-danger alert-block">
+        <button type="button" class="close" data-dismiss="alert">×</button> 
+        <strong>{{ $message }}</strong>
+      </div>
+    @endif
+
+
+
+   </div>
       <div class="box-body">
 
 <form class="form form-horizontal form-produk" method="post">
@@ -26,7 +38,7 @@
       <label for="kode" class="col-md-2 control-label">Kode Produk</label>
       <div class="col-md-5">
         <div class="input-group">
-          <input id="kode" type="text" class="form-control" name="kode" autofocus required>
+          <input id="kode" type="text" class="form-control" name="kode" required>
           <span class="input-group-btn">
             <button onclick="showProduct()" type="button" class="btn btn-info">...</button>
           </span>
@@ -37,12 +49,13 @@
 
 <form class="form-keranjang">
 {{ csrf_field() }} {{ method_field('PATCH') }}
-<table class="table table-striped tabel-penjualan">
+<table class="table table-bordered tabel-penjualan">
 <thead>
    <tr>
       <th width="30">No</th>
       <th>Kode Produk</th>
       <th>Nama Produk</th>
+      <th>Stok</th>
       <th align="right">Harga</th>
       <th>Jumlah</th>
       <th>Diskon</th>
@@ -50,7 +63,8 @@
       <th width="100">Aksi</th>
    </tr>
 </thead>
-<tbody></tbody>
+<tbody>
+</tbody>
 </table>
 </form>
 
@@ -112,7 +126,12 @@
           <input type="text" class="form-control" id="kembali" value="0" readonly>
         </div>
       </div>
-
+      <div class="form-group">
+        <label for="donasi" class="col-md-4 control-label">Donasi</label>
+        <div class="col-md-8">
+          <input type="text" class="form-control" id="donasi" name="donasi" value="0">
+        </div>
+      </div>
     </form>
   </div>
 
@@ -131,49 +150,83 @@
 @section('script')
 <script type="text/javascript">
 var table;
+$(document).keyup(function(event) {
+  if(event.keyCode == 112){ 
+    $('.simpan').click();
+  }
+
+  if (event.keyCode == 36) {
+    
+    swal({
+      title: "Anda Yakin Akan Keluar Dari Transaksi Ini?",
+      icon: "warning",
+      buttons: true,
+      dangerMode: true,
+    })
+    .then((willDelete) => {
+      if (willDelete) {
+        
+        window.location.replace("{{route('transaksi.batal',$idpenjualan)}}")
+
+      } else {
+        swal("Data Anda Aman!");
+      }
+    });
+  }
+
+})
 $(function(){
   $('.tabel-produk').DataTable();
 
   table = $('.tabel-penjualan').DataTable({
-     "dom" : 'Brt',
-     "bSort" : false,
-     "processing" : true,
-     "ajax" : {
-       "url" : "{{ route('transaksi.data', $idpenjualan) }}",
-       "type" : "GET"
-     }
+    "processing" : true,
+    "serverside" : true,
+    "paging" :false,
+    "searching":false,
+    "showing":false,
+    "bSort" : true,      
+    "ordering": false,
+    "info":     false,
+    "scrollY" : "200px",
+    "dom" : 'Brt',
+    "ajax" : {
+      "url" : "{{ route('transaksi.data', $idpenjualan) }}",
+      "type" : "GET"
+    }
   }).on('draw.dt', function(){
     loadForm($('#diskon').val());
   });
 
-   $('.form-produk').on('submit', function(){
-      return false;
-   });
+  $('.form-produk').on('submit', function(){
+    return false;
+  });
 
-   $('body').addClass('sidebar-collapse');
+  $('body').addClass('sidebar-collapse');
 
-   $('#kode').change(function(){
-      addItem();
-   });
+  $('#kode').change(function(){
+    addItem();
+  });
 
-   $('.form-keranjang').submit(function(){
-     return false;
-   });
+  $('.form-keranjang').submit(function(){
+    return false;
+  });
 
-   $('#member').change(function(){
-      selectMember($(this).val());
-   });
+  $('#member').change(function(){
+    selectMember($(this).val());
+  });
 
-   $('#diterima').change(function(){
-      if($(this).val() == "") $(this).val(0).select();
-      loadForm($('#diskon').val(), $(this).val());
-   }).focus(function(){
+  $('#diterima').change(function(){
+      if($(this).val() == "") {
+        $(this).val(0).select();
+        loadForm($('#diskon').val(), $(this).val());
+      }
+    }).focus(function(){
       $(this).select();
-   });
+    });
 
-   $('.simpan').click(function(){
-      $('.form-penjualan').submit();
-   });
+  $('.simpan').click(function(){
+    $('.form-penjualan').submit();
+  });
 
 });
 
@@ -186,11 +239,15 @@ function addItem(){
       $('#kode').val('').focus();
       table.ajax.reload(function(){
          loadForm($('#diskon').val());
-      });             
+      });                   
     },
     error : function(){
       alert("Tidak dapat menyimpan data!");
     }   
+  });
+
+  $('.jumlah').first().hover(function(){
+    $(this).focus()
   });
 }
 
@@ -281,3 +338,4 @@ function loadForm(diskon=0, diterima=0){
 </script>
 
 @endsection
+

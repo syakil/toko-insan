@@ -23,6 +23,7 @@
    <tr>
       <th width="30">No</th>
       <th>Nama Kategori</th>
+      <th>Paramater Kadaluarsa</th>
       <th width="100">Aksi</th>
    </tr>
 </thead>
@@ -49,12 +50,13 @@ $(function(){
      }
    }); 
    
-   $('#modal-form form').validator().on('submit', function(e){
+   $('#modal-form form').on('submit', function(e){
       if(!e.isDefaultPrevented()){
          var id = $('#id').val();
-         if(save_method == "add") url = "{{ route('kategori.store') }}";
-         else url = "kategori/"+id;
-         
+         if(save_method == "add"){ url = "{{ route('kategori.store') }}";
+      }else{ url = "{{ route('kategori.update',':id') }}";
+            url = url.replace(':id',id)}
+         console.log(id);
          $.ajax({
            url : url,
            type : "POST",
@@ -62,7 +64,8 @@ $(function(){
            success : function(data){
              $('#modal-form').modal('hide');
              table.ajax.reload();
-           },
+             alert("Data Berhasil Di Ubah !");
+            },
            error : function(){
              alert("Tidak dapat menyimpan data!");
            }   
@@ -74,7 +77,6 @@ $(function(){
 
 function addForm(){
    save_method = "add";
-   $('input[name=_method]').val('POST');
    $('#modal-form').modal('show');
    $('#modal-form form')[0].reset();            
    $('.modal-title').text('Tambah Kategori');
@@ -82,10 +84,12 @@ function addForm(){
 
 function editForm(id){
    save_method = "edit";
-   $('input[name=_method]').val('PATCH');
+   console.log(save_method);
    $('#modal-form form')[0].reset();
+   url = "{{route('kategori.edit',':id')}}"
+   url = url.replace(':id',id)
    $.ajax({
-     url : "kategori/"+id+"/edit",
+     url : url,
      type : "GET",
      dataType : "JSON",
      success : function(data){
@@ -94,6 +98,7 @@ function editForm(id){
        
        $('#id').val(data.id_kategori);
        $('#nama').val(data.nama_kategori);
+       $('#expired').val(data.expired);
        
      },
      error : function(){

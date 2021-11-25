@@ -20,7 +20,7 @@
 
     .box2{
         width:250px;
-        height:100px;
+        height:120px;
         padding-top: 12px;
         padding-left: 7px;
         margin-left: 30px;
@@ -43,13 +43,13 @@
     .box-kiri{
         display: inline-block;
         width: 300px;
-        height: 170px;
+        height: 190px;
         margin-left: 84px;
     }
 
     .box4{
         width:650px;
-        height:100px;
+        height:120px;
         margin-top: -25px;
         margin-left: 10px;
         font-size: 12px;
@@ -108,7 +108,7 @@
             @endforeach
             <tr>
                 <td>Pengirim</td>
-                <td>: {{$alamat->nama}} ({{$alamat->alamat}})</td>
+                <td>: {{$alamat->nama}}</td>
             </tr>
         </table>
     </div>
@@ -128,28 +128,33 @@
 
             <tr>
                 <td style="text-align:center;" width="30px">{{$no++}}</td>
-                <td style="text-align:left;" width="240px">Pembayaran Pembelian Warhouse {{$alamat->nama_gudang}}</td>
-                <td style="text-align:left;" width="90px">Rp. {{format_uang($produk->total_harga)}}</td>
-                <td style="text-align:center;" width="70px" >Transfer Ke {{$alamat->nama}} <br> Bank BCA </td>
+                <td style="text-align:left;" width="100px">Pembelian Stok Barang {{$alamat->nama_gudang}}<br>
+@if($alamat->tipe_bayar == 1)
+TOP tanggal {{$alamat->jatuh_tempo}}
+@endif
+</td>
+                <td style="text-align:center;" width="70px">Rp. {{format_uang($produk->total_harga_terima)}}</td>
+                <td style="text-align:left;" width="70px" >Rekening Bank {{$alamat->bank}} : <br> {{$alamat->no_rek}} <br> a/n {{$alamat->nama_rek}}</td>
             </tr>
         </tbody>
     </table>
 <br><br><br>
     <div style="font-size:12px; margin-left:45px; display:inline-block;">
-        Prepared By,<br><br><br><br>
+        Dibuat Oleh,<br><br><br><br>
         _____________
     </div>
 
     <div style="font-size:12px; margin-left:80px;display:inline-block;">
-        Checker,<br><br><br><br>
+        Mengetahui,<br><br><br><br>
         _____________
     </div>
     <div style="font-size:12px; margin-left:80px;display:inline-block;">
-        Sender,<br><br><br><br>
-        _____________
     </div>
-    <div style="font-size:12px; margin-left:80px;display:inline-block;">
-        Outlet Receiver,<br><br><br><br>
+<div style="font-size:12px; margin-left:80px;display:inline-block;">
+    </div>
+        
+<div style="font-size:12px; margin-left:80px;display:inline-block;">
+        Disetujui Oleh,<br><br><br><br>
         _____________
     </div>
 </div>

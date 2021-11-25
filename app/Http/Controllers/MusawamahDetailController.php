@@ -5,10 +5,12 @@ namespace App\Http\Controllers;
 use Illuminate\Http\Request;
 use App\Member;
 use App\Musawamah;
-use App\MusawamahDetail;
+use App\Branch;
+use App\ListToko;
 use App\TabelTransaksi;
 use PDF;
 use Auth;
+use App\Setting;
 
 class MusawamahDetailController extends Controller
 {
@@ -31,6 +33,7 @@ class MusawamahDetailController extends Controller
        $row[] = $no;
        $row[] = $list->kode_member;
        $row[] = $list->nama;
+
        $row[] = $list->os;
        $row[] = $list->angsuran;
        $row[] = '<div class="btn-group">
@@ -45,23 +48,33 @@ class MusawamahDetailController extends Controller
 
    public function store(Request $request)
    {
-    $now = \Carbon\Carbon::now();
+    //$now = \Carbon\Carbon::now();
     
+$param_tgl = \App\ParamTgl::where('nama_param_tgl','tanggal_transaksi')->where('unit',Auth::user()->id)->first();
+      $now = $param_tgl->param_tgl;
+
      $jml = Member::where('kode_member', '=', $request['kode'])->count();
      $musawamah = Musawamah::find($request['kode']);
 
      $unit_member=$musawamah->unit;
+
+     
+      $branch_coa_aktiva_member = Branch::find($unit_member);
+      $coa_aktiva_member=$branch_coa_aktiva_member->aktiva;
+
+      $branch_coa_aktiva_user = Branch::find(Auth::user()->unit);
+      $coa_aktiva_user=$branch_coa_aktiva_user->aktiva;
     
      if($jml > 0){
-      $member = new MusawamahDetail;
+      $member = new ListToko;
       $member->buss_date = $now;
-      $member->norek   = $musawamah->no_akad;
+      $member->norek   = $musawamah->id_member;
       $member->unit = $musawamah->unit;
       $member->id_member =$musawamah->id_member;
       $member->code_kel =$musawamah->code_kel;
-      $member->debet =$request['setoran'];
+      $member->DEBIT =0;
       $member->type ='02';
-      $member->kredit ='';
+      $member->KREDIT =$request['setoran'];
       $member->userid =Auth::user()->id;
       $member->ket ='Setoran Angsuran';
       $member->cao =$musawamah->cao;
@@ -88,7 +101,7 @@ class MusawamahDetailController extends Controller
                $jurnal->unit =  Auth::user()->unit; 
                $jurnal->kode_transaksi = $request['kode'];
                $jurnal->kode_rekening = 2891000;
-               $jurnal->tanggal_transaksi = '2019-07-03';
+               $jurnal->tanggal_transaksi = $now;
                $jurnal->jenis_transaksi  = 'Jurnal System';
                $jurnal->keterangan_transaksi = 'Setoran angsuran Musawamah ';
                $jurnal->debet =0;
@@ -99,7 +112,7 @@ class MusawamahDetailController extends Controller
                $jurnal->save();
 
       }else{
-         $jurnal = new TabelTransaksi;
+                  $jurnal = new TabelTransaksi;
          $jurnal->unit =  Auth::user()->unit; 
          $jurnal->kode_transaksi = $request['kode'];
          $jurnal->kode_rekening = 1120000;
@@ -108,7 +121,7 @@ class MusawamahDetailController extends Controller
          $jurnal->keterangan_transaksi = 'Setoran angsuran Musawamah ';
          $jurnal->debet = $request['setoran'];
          $jurnal->kredit = 0;
-         $jurnal->tanggal_posting = '2019-07-03';
+         $jurnal->tanggal_posting = '';
          $jurnal->keterangan_posting = '0';
          $jurnal->id_admin = Auth::user()->id; 
          $jurnal->save();
@@ -122,36 +135,111 @@ class MusawamahDetailController extends Controller
          $jurnal->keterangan_transaksi = 'Setoran angsuran Musawamah ';
          $jurnal->debet =0;
          $jurnal->kredit = $request['setoran'];
-         $jurnal->tanggal_posting = '2019-07-03';
+         $jurnal->tanggal_posting = '';
          $jurnal->keterangan_posting = ' ';
          $jurnal->id_admin = Auth::user()->id; 
          $jurnal->save();
 
-      }
+         $jurnal = new TabelTransaksi;
+         $jurnal->unit =  Auth::user()->unit; 
+         $jurnal->kode_transaksi = $request['kode'];
+         $jurnal->kode_rekening = 2853000;
+         $jurnal->tanggal_transaksi = $now;
+         $jurnal->jenis_transaksi  = 'Jurnal System';
+         $jurnal->keterangan_transaksi = 'Setoran angsuran Musawamah ';
+         $jurnal->debet =$request['setoran'];
+         $jurnal->kredit = 0;
+         $jurnal->tanggal_posting = '';
+         $jurnal->keterangan_posting = ' ';
+         $jurnal->id_admin = Auth::user()->id; 
+         $jurnal->save();
 
+         $jurnal = new TabelTransaksi;
+         $jurnal->unit =  Auth::user()->unit; 
+         $jurnal->kode_transaksi = $request['kode'];
+         $jurnal->kode_rekening = 2500000;
+         $jurnal->tanggal_transaksi = $now;
+         $jurnal->jenis_transaksi  = 'Jurnal System';
+         $jurnal->keterangan_transaksi = 'Setoran angsuran Musawamah ';
+         $jurnal->debet =0;
+         $jurnal->kredit = $request['setoran'];
+         $jurnal->tanggal_posting = '';
+         $jurnal->keterangan_posting = ' ';
+         $jurnal->id_admin = Auth::user()->id; 
+         $jurnal->save();
+
+         $jurnal = new TabelTransaksi;
+         $jurnal->unit =  $unit_member; 
+         $jurnal->kode_transaksi = $request['kode'];
+         $jurnal->kode_rekening = 2500000;
+         $jurnal->tanggal_transaksi = $now;
+         $jurnal->jenis_transaksi  = 'Jurnal System';
+         $jurnal->keterangan_transaksi = 'Setoran angsuran Musawamah ';
+         $jurnal->debet =$request['setoran'];
+         $jurnal->kredit = 0;
+         $jurnal->tanggal_posting = '';
+         $jurnal->keterangan_posting = ' ';
+         $jurnal->id_admin = Auth::user()->id; 
+         $jurnal->save();
+
+         $jurnal = new TabelTransaksi;
+         $jurnal->unit =  $unit_member; 
+         $jurnal->kode_transaksi = $request['kode'];
+         $jurnal->kode_rekening = 2891000;
+         $jurnal->tanggal_transaksi = $now;
+         $jurnal->jenis_transaksi  = 'Jurnal System';
+         $jurnal->keterangan_transaksi = 'Setoran angsuran Musawamah ';
+         $jurnal->debet =0;
+         $jurnal->kredit = $request['setoran'];
+         $jurnal->tanggal_posting = '';
+         $jurnal->keterangan_posting = ' ';
+         $jurnal->id_admin = Auth::user()->id; 
+         $jurnal->save();
+         
+ $jurnal = new TabelTransaksi;
+            $jurnal->unit = '1010'; 
+            $jurnal->kode_transaksi = $request['kode'];
+            $jurnal->kode_rekening = $coa_aktiva_user;
+            $jurnal->tanggal_transaksi = $now;
+            $jurnal->jenis_transaksi  = 'Jurnal System';
+            $jurnal->keterangan_transaksi = 'Setoran angsuran Musawamah';
+            $jurnal->debet = $request['setoran'];
+            $jurnal->kredit = 0;
+            $jurnal->tanggal_posting = ' ';
+            $jurnal->keterangan_posting = '0';
+            $jurnal->id_admin = Auth::user()->id; 
+            $jurnal->save();
+
+            $jurnal = new TabelTransaksi;
+            $jurnal->unit =  '1010'; 
+            $jurnal->kode_transaksi = $request['kode'];
+            $jurnal->kode_rekening = $coa_aktiva_member;
+            $jurnal->tanggal_transaksi = $now;
+            $jurnal->jenis_transaksi  = 'Jurnal System';
+            $jurnal->keterangan_transaksi = 'Setoran angsuran Musawamah';
+            $jurnal->debet =0;
+            $jurnal->kredit = $request['setoran'];
+            $jurnal->tanggal_posting = ' ';
+            $jurnal->keterangan_posting = '0';
+            $jurnal->id_admin = Auth::user()->id; 
+            $jurnal->save();
+
+      }
+    $setting=Setting::find(1);
+            $no = 0;
+            $bayar = $request['setoran'];
+            $os = $musawamah->os;
+            $sisa = $os - $bayar;
+        
+            $pdf = PDF::loadView('musawamah_detail.printpembayaran', compact('bayar','sisa','os','musawamah','no','setting'));
+            $pdf->setPaper(array(0,0,700,600), 'potrait');      
+      
+            return $pdf->stream();
                return view('musawamah_detail.index'); 
      }else{
       echo json_encode(array('msg'=>'error'));
      }
    }
 
-   public function edit($id)
-   {
-     $member = Member::find($id);
-     echo json_encode($member);
-   }
-
-   
-    public function printCard(Request $request)
-   {
-      $datamember = array();
-      foreach($request['id'] as $id){
-         $member = Member::find($id);
-         $datamember[] = $member;
-      }
-      
-      $pdf = PDF::loadView('member.card', compact('datamember'));
-      $pdf->setPaper(array(0, 0, 566.93, 850.39), 'potrait');     
-      return $pdf->stream();
-   }
+  
 }

@@ -10,18 +10,27 @@
    <li>tambah</li>
 @endsection
 
+
+
 @section('content')     
 <div class="row">
   <div class="col-xs-12">
     <div class="box">
-   
+    <div class="box-header">
+    @if ($message = Session::get('error'))
+      <div class="alert alert-danger alert-block">
+        <button type="button" class="close" data-dismiss="alert">×</button> 
+        <strong>{{ $message }}</strong>
+      </div>
+@endif
+    </div>   
      <div class="box-body">
 
 <table>
-  <tr><td width="150">Supplier</td><td><b>{{ $branch->nama_toko }}</b></td></tr>
+  <tr><td width="150">Gudang</td><td><b>{{ $branch->nama_toko }}</b></td></tr>
   <tr><td>Alamat</td><td><b>{{ $branch->alamat }}</b></td></tr>
-  <tr><td>Telpon</td><td><b>{{ $branch->telpon }}</b></td></tr>
-  <tr><td>Kode Gudang</td><td><b>{{ $branch->kode_gudang }}</b></td></tr>
+  <tr><td>Kode Gudang</td><td><b>{{ $branch->kode_toko }}</b></td></tr>
+  <tr><td>No Surat Jalan</td><td><b>{{ $idpembelian }}</b></td></tr>
 </table>
 <hr>
 
@@ -45,40 +54,41 @@
 {{ csrf_field() }} {{ method_field('PATCH') }}
 <table class="table table-striped tabel-pembelian">
 <thead>
-   <tr>
-      <th width="30">No</th>
-      <th>Kode Produk</th>
-      <th>Nama Produk</th>
-      <th align="right">Harga</th>
-      <th>Jumlah</th>
-      <th align="right">Sub Total</th>
-      <th width="100">Aksi</th>
-   </tr>
+  <tr>
+    <th width="30">No</th>
+    <th>Kode Produk</th>
+    <th>Nama Produk</th>
+    <th>Stok</th>
+    <th>Jumlah</th>
+    <th align="right">Keterangan</th>
+    <th width="100">Aksi</th>
+  </tr>
 </thead>
 <tbody></tbody>
 </table>
 </form>
 
-  <div class="col-md-8">
+  <!-- <div class="col-md-8">
      <div id="tampil-bayar" style="background: #dd4b39; color: #fff; font-size: 80px; text-align: center; height: 100px"></div>
      <div id="tampil-terbilang" style="background: #3c8dbc; color: #fff; font-weight: bold; padding: 10px"></div>
-  </div>
+  </div> -->
+  <div class="col-md-8"></div>
   <div class="col-md-4">
     <form class="form form-horizontal form-pembelian" method="post" action="{{  route('kirim_barang_toko.store') }} ">
       {{ csrf_field() }}
       <input type="hidden" name="idpembelian" value="{{ $idpembelian }}">
       <input type="hidden" name="total" id="total">
-      <input type="hidden" name="totalitem" id="totalitem">
+      <!-- <input type="hidden" name="totalitem" id="totalitem"> -->
       <input type="hidden" name="bayar" id="bayar">
 
       <div class="form-group">
-        <label for="totalrp" class="col-md-4 control-label">Total</label>
+        <label for="totalitem" class="col-md-4 control-label">Total Item</label>
         <div class="col-md-8">
-          <input type="text" class="form-control" id="totalrp" readonly>
+          <input type="text" class="form-control" id="totalitem" readonly>
         </div>
       </div>
 
-      <div class="form-group">
+      <!-- <div class="form-group">
         <label for="diskon" class="col-md-4 control-label">Diskon</label>
         <div class="col-md-8">
           <input type="number" class="form-control" id="diskon" name="diskon" value="0">
@@ -90,7 +100,7 @@
         <div class="col-md-8">
           <input type="text" class="form-control" id="bayarrp" readonly>
         </div>
-      </div>
+      </div> -->
 
     </form>
   </div>
@@ -98,13 +108,16 @@
       </div>
       
       <div class="box-footer">
-        <button type="submit" class="btn btn-primary pull-right simpan"><i class="fa fa-floppy-o"></i> Simpan Transaksi</button>
+      <div class="pull-right">
+        <button type="submit" class="btn btn-success simpan" ><i class="fa fa-print"></i> Proses Transaksi</button>
+        <a href="{{route('kirim_barang_toko.index')}}" class="btn btn-warning"><i class="fa fa-floppy-o"></i> Hold</a> 
+      </div>
       </div>
     </div>
   </div>
 </div>
 
-@include('kirim_barang_toko_detail.produk')
+@include('kirim_barang_detail.produk')
 @endsection
 
 @section('script')
@@ -116,12 +129,14 @@ $(function(){
      "dom" : 'Brt',
      "bSort" : false,
      "processing" : true,
+    "scrollY" : "200px",
+    "paging": false,
      "ajax" : {
        "url" : "{{ route('barang_toko_detail.data', $idpembelian) }}",
        "type" : "GET"
-     }
+      }
   }).on('draw.dt', function(){
-    loadForm($('#diskon').val());
+    loadForm("{{$idpembelian}}");
   });
   $('.form-produk').on('submit', function(e){
       return false;
@@ -131,10 +146,6 @@ $(function(){
    });
    $('.form-keranjang').submit(function(){
      return false;
-   });
-   $('#diskon').change(function(){
-      if($(this).val() == "") $(this).val(0).select();
-      loadForm($(this).val());
    });
    $('.simpan').click(function(){
       $('.form-pembelian').submit();
@@ -146,9 +157,13 @@ function addItem(){
     type : "POST",
     data : $('.form-produk').serialize(),
     success : function(data){
-      $('#kode').val('').focus();
+      
+      if(data.alert){
+        alert(data.alert);
+      }
+      $('#kode').val('').focus(); 
       table.ajax.reload(function(){
-        loadForm($('#diskon').val());
+      loadForm("{{$idpembelian}}");
       });             
     },
     error : function(){
@@ -161,34 +176,66 @@ function selectItem(kode){
   $('#modal-produk').modal('hide');
   addItem();
 }
-function changeCount(id){
+
+function changeKeterangan(id){
+  var url = "{{route('barang_toko_detail.update_keterangan',':id')}}";
+  url = url.replace(':id', id);
      $.ajax({
-        url : "kirim_barang_toko_detail/"+id,
-        type : "POST",
+        url : url,
+        type : "GET",
         data : $('.form-keranjang').serialize(),
         success : function(data){
-          $('#kode').focus();
+          if(data.alert){
+            alert(data.alert);
+          }
           table.ajax.reload(function(){
-            loadForm($('#diskon').val());
-          });             
+            loadForm("{{$idpembelian}}");
+          });
         },
         error : function(){
           alert("Tidak dapat menyimpan data!");
         }   
      });
 }
+
+
+function changeCount(id){
+  var url = "{{route('barang_toko_detail.update',':id')}}";
+  url = url.replace(':id', id);
+     $.ajax({
+        url : url,
+        type : "GET",
+        data : $('.form-keranjang').serialize(),
+        success : function(data){
+          if(data.alert){
+            alert(data.alert);
+          }
+          table.ajax.reload(function(){
+            loadForm("{{$idpembelian}}");
+          });
+        },
+        error : function(){
+          alert("Tidak dapat menyimpan data!");
+        }   
+     });
+}
+
 function showProduct(){
   $('#modal-produk').modal('show');
 }
 function deleteItem(id){
+  
+  var url = "{{route('barang_toko_detail.destroy',':id')}}";
+  url = url.replace(':id', id);
+
    if(confirm("Apakah yakin data akan dihapus?")){
      $.ajax({
-       url : "kirim_barang_toko_detail/"+id,
+       url : url,
        type : "POST",
        data : {'_method' : 'DELETE', '_token' : $('meta[name=csrf-token]').attr('content')},
        success : function(data){
          table.ajax.reload(function(){
-            loadForm($('#diskon').val());
+            loadForm("{{$idpembelian}}");
           }); 
        },
        error : function(){
@@ -197,25 +244,23 @@ function deleteItem(id){
      });
    }
 }
-function loadForm(diskon=0){
-  $('#total').val($('.total').text());
-  $('#totalitem').val($('.totalitem').text());
+function loadForm(id){
+  var url = "{{route('barang_toko_detail.loadForm',':id')}}";
+  url = url.replace(':id', id);
   $.ajax({
-       url : "kirim_barang_toko_detail/loadform/"+diskon+"/"+$('.total').text(),
+       url : url,
        type : "GET",
        dataType : 'JSON',
        success : function(data){
-         $('#totalrp').val("Rp. "+data.totalrp);
-         $('#bayarrp').val("Rp. "+data.bayarrp);
-         $('#bayar').val(data.bayar);
-         $('#tampil-bayar').text("Rp. "+data.bayarrp);
-         $('#tampil-terbilang').text(data.terbilang);
+         $('#totalitem').val(data.totalitem);
        },
        error : function(){
          alert("Tidak dapat menampilkan data!");
        }
   });
 }
+
 </script>
 
 @endsection
+

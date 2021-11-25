@@ -23,7 +23,8 @@ class UserController extends Controller
        $row[] = $list->name;
        $row[] = $list->email;
        $row[] = '<div class="btn-group">
-               <a onclick="editForm('.$list->id.')" class="btn btn-primary btn-sm"><i class="fa fa-pencil"></i></a>
+<a href="'.route('ganti_password.reset',$list->id).'" class="btn btn-warning btn-sm"><i class="fa fa-refresh"></i></a>               
+<a onclick="editForm('.$list->id.')" class="btn btn-primary btn-sm"><i class="fa fa-pencil"></i></a>
                <a onclick="deleteData('.$list->id.')" class="btn btn-danger btn-sm"><i class="fa fa-trash"></i></a></div>';
        $data[] = $row;
      }
@@ -40,6 +41,8 @@ class UserController extends Controller
       $user->password = bcrypt($request['password']);
       $user->foto = "user.png";
       $user->save();
+
+return back();
    }
    public function edit($id)
    {

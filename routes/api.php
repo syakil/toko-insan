@@ -49,3 +49,8 @@ Route::resource('updatejurnal', 'JurnalUmumController');
 Route::post('/update_jumlah_retur/{id}', 'ReturGudangController@update_jumlah_terima')->name('updateRetur.jumlah_terima');
 Route::post('/update_expired_retur/{id}', 'ReturGudangController@update_expired_date')->name('updateRetur.expired_date');
 Route::resource('updateRetur', 'ReturGudangController');
+
+Route::post('/stok_opname_parsial/update/{id}', 'StokOpnameParsialController@update')->name('stok_opname_parsial.update');
+
+Route::post('/stok_opname_parsial_toko/update/{id}', 'StokOpnameParsialTokoController@update')->name('stok_opname_parsial_toko.update');
+

@@ -18,6 +18,7 @@
             <th>Nama Member</th>
             <th>Alamat</th>
             <th>Plafond</th>
+            <th>Tenor</th>
             <th>Musawamah</th>            
             <th>Status</th>        
             <th>Aksi</th>
@@ -26,29 +27,22 @@
       <tbody>
          @foreach($member as $data)
          <tr>
-            <th>{{ $data->kode_member }}</th>
+            <th>{{ $data->id_member }}</th>
             <th>{{ $data->nama }}</th>
             <th>{{ $data->unit }}</th>
-            <th>{{ number_format($data->plafond) }}</th>
+            <th>{{ number_format($data->Plafond) }}</th>
+            <th>{{ number_format($data->Tenor) }}</th>       
             <th>{{ number_format($data->os) }}</th>        
             <th>{{ $data->status_member }}</th>
-            <th><a href="/toko/memberinsan/{{ $data->kode_member }}/baru" class="btn btn-primary"><i class="fa fa-check-circle"></i> Pilih</a></th>
+            <th><button onclick="getMember({{ $data->id_member }})" class="btn btn-primary"><i class="fa fa-check-circle"></i> Pilih</button></th>
                               
           </tr>
          @endforeach
       </tbody>
    </table>
-
 </div>
       
          </div>
       </div>
    </div>
-   @section('script')
    
-   <script>
-      $(document).ready( function () {
-       $('.tabel-member-awal').DataTable();
-   } );
-   </script>
-      @endsection

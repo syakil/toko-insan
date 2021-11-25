@@ -15,8 +15,8 @@
     <div class="box">
       <div class="box-header">
         
-      <form action="/toko-master/pricing/update/{{$produk->kode_produk}}"class="form-horizontal"  data-toggle="validator" method="post">
-    {{ csrf_field() }} {{ method_field('POST') }}
+    <form action="{{route('pricing.update')}}" class="form-horizontal" method="post">
+    {{ csrf_field() }} 
         
 
 
@@ -29,13 +29,23 @@
     </div>
   </div>
 
+  
   <div class="form-group">
     <label for="nama" class="col-md-3 control-label">Nama Produk</label>
     <div class="col-md-6">
-      <input id="nama" type="text" class="form-control" name="nama" value="{{$produk->nama_produk}}"readonly>
+      <input id="nama" type="text" class="form-control" name="nama_produk" value="{{$produk->nama_produk}}">
       <span class="help-block with-errors"></span>
     </div>
   </div>
+
+  <div class="form-group">
+    <label for="nama_struk" class="col-md-3 control-label">Nama Struk</label>
+    <div class="col-md-6">
+      <input id="nama_struk" type="text" class="form-control" name="nama_struk" value="{{$produk->nama_struk}}">
+      <span class="help-block with-errors"></span>
+    </div>
+  </div>
+
   <div class="form-group">
     <label for="kategori" class="col-md-3 control-label">Status</label>
     <div class="col-md-6">
@@ -51,9 +61,9 @@
   </div>
 
   <div class="form-group">
-    <label for="harga_beli" class="col-md-3 control-label">Harga Beli</label>
+    <label for="harga_beli_sebelum_pajak" class="col-md-3 control-label">Harga Beli</label>
     <div class="col-md-3">
-      <input id="harga_beli" type="text" class="form-control" name="harga_beli" value="{{$produk->harga_beli}}" readonly>
+      <input id="harga_beli_sebelum_pajak" type="text" class="form-control" name="harga_beli_sebelum_pajak" disabled value="{{$produk->harga_beli}}">
       <span class="help-block with-errors"></span>
     </div>
   </div>
@@ -61,21 +71,22 @@
   <div class="form-group">
     <label for="diskon" class="col-md-3 control-label">Diskon</label>
     <div class="col-md-3">
-      <input id="diskon" type="text" class="form-control" name="diskon" value="{{$produk->diskon}}" required>
+      <input id="diskon" type="number" class="form-control" name="diskon" value="{{$produk->diskon}}" required>
       <span class="help-block with-errors"></span>
     </div>
   </div>
 
-  <div class="form-group">
-    <label for="harga_jual" class="col-md-3 control-label">Harga Jual Minimal</label>
+  <div class="form-group">    
+    <label for="pajak" class="col-md-3 control-label">Pajak</label>
     <div class="col-md-3">
-      <input id="harga_jual" type="text" class="form-control" name="harga_jual" value="{{round($produk->harga_beli+($produk->harga_beli*$produk->margin/100))}}" readonly>
+      <input type="text" class="form-control" id="pajak" onkeyup="nilai_pajak()" value="0">
       <span class="help-block with-errors"></span>
     </div>
 
-    <label for="competitor1" class="col-md-1 control-label">Alfamart</label>
+    
+    <label for="harga_beli" class="col-md-1 control-label">HPP</label>
     <div class="col-md-3">
-      <input  type="text" class="form-control" id="competitor1" onkeyup="hitung2();">
+      <input type="text" class="form-control" id="harga_beli" name="harga_beli" disabled value="{{$produk->harga_beli}}">
       <span class="help-block with-errors"></span>
     </div>
   </div>
@@ -83,47 +94,32 @@
   <div class="form-group">
     <label for="harga_jual_insan" class="col-md-3 control-label">Harga Member Insan</label>
     <div class="col-md-3">
-      <input id="harga_jual_insan" type="text" class="form-control" name="harga_jual_insan" value="{{round($produk->harga_beli+($produk->harga_beli*$produk->margin/100))}}" required>
+      <input id="harga_jual_insan" type="text" class="form-control" name="harga_jual_insan" id="harga_jual_insan" onkeyup="margin_ni2()" value="{{ $produk->harga_jual_insan }} "required>
       <span class="help-block with-errors"></span>
     </div>
 
     
-    <label for="competitor2" class="col-md-1 control-label">Indomart</label>
+    <label for="margin_ni" class="col-md-1 control-label">Margin NI</label>
     <div class="col-md-3">
-      <input type="text" class="form-control" id="competitor2" onkeyup="hitung2();">
+      <input type="text" class="form-control" id="margin_ni" onkeyup="harga_ni()">
       <span class="help-block with-errors"></span>
     </div>
   </div>
 
   <div class="form-group">
-    <label for="harga_jual_pabrik" class="col-md-3 control-label">Harga Member Pabrik</label>
+    <label for="harga_jual" class="col-md-3 control-label">Harga Member Pabrik</label>
     <div class="col-md-3">
-      <input id="harga_jual_pabrik" type="text" class="form-control" name="harga_jual_pabrik" value="{{round($produk->harga_beli+($produk->harga_beli*$produk->margin/100))}}" required>
+      <input id="harga_jual" type="text" value="{{$produk->harga_jual}}" class="form-control" name="harga_jual" onkeyup="margin_umum1()"required>
       <span class="help-block with-errors"></span>
     </div>
 
     
-    <label for="competitor3" class="col-md-1 control-label">Carrefour</label>
+    <label for="margin_umum" class="col-md-1 control-label">Margin</label>
     <div class="col-md-3">
-      <input type="text" class="form-control" id="competitor3" onkeyup="hitung2();">
+      <input type="text" class="form-control" id="margin_umum" onkeyup="harga_jual1()">
       <span class="help-block with-errors"></span>
     </div>
   </div>
-
-  <div class="form-group">
-    <label for="stok" class="col-md-3 control-label">Stok</label>
-    <div class="col-md-2">
-      <input id="stok" type="text" class="form-control" name="stok" value="{{$produk->stok}}" readonly>
-      <span class="help-block with-errors"></span>
-    </div>
-
-    <label for="avg" class="col-md-3 control-label">Avg</label>
-    <div class="col-md-2">
-      <input readonly id="avg" type="text" class="form-control" id="avg" required>
-      <span class="help-block with-errors"></span>
-    </div>
-  </div>
-
 
    
    <div class="modal-footer">
@@ -143,13 +139,54 @@
 @endsection
 
 @section('script')
+
 <script>
-function hitung2() {
-    var competitor1 = $("#competitor1").val();
-    var competitor2 = $("#competitor2").val();
-    var competitor3 = $("#competitor3").val();
-    var avg = (parseInt(competitor1)+parseInt(competitor2)+parseInt(competitor3))/3;
-    $("#avg").val(Math.round(avg));
+function margin_umum1() {
+    var harga_beli = $("#harga_beli").val();
+    var harga_jual = $("#harga_jual").val();
+    var margin_umum = (parseInt(harga_jual)-parseInt(harga_beli))/parseInt(harga_jual)*100;
+    $("#margin_umum").val(margin_umum.toFixed(2));
 }
 </script>
+
+
+<script>
+function nilai_pajak() {
+    var harga_beli_sebelum_pajak = $("#harga_beli_sebelum_pajak").val();
+    var pajak = $("#pajak").val();
+    var harga_beli = (parseInt(harga_beli_sebelum_pajak)*pajak/100)+parseInt(harga_beli_sebelum_pajak);
+    $("#harga_beli").val(Math.round(harga_beli));
+}
+</script>
+
+
+<script>
+function harga_jual1() {
+    var harga_beli = $("#harga_beli").val();
+    var margin = $("#margin_umum").val();
+    var harga_jual = (parseInt(harga_beli)*margin/100)+parseInt(harga_beli);
+    $("#harga_jual").val(harga_jual);
+}
+</script>
+
+
+<script>
+function margin_ni2() {
+    var harga_beli = $("#harga_beli").val();
+    var harga_jual_insan = $("#harga_jual_insan").val();
+    var margin_ni = (parseInt(harga_jual_insan)-parseInt(harga_beli))/parseInt(harga_jual_insan)*100;
+    $("#margin_ni").val(margin_ni.toFixed(2));
+}
+</script>
+
+<script>
+function harga_ni() {
+    var harga_beli = $("#harga_beli").val();
+    var margin_ni = $("#margin_ni").val();
+    var harga_jual_insan = (parseInt(harga_beli)*margin_ni/100)+parseInt(harga_beli);
+    $("#harga_jual_insan").val(harga_jual_insan);
+}
+</script>
+
+
 @endsection

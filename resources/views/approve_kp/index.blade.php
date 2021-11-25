@@ -4,6 +4,12 @@
   Daftar Produk
 @endsection
 
+@section('header')
+    <link rel="stylesheet" href="https://cdn.datatables.net/buttons/1.5.6/css/buttons.dataTables.min.css">
+    <link href="//cdnjs.cloudflare.com/ajax/libs/x-editable/1.5.0/bootstrap3-editable/css/bootstrap-editable.css" rel="stylesheet"/>
+@endsection
+
+
 @section('breadcrumb')
    @parent
    <li>produk</li>
@@ -11,68 +17,98 @@
 
 @section('content')
 
+@if ($message = Session::get('error'))
+    <script>
+    var pesan = "{{$message}}"
+    swal("Maaf !", pesan, "error"); 
+    </script>
+@elseif ($message = Session::get('success'))
+    <script>
+    var pesan = "{{$message}}"
+    swal("Selamat !", pesan, "success"); 
+    </script>
+@endif
+
 <div class="row">
-  <div class="col-xs-12">
-    <div class="box">
-      <div class="box-header">
-      </div>
+    <div class="col-md-3">
+        <div class="box box-default collapsed-box">
+            <div class="box-header with-border">
+
+                <label for="exampleFormControlSelect1">Pilih Gudang</label>
+                <select class="form-control" id="toko">
+                    <option value="unit">pilih gudang</option>
+                    @foreach($unit as $id)
+                    <option value="{{$id->kode_gudang}}">{{$id->nama_gudang}}</option>
+                    @endforeach
+                </select>
+            </div>
+        <!-- /.box-body -->
+        </div>
+    <!-- /.box -->
+    </div>
+
+    <div class="col-xs-12">
+        <div class="box">
+            <div class="box-body"> 
       <div class="box-body"> 
+            <div class="box-body"> 
                 <form action="{{ route('approve_kp.store') }}" method="post">
                 {{ csrf_field() }}
-            <table class="table table-striped" id="tables">
-            <input type="checkbox" name="select-all" id="select-all" class="checkbox"> Pilih Semua
-                <thead>
-                    <tr>
-                        <th width='1%'></th>
-                        <th width='1%'>No.</th>
-                        <th>Unit</th>
-                        <th>Barcode</th>
-                        <th>Nama Produk</th>
-                        <th>Stock</th>
-                        <th>Tanggal Kadaluarsa</th>
-                    </tr>
-                </thead>
-                <tbody>
-                @php $no =1 ; @endphp
-                    @foreach ($produk as $p)
-                    <tr>
-                        <td><input type="checkbox" name="kode[]" id="kode" value="{{$p->id_produk_detail}}" ></td>
-                        <td>{{$no++}}</td>
-                        <td>{{$p->unit}}</td>
-                        <td>{{$p->kode_produk}}</td>
-                        <td>{{$p->nama_produk}}</td>
-                        <td>{{$p->stok_detail}}</td>
-                        <td>{{$p->expired_date}}</td>
-                    </tr>
-                    @endforeach
-                </tbody>
-            </table>
-                <button type="submit" class="btn btn-danger">Approve</button>
+                <table class="table table-striped tabel-so">
+                <input type="hidden" name="unit" id="unit">
+                    <thead>
+                        <tr>
+                            <th>No.</th>
+                            <th>Barcode</th>
+                            <th>Nama Produk</th>
+                            <th>Stok Opname</th>
+                            <th>Stok Sistem</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                    </tbody>
+                </table>
+                <button type="submit" class="btn btn-danger pull-right approve">Approve</button>
                 </form>
             </div>
         </div>
     </div>
 </div>
 
-    <!-- /.content -->
-
 @endsection
 
 @section('script')
 
+
+
 <script language="JavaScript">
-$('#select-all').click(function(event) {   
-    if(this.checked) {
-        // Iterate each checkbox
-        $(':checkbox').each(function() {
-            this.checked = true;                        
-        });
-    } else {
-        $(':checkbox').each(function() {
-            this.checked = false;                       
-        });
-    }
+
+$("select#toko").change(function(){        
+    var unit = $(this).children("option:selected").val();
+    $('.tabel-so').DataTable().destroy();
+    getData(unit);
 });
+
+
+function getData(unit) {
+
+    var url = "{{route('approve_kp.data',':unit')}}"
+    url = url.replace(':unit',unit)
+    $("#unit").val(unit);
+
+    table = $('.tabel-so').DataTable({
+        "processing" : true,
+        "paging" : true,
+        "serverside" : true,
+        "reload":true,
+        "ajax" : {
+            "url" : url,
+            "type" : "GET"
+        }
+    });
+}
 </script>
+
+
 
 @endsection

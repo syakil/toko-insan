@@ -9,5 +9,8 @@ use Illuminate\Foundation\Auth\Access\AuthorizesRequests;
 
 class Controller extends BaseController
 {
+public function __construct(){
+ini_set('mac_execution_time',30000);
+}
     use AuthorizesRequests, DispatchesJobs, ValidatesRequests;
 }

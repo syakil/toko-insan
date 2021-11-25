@@ -20,23 +20,21 @@
         @endif
       </div>
       <div class="box-body">  
-
-<table class="table table-striped tabel-pembelian">
-<thead>
-   <tr>
-      <th width="30">No</th>
-      <th>Tanggal</th>
-      <th>Supplier</th>
-      <th>Total Item</th>
-      <th>Total Harga</th>
-      <th>Diskon</th>
-      <th>Total Bayar</th>
-      <th width="100">Aksi</th>
-   </tr>
-</thead>
-<tbody></tbody>
-</table>
-
+        <table class="table table-bordered tabel-pembelian">
+          <thead>
+            <tr>
+              <th width="30">No</th>
+              <th>Kode Pembelian</th>
+              <th>Tanggal Pembuatan</th>
+              <th>Supplier</th>
+              <th>Total Item</th>
+              <th>Total Harga</th>
+              <th>Status</th>
+              <th>Aksi</th>
+            </tr>
+          </thead>
+          <tbody></tbody>
+        </table>
       </div>
     </div>
   </div>
@@ -53,6 +51,7 @@ $(function(){
    table = $('.tabel-pembelian').DataTable({
      "processing" : true,
      "serverside" : true,
+     
      "ajax" : {
        "url" : "{{ route('pembelian.data') }}",
        "type" : "GET"
@@ -60,12 +59,11 @@ $(function(){
    }); 
    
    table1 = $('.tabel-detail').DataTable({
-     "dom" : 'Brt',
-     "bSort" : false,
-     "processing" : true
+     
     });
 
    $('.tabel-supplier').DataTable();
+
 });
 
 function addForm(){
@@ -94,5 +92,9 @@ function deleteData(id){
      });
    }
 }
+
+
 </script>
+
+
 @endsection

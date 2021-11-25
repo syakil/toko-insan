@@ -10,57 +10,63 @@
 @endsection
 
 @section('content')     
+
+
+@if ($message = Session::get('error'))
+  <script>
+    var pesan = "{{$message}}"
+    swal("Maaf !", pesan, "error"); 
+  </script>
+@elseif ($message = Session::get('success'))
+  <script>
+    var pesan = "{{$message}}"
+    swal("Selamat !", pesan, "success"); 
+  </script>
+@endif
 <div class="row">
   <div class="col-xs-12">
     <div class="box">
-   
      <div class="box-body">
 
-<table>
-  <tr><td width="150">Supplier</td><td><b>{{ $supplier->nama }}</b></td></tr>
-  <tr><td>Alamat</td><td><b>{{ $supplier->alamat }}</b></td></tr>
-  <tr><td>Telpon</td><td><b>{{ $supplier->telpon }}</b></td></tr>
-</table>
-@if ($message = Session::get('error'))
-      <div class="alert alert-danger alert-block">
-        <button type="button" class="close" data-dismiss="alert">×</button> 
-        <strong>{{ $message }}</strong>
-      </div>
-@endif
-<hr>
+      <table>
+        <tr><td width="150">Supplier</td><td><b>{{ $supplier->nama }}</b></td></tr>
+        <tr><td>Alamat</td><td><b>{{ $supplier->alamat_supplier }}</b></td></tr>
+        <tr><td>Telpon</td><td><b>{{ $supplier->telepon }}</b></td></tr>
+      </table>
+      <hr>
 
-<form class="form form-horizontal form-produk" method="post">
-{{ csrf_field() }}
-  <input type="hidden" name="idpembelian" value="{{ $idpembelian }}">
-  <div class="form-group">
-      <label for="kode" class="col-md-2 control-label">Kode Produk</label>
-      <div class="col-md-5">
-        <div class="input-group">
-          <input id="kode" type="text" class="form-control" name="kode" autofocus required>
-          <span class="input-group-btn">
-            <button onclick="showProduct()" type="button" class="btn btn-info">...</button>
-          </span>
+      <form class="form form-horizontal form-produk" method="post">
+      {{ csrf_field() }}
+        <input type="hidden" name="idpembelian" value="{{ $idpembelian }}">
+        <div class="form-group">
+            <label for="kode" class="col-md-2 control-label">Kode Produk</label>
+            <div class="col-md-5">
+              <div class="input-group">
+                <input id="kode" type="text" class="form-control" name="kode" autofocus required>
+                <span class="input-group-btn">
+                  <button onclick="showProduct()" type="button" class="btn btn-info">...</button>
+                </span>
+              </div>
+            </div>
         </div>
-      </div>
-  </div>
-</form>
+      </form>
 
 <form class="form-keranjang">
-{{ csrf_field() }} {{ method_field('PATCH') }}
-<table class="table table-striped tabel-pembelian">
-<thead>
-   <tr>
-      <th width="30">No</th>
-      <th>Kode Produk</th>
-      <th>Nama Produk</th>
-      <th>Jumlah Kirim</th>
-      <th>Jumlah Terima</th>
-      <th align="right">Tanggal Kadaluarsa</th>
-      <th width="100">Aksi</th>
-   </tr>
-</thead>
-<tbody></tbody>
-</table>
+  {{ csrf_field() }} {{ method_field('PATCH') }}
+  <table class="table table-striped tabel-pembelian">
+    <thead>
+    <tr>
+        <th width="30">No</th>
+        <th>Kode Produk</th>
+        <th>Nama Produk</th>
+        <th>Jumlah Kirim</th>
+        <th>Jumlah Terima</th>
+        <th align="right">Tanggal Kadaluarsa</th>
+        <th width="100">Aksi</th>
+    </tr>
+    </thead>
+    <tbody></tbody>
+  </table>
 </form>
   <!-- <div class="col-md-8">
      <div id="tampil-bayar" style="background: #dd4b39; color: #fff; font-size: 80px; text-align: center; height: 100px"></div>
@@ -117,9 +123,11 @@ var table;
 $(function(){
   $('.tabel-produk').DataTable();
   table = $('.tabel-pembelian').DataTable({
-     "dom" : 'Brt',
-     "bSort" : false,
-     "processing" : true,
+      "dom" : 'Brt',
+      "bSort" : false,
+      "processing" : true,
+      "scrollY" : "200px",
+      "paging" : false,
      "ajax" : {
        "url" : "{{ route('terima_po_detail.data', $idpembelian) }}",
        "type" : "GET"
@@ -205,19 +213,19 @@ function loadForm(diskon=0){
   $('#total').val($('.total').text());
   $('#totalitem').val($('.totalitem').text());
   $.ajax({
-       url : "terima_po_detail/loadform/"+diskon+"/"+$('.total').text(),
-       type : "GET",
-       dataType : 'JSON',
-       success : function(data){
-         $('#totalrp').val("Rp. "+data.totalrp);
-         $('#bayarrp').val("Rp. "+data.bayarrp);
-         $('#bayar').val(data.bayar);
-         $('#tampil-bayar').text("Rp. "+data.bayarrp);
-         $('#tampil-terbilang').text(data.terbilang);
-       },
-       error : function(){
-         alert("Tidak dapat menampilkan data!");
-       }
+      url : "terima_po_detail/loadform/"+diskon+"/"+$('.total').text(),
+      type : "GET",
+      dataType : 'JSON',
+      success : function(data){
+          $('#totalrp').val("Rp. "+data.totalrp);
+          $('#bayarrp').val("Rp. "+data.bayarrp);
+          $('#bayar').val(data.bayar);
+          $('#tampil-bayar').text("Rp. "+data.bayarrp);
+          $('#tampil-terbilang').text(data.terbilang);
+      },
+      error : function(){
+        alert("Tidak dapat menampilkan data!");
+      }
   });
 }
 

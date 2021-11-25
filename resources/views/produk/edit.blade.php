@@ -1,7 +1,7 @@
 @extends('layouts.app')
 
 @section('title')
-  Edit Harga Jual
+  Edit Produk
 @endsection
 
 @section('breadcrumb')
@@ -9,139 +9,131 @@
    <li>produk</li>
 @endsection
 
-@section('content')     
+@section('content')
+
+  
+@if ($message = Session::get('error'))
+  <script>
+    var pesan = "{{$message}}"
+    swal("Maaf !", pesan, "error"); 
+  </script>
+@elseif ($message = Session::get('success'))
+  <script>
+    var pesan = "{{$message}}"
+    swal("Selamat !", pesan, "success"); 
+  </script>
+@endif
+
 <div class="row">
   <div class="col-xs-12">
     <div class="box">
       <div class="box-header">
         
-      <form action="{{ route('produk.harga_jual',$produk->kode_produk)}}"class="form-horizontal"  data-toggle="validator" method="post">
-    {{ csrf_field() }} {{ method_field('POST') }}
+      <form class="form-horizontal" id="form_produk" action="{{route('produk.update')}}" method="post">
+      {{ csrf_field() }} {{ method_field('POST') }}
+
+        <input type="hidden" name="id" value="{{$produk->id_produk}}">
         
+        <div class="modal-body"> 
+          <div class="form-group">
+            <label for="kode" class="col-md-3 control-label">Kode Produk</label>
+            <div class="col-md-6">
+              <input id="kode" type="number" class="form-control" value="{{$produk->kode_produk}}" readonly name="kode" autofocus required>
+              <span class="help-block with-errors"></span>
+            </div>
+          </div>
 
+          <div class="form-group">
+            <label for="nama" class="col-md-3 control-label">Nama Produk</label>
+            <div class="col-md-6">
+              <input id="nama" type="text" value="{{$produk->nama_produk}}"  class="form-control" name="nama" required>
+              <span class="help-block with-errors"></span>
+            </div>
+          </div>
 
-  <!-- <input type="hidden" id="id" name="id" value="{{$produk->kode_produk}}"> -->
-  <div class="form-group">
-    <label for="kode" class="col-md-3 control-label">Kode Produk</label>
-    <div class="col-md-6">
-      <input id="kode" type="number" class="form-control" name="kode" value="{{$produk->kode_produk}}" readonly>
-      <span class="help-block with-errors"></span>
-    </div>
-  </div>
+          <div class="form-group">
+            <label for="nama_struk" class="col-md-3 control-label">Nama Struk</label>
+            <div class="col-md-6">
+              <input id="nama_struk" type="text" class="form-control" name="nama_struk" value="{{$produk->nama_struk}}"  required>
+              <span class="help-block with-errors"></span>
+            </div>
+          </div>
 
-  <div class="form-group">
-    <label for="nama" class="col-md-3 control-label">Nama Produk</label>
-    <div class="col-md-6">
-      <input id="nama" type="text" class="form-control" name="nama" value="{{$produk->nama_produk}}"readonly>
-      <span class="help-block with-errors"></span>
-    </div>
-  </div>
+          <div class="form-group">
+            <label for="status" class="col-md-3 control-label">Satuan</label>
+            <div class="col-md-6">
+              <select id="status" type="text" class="form-control" name="status" required>
+                <option value="" disabled> -- Pilih Satuan-- </option>
+                <option value="Pcs">Pcs</option>
+                <option value="Kg">Kg</option>
+                <option value="Grm">Grm</option>
+                <option value="Liter">Liter</option>
+                <option value="Pack">Pack</option>
+                <option value="Box/Dus">Box/Dus</option>
+                </select>
+              <span class="help-block with-errors"></span>
+            </div>
+          </div>
 
-  <div class="form-group">
-    <label for="kategori" class="col-md-3 control-label">Kategori</label>
-    <div class="col-md-6">
-      <select id="kategori" type="text" class="form-control" name="kategori" required>
-        <option value=""> -- Pilih Kategori-- </option>
-        @foreach($kategori as $list)
-        <option value="{{ $list->id_kategori }}">{{ $list->nama_kategori }}</option>
-        @endforeach
-      </select>
-      <span class="help-block with-errors"></span>
-    </div>
-  </div>
+          <div class="form-group">
+            <label for="status" class="col-md-3 control-label">Status</label>
+            <div class="col-md-6">
+              <select id="status" type="text" class="form-control" name="status" required>
+                <option value="" disabled> -- Pilih Status-- </option>
+                @foreach($status as $list)
+                  @if($list->id_status == $produk->param_status)
+                    <option value="{{ $list->id_status }}" selected>{{ $list->keterangan }}
+                  @else
+                <option value="{{ $list->id_status }}">{{ $list->keterangan }}
+                </option>
+                @endif
+                @endforeach
+              </select>
+              <span class="help-block with-errors"></span>
+            </div>
+          </div>
 
-  <div class="form-group">
-    <label for="merk" class="col-md-3 control-label">Merk</label>
-    <div class="col-md-6">
-      <input id="merk" type="text" class="form-control" name="merk" value="{{$produk->merk}}" required>
-      <span class="help-block with-errors"></span>
-    </div>
-  </div>
+          <div class="form-group">
+            <label for="supplier" class="col-md-3 control-label">Supplier</label>
+            <div class="col-md-6">
+              <select id="supplier" type="text" class="form-control" name="supplier" required>
+                <option value=""disabled> -- Pilih Supplier-- </option>
+                @foreach($supplier as $list)
+                @if($list->id_supplier == $produk->id_supplier)
+                <option value="{{ $list->id_supplier }}" selected>{{ $list->nama }}</option>
+                @else
+                <option value="{{ $list->id_supplier }}">{{ $list->nama }}</option>
+                @endif
+                @endforeach
+              </select>
+              <span class="help-block with-errors"></span>
+            </div>
+          </div>
 
-  <div class="form-group">
-    <label for="harga_beli" class="col-md-3 control-label">Harga Beli</label>
-    <div class="col-md-3">
-      <input id="harga_beli" type="text" class="form-control" name="harga_beli" value="{{$produk->harga_beli}}" readonly>
-      <span class="help-block with-errors"></span>
-    </div>
-  </div>
-
-  <div class="form-group">
-    <label for="diskon" class="col-md-3 control-label">Diskon</label>
-    <div class="col-md-2">
-      <input id="diskon" type="text" class="form-control" name="diskon" value="{{$produk->diskon}}" required>
-      <span class="help-block with-errors"></span>
-    </div>
-  </div>
-
-  <div class="form-group">
-    <label for="harga_jual" class="col-md-3 control-label">Harga Jual Umum</label>
-    <div class="col-md-3">
-      <input id="harga_jual" type="text" class="form-control" name="harga_jual" value="{{$harga_jual}}" required>
-      <span class="help-block with-errors"></span>
-    </div>
-
-    <label for="competitor1" class="col-md-1 control-label">Alfamart</label>
-    <div class="col-md-3">
-      <input  type="text" class="form-control" id="competitor1" onkeyup="hitung2();">
-      <span class="help-block with-errors"></span>
-    </div>
-  </div>
-
-  <div class="form-group">
-    <label for="harga_jual_insan" class="col-md-3 control-label">Harga Jual Insan</label>
-    <div class="col-md-3">
-      <input id="harga_jual_insan" type="text" class="form-control" name="harga_jual_insan" value="{{$produk->harga_jual_insan}}" required>
-      <span class="help-block with-errors"></span>
-    </div>
-
+          <div class="form-group">
+            <label for="kategori" class="col-md-3 control-label">Kategori</label>
+            <div class="col-md-6">
+              <select id="kategori" type="text" class="form-control" name="kategori" required>
+                <option value=""disabled> -- Pilih Kategori-- </option>
+                @foreach($kategori as $list)
+                @if($list->id_kategori == $produk->id_kategori)
+                <option value="{{ $list->id_kategori}}" selected>{{ $list->nama_kategori }}</option>
+                @else
+                <option value="{{ $list->id_kategori }}" selected>{{ $list->nama_kategori }}</option>
+                @endif
+                @endforeach
+              </select>
+              <span class="help-block with-errors"></span>
+            </div>
+          </div>
+        </div>
+        
+        <div class="modal-footer">
+          <button type="submit" class="btn btn-primary btn-save"><i class="fa fa-floppy-o"></i> Simpan </button>
+          <a href="{{route('produk.index')}}" class="btn btn-warning" data-dismiss="modal"><i class="fa fa-arrow-circle-left"></i> Batal</a>
+        </div>
     
-    <label for="competitor2" class="col-md-1 control-label">Indomart</label>
-    <div class="col-md-3">
-      <input type="text" class="form-control" id="competitor2" onkeyup="hitung2();">
-      <span class="help-block with-errors"></span>
-    </div>
-  </div>
-
-  <div class="form-group">
-    <label for="harga_jual_pabrik" class="col-md-3 control-label">Harga Jual Pabrik</label>
-    <div class="col-md-3">
-      <input id="harga_jual_pabrik" type="text" class="form-control" name="harga_jual_pabrik" value="{{$produk->harga_jual_pabrik}}" required>
-      <span class="help-block with-errors"></span>
-    </div>
-
-    
-    <label for="competitor3" class="col-md-1 control-label">Carefour</label>
-    <div class="col-md-3">
-      <input type="text" class="form-control" id="competitor3" onkeyup="hitung2();">
-      <span class="help-block with-errors"></span>
-    </div>
-  </div>
-
-  <div class="form-group">
-    <label for="stok" class="col-md-3 control-label">Stok</label>
-    <div class="col-md-2">
-      <input id="stok" type="text" class="form-control" name="stok" value="{{$produk->stok}}" readonly>
-      <span class="help-block with-errors"></span>
-    </div>
-
-    <label for="avg" class="col-md-3 control-label">Avg</label>
-    <div class="col-md-2">
-      <input readonly id="avg" type="text" class="form-control" id="avg" required>
-      <span class="help-block with-errors"></span>
-    </div>
-  </div>
-
-
-   
-   <div class="modal-footer">
-      <button type="submit" class="btn btn-primary btn-save"><i class="fa fa-floppy-o"></i> Simpan </button>
-      <a href="{{ route('produk.index') }}" class="btn btn-warning "><i class="fa fa-arrow-circle-left"></i> <span>Batal</span></a>
-   </div>
-    
-   </form>
-
-      
+        </form>      
       </div>
     </div>
   </div>

@@ -11,165 +11,207 @@
 @endsection
 
 @section('content')   
-
-
-
 <div class="row">
+  
   <div class="col-xs-12">
+    
     <div class="box">
-   
+    
+      <div class="box-header">
+      
+      <!-- pesan error -->
+      @if ($message = Session::get('error'))
+        <div class="alert alert-danger alert-block">
+          <button type="button" class="close" data-dismiss="alert">×</button> 
+          <strong>{{ $message }}</strong>
+        </div>
+      @endif
+
+      </div>
+
       <div class="box-body">
     
-     
+        <form class="form form-horizontal form-produk" method="post">
+          {{ csrf_field() }}  
 
-<form class="form form-horizontal form-produk" method="post">
-{{ csrf_field() }}  
+          <input type="hidden" name="idpenjualan" value="{{ $idpenjualan }}">
+          <div class="form-group">
+              <label for="kode" class="col-md-2 control-label">Kode Produk</label>
+              <div class="col-md-5">
+                <div class="input-group">
+                  <input id="kode" type="text" class="form-control" name="kode" autofocus required>
+                  <span class="input-group-btn">
+                    <button onclick="showProduct()" type="button" class="btn btn-info">...</button>
+                  </span>
+                </div>
+              </div>
+          </div>
+        </form>
 
-  <input type="hidden" name="idpenjualan" value="{{ $idpenjualan }}">
-  <div class="form-group">
-      <label for="kode" class="col-md-2 control-label">Kode Produk</label>
-      <div class="col-md-5">
-        <div class="input-group">
-          <input id="kode" type="text" class="form-control" name="kode" autofocus required>
-          <span class="input-group-btn">
-            <button onclick="showProduct()" type="button" class="btn btn-info">...</button>
-          </span>
-        </div>
+        <form class="form-keranjang">
+          {{ csrf_field() }} {{ method_field('PATCH') }}
+          <table class="table table-striped tabel-penjualan">
+          <thead>
+            <tr>
+                <th width="30">No</th>
+                <th>Kode Produk</th>
+                <th>Nama Produk</th>
+                <th>Stok</th>
+                <th align="right">Harga</th>
+                <th>Jumlah</th>
+                <th>Diskon</th>
+                <th align="right">Sub Total</th>
+                <th width="100">Aksi</th>
+            </tr>
+          </thead>
+          <tbody></tbody>
+          </table>
+        </form>
+
       </div>
-  </div>
-</form>
 
-<form class="form-keranjang">
-{{ csrf_field() }} {{ method_field('PATCH') }}
-<table class="table table-striped tabel-penjualan">
-<thead>
-   <tr>
-      <th width="30">No</th>
-      <th>Kode Produk</th>
-      <th>Nama Produk</th>
-      <th align="right">Harga</th>
-      <th>Jumlah</th>
-      <th>Diskon</th>
-      <th align="right">Sub Total</th>
-      <th width="100">Aksi</th>
-   </tr>
-</thead>
-<tbody></tbody>
-</table>
-</form>
+    </div>
+
+  </div>
 
   <div class="col-md-8">
-     <div id="tampil-bayar" style="background: #669900; color: #fff; font-size: 80px; text-align: center; height: 120px"></div>
-     <div id="tampil-terbilang" style="background: #3c8dbc; color: #fff; font-size: 25px; padding: 10px"></div>
-  </div>
-  <div class="col-md-4">
-    <form class="form form-horizontal form-penjualan" method="post" action="memberpabrik/simpan">
-      {{ csrf_field() }}
-      <input type="hidden" name="idpenjualan" value="{{ $idpenjualan }}">
-      <input type="hidden" name="total" id="total">
-      <input type="hidden" name="totalitem" id="totalitem">
-      <input type="hidden" name="bayar" id="bayar">
-     
-     
-      
-
-      <div class="form-group">
-        <label for="totalrp" class="col-md-4 control-label">Total</label>
-        <div class="col-md-8">
-          <input type="text" class="form-control" id="totalrp" readonly>
-        </div>
+    <div class="box">
+      <div class="box-body">
+        <div>
+          <div id="tampil-bayar" style="background: #669900; color: #fff; font-size: 80px; text-align: center; height: 120px"></div>
+          <div id="tampil-terbilang" style="background: #3c8dbc; color: #fff; font-size: 25px; padding: 10px"></div>
+        </div>      
       </div>
+    </div>
+  </div>
+  
+  <div class="col-md-4">
+    <div class="box">
+      <div class="box-body">    
+        <form class="form form-horizontal form-penjualan" method="post" action="memberpabrik/simpan">
+          {{ csrf_field() }}
+          <input type="hidden" name="idpenjualan" value="{{ $idpenjualan }}">
+          <input type="hidden" name="total" id="total">
+          <input type="hidden" name="totalitem" id="totalitem">
+          <input type="hidden" name="bayar" id="bayar">
+          
+          <div class="form-group">
+            <label for="totalrp" class="col-md-4 control-label">Total</label>
+            <div class="col-md-8">
+              <input type="text" class="form-control" id="totalrp" readonly>
+            </div>
+          </div>
 
-      <div class="form-group">
-        <label for="member" class="col-md-4 control-label">Kode Member</label>
-        <div class="col-md-8">
-          <div class="input-group">
-            <input id="member" type="text" class="form-control" name="member" value="0">
-            <span class="input-group-btn">
-              <button onclick="showMember()" type="button" class="btn btn-info">...</button>
-            </span>
+          <div class="form-group">
+            <label for="member" class="col-md-4 control-label">Kode Member</label>
+            <div class="col-md-8">
+              <div class="input-group">
+                <input id="member" type="text" class="form-control" name="member" value="0">
+                <span class="input-group-btn">
+                  <button onclick="showMember()" type="button" class="btn btn-info">...</button>
+                </span>
+              </div>
+            </div>
+          </div>
+          
+          <div class="form-group">
+            <label for="diskon" class="col-md-4 control-label">Kupon</label>
+            <div class="col-md-8">
+              <input type="text" class="form-control" name="kupon" id="kupon" value="0">
+            </div>
+          </div>
+          
+          <div class="form-group">
+            <label for="diskon" class="col-md-4 control-label">Diskon</label>
+            <div class="col-md-8">
+              <input type="text" class="form-control" name="diskon" id="diskon" value="0" readonly>
+            </div>
+          </div>
+
+        </form>    
+      </div>
+    </div>
+  </div>
+  
+  <div class="col-md-6">
+    <div class="box">
+      <div class="box-body">
+
+        <div class="form-group">
+          <label for="pla" class="col-md-4 control-label">Plafond</label>
+          <div class="col-md-8">
+            <input type="text" class="form-control" id="pla" readonly>
           </div>
         </div>
-      </div>
-      <div class="form-group">
-        <label for="diskon" class="col-md-4 control-label">Kupon</label>
-        <div class="col-md-8">
-          <input type="text" class="form-control" name="kupon" id="kupon" value="0">
+        <div class="form-group">
+          <label for="os" class="col-md-4 control-label">Os</label>
+          <div class="col-md-8">
+            <input type="text" class="form-control" name ="os" id="os" readonly>
+          </div>
         </div>
-      </div>
-      <div class="form-group">
-        <label for="diskon" class="col-md-4 control-label">Diskon</label>
-        <div class="col-md-8">
-          <input type="text" class="form-control" name="diskon" id="diskon" value="0" readonly>
-        </div>
-      </div>
 
-      <div class="form-group">
-        <label for="bayarrp" class="col-md-4 control-label">Transaksi</label>
-        <div class="col-md-8">
-          <input type="text" class="form-control" id="bayarrp" readonly>
+        <div class="form-group">
+          <label for="musawamah" class="col-md-4 control-label">Musawamah</label>
+          <div class="col-md-8">
+            <input type="text" class="form-control" name="musawamah" id="musawamah" readonly>
+          </div>
         </div>
-      </div>
 
-      <div class="form-group">
-        <label for="pla" class="col-md-4 control-label">Plafond</label>
-        <div class="col-md-8">
-          <input type="text" class="form-control" id="pla" readonly>
+        <div class="form-group">
+          <label for="selisih" class="col-md-4 control-label">Harus Bayar</label>
+          <div class="col-md-8">
+            <input type="text" class="form-control" name="selisih" id="selisih" readonly>
+          </div>
         </div>
-      </div>
-      <div class="form-group">
-        <label for="os" class="col-md-4 control-label">Os</label>
-        <div class="col-md-8">
-          <input type="text" class="form-control" name ="os" id="os" readonly>
-        </div>
-      </div>
 
-      <div class="form-group">
-        <label for="musawamah" class="col-md-4 control-label">Musawamah</label>
-        <div class="col-md-8">
-          <input type="text" class="form-control" name="musawamah" id="musawamah" readonly>
-        </div>
-      </div>
 
-      <div class="form-group">
-        <label for="selisih" class="col-md-4 control-label">Harus Bayar</label>
-        <div class="col-md-8">
-          <input type="text" class="form-control" name="selisih" id="selisih" readonly>
-        </div>
       </div>
+    </div>
+  </div>
+  
+  <div class="col-md-6">
+    <div class="box">
+      <div class="box-body">
 
-      <div class="form-group">
-        <label for="diterima" class="col-md-4 control-label">Diterima</label>
-        <div class="col-md-8">
-          <input type="number" class="form-control" value="0" name="diterima" id="diterima">
+        <div class="form-group">
+          <label for="diterima" class="col-md-4 control-label">Diterima</label>
+          <div class="col-md-8">
+            <input type="number" class="form-control" value="0" name="diterima" id="diterima">
+          </div>
         </div>
-      </div>
 
-      <div class="form-group">
-        <label for="kembali" class="col-md-4 control-label">Kembali</label>
-        <div class="col-md-8">
-          <input type="text" class="form-control" id="kembali" value="0" readonly>
+        <div class="form-group">
+          <label for="kembali" class="col-md-4 control-label">Kembali</label>
+          <div class="col-md-8">
+            <input type="text" class="form-control" id="kembali" value="0" readonly>
+          </div>
         </div>
-      </div>
 
-      <div class="form-group">
-        <label for="donasi" class="col-md-4 control-label">Donasi</label>
-        <div class="col-md-8">
-          <input type="text" class="form-control" id="donasi" name="donasi" value="0">
+        <div class="form-group">
+          <label for="donasi" class="col-md-4 control-label">Donasi</label>
+          <div class="col-md-8">
+            <input type="text" class="form-control" id="donasi" name="donasi" value="0">
+          </div>
         </div>
-      </div>
 
-    </form>
+      </div>
+    </div>
   </div>
 
-      </div>
-      
-      <div class="box-footer">
+  <div class="col-md-12">
+    <div class="box">
+      <div class="box-body">
         <button type="submit" class="btn btn-primary pull-right simpan"><i class="fa fa-floppy-o"></i> Simpan Transaksi</button>
       </div>
     </div>
   </div>
+
 </div>
+      
+    
+      
+
+
 @include('penjualan_detail_member_pabrik.produk')
 
 @endsection
@@ -185,10 +227,17 @@ $(function(){
   $('.tabel-produk').DataTable();
 
   table = $('.tabel-penjualan').DataTable({
-     "dom" : 'Brt',
-     "bSort" : false,
-     "processing" : true,
-     "ajax" : {
+    "processing" : true,
+    "serverside" : true,
+    "paging" :false,
+    "searching":false,
+    "showing":false,
+    "bSort" : true,      
+    "ordering": false,
+    "info":     false,
+    "scrollY" : "200px",
+    "dom" : 'Brt',
+    "ajax" : {
        "url" : "{{ route('memberpabrik.data', $idpenjualan) }}",
        "type" : "GET"
      }
@@ -336,6 +385,32 @@ function loadForm(diskon=0, diterima=0){
        }
   });
 }
+
+$(document).keyup(function(event) {
+  if(event.keyCode == 112){ 
+    $('.simpan').click();
+  }
+
+  if (event.keyCode == 36) {
+    
+    swal({
+      title: "Anda Yakin Akan Keluar Dari Transaksi Ini?",
+      icon: "warning",
+      buttons: true,
+      dangerMode: true,
+    })
+    .then((willDelete) => {
+      if (willDelete) {
+        
+        window.location.replace("{{route('transaksi.batal',$idpenjualan)}}")
+
+      } else {
+        swal("Data Anda Aman!");
+      }
+    });
+  }
+
+})
 
 </script>
 

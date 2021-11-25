@@ -6,7 +6,7 @@
 @endsection
 
 @section('title')
-  List Barang PO
+  List Barang 
 @endsection
 
 @section('breadcrumb')
@@ -24,7 +24,7 @@
       <div class="box-header">
       </div>
       <div class="box-body"> 
-            <table class="table table-striped" id="tables">
+            <table class="table table-striped table-detail">
                 <thead>
                     <tr>
                         <th width='1%'>No.</th>
@@ -43,7 +43,7 @@
                         <td>{{$p->kode_produk}}</td>
                         <td>{{$p->nama_produk}}</td>
                         <td>{{$p->jumlah}}</td>
-                        <td><a href="#" class="edit" data-type="text" data-pk="{{$p->id_pembelian_detail}}" data-url="{{ route('updatetoko.jumlah_terima',$p->id_pembelian_detail)}}" data-title="Masukan Harga" tabindex="1">{{$p->jumlah_terima}}</a></td>
+                        <td><a href="#" class="edit" data-type="text" data-pk="{{$p->id_pembelian_detail}}" data-url="{{ route('updatetoko.jumlah_terima',$p->id_pembelian_detail)}}" data-title="Masukan Jumlah Qty" tabindex="1">{{$p->jumlah_terima}}</a></td>
                         <td><a href="#" class="tanggal" data-type="combodate" data-pk="{{$p->id_pembelian_detail}}" data-url="{{ route('updatetoko.expired_date',$p->id_pembelian_detail)}}" data-title="Masukan Harga">{{$p->expired_date}}</a></td>
                     </tr>
                     @endforeach
@@ -63,11 +63,28 @@
         $('.edit').editable();
     });
     </script>
+    
+    
+    
     <script>
-    $(document).ready(function(){
-    $('#tables').DataTable()
+    var table;
+    $(function(){
+    $('.tabels').DataTable();
+
+    table = $('.table-detail').DataTable({
+      "dom" : 'Brt',
+      "bSort" : true,
+      "processing" : true,
+      "scrollY" : "500px",
+      "paging" : false,   
+      "scrollCollapse": true, 
+    });
     });
     </script>
+
+
+
+
      <script>
     // $.fn.editable.defaults.mode = 'inline';
     $(function(){
@@ -85,5 +102,4 @@
     </script>
 
 <script src="https://momentjs.com/downloads/moment-with-locales.js"></script>
-
 @endsection

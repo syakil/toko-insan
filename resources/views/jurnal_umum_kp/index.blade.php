@@ -5,9 +5,8 @@
 @endsection
 
 @section('header')
-<link href="https://cdnjs.cloudflare.com/ajax/libs/select2/4.0.8/css/select2.min.css" rel="stylesheet" />
-
-    <link href="//cdnjs.cloudflare.com/ajax/libs/x-editable/1.5.0/bootstrap3-editable/css/bootstrap-editable.css" rel="stylesheet"/>
+  <link href="https://cdnjs.cloudflare.com/ajax/libs/select2/4.0.8/css/select2.min.css" rel="stylesheet" />
+  <link href="//cdnjs.cloudflare.com/ajax/libs/x-editable/1.5.0/bootstrap3-editable/css/bootstrap-editable.css" rel="stylesheet"/>
 @endsection
 
 @section('breadcrumb')
@@ -65,8 +64,6 @@
             <option value="{{$coa->kode_rek}}">{{$coa->kode_rek}} - {{$coa->nama_rek}}</option>
             @endforeach
           </select>
-          <!-- <input type="number" class="form-control" id="rekening" name="rekening"> -->
-          <!-- <div id="rekening_list"></div> -->
         </div>
       <!-- transaksi -->
         <div class="form-group">

@@ -9,6 +9,7 @@ use App\JurnalUmum;
 use App\TabelTransaksi;
 use Auth;
 use Session;
+use Ramsey\Uuid\Uuid;
 use Illuminate\Support\Facades\Redirect;
 // buat table COA untuk mendapatkan kode_coa/rekening
 use App\Coa;
@@ -21,14 +22,20 @@ class JurnalUmumKpController extends Controller
             $kode_transaksi = Session::get('kode_transaksi');            
             
         }else{
+
             $getid = JurnalUmum::getId();
             foreach($getid as $value)
             $kode_lama = $value->id_jurnal;
             $kode_baru = $kode_lama + 1;
             $kode = sprintf("%03s", $kode_baru);
             $tggl = date('Ymd');
+            $unit = Auth::user()->unit;
+
+            $uuid=Uuid::uuid4()->getHex();
+            $rndm=substr($uuid,25);
+            $kode_rndm="BU/-".$unit.$rndm;
             
-            $kode_transaksi = 'BU/'. '-' . Auth::user()->unit . '-' . $tggl . '-' . $kode;
+            $kode_transaksi = $kode_rndm;
 
             
             $insert_kode = new JurnalUmum;

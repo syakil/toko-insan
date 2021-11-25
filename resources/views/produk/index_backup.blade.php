@@ -32,7 +32,7 @@
       <th>Kategori</th>
       <th>Unit</th>
       <th>Harga Beli</th>
-      <th>Harga Jual</th>
+qewqewqweq      <th>Harga Jual</th>
       <th>Harga Insan</th>
       <th>Diskon</th>
       <th>Stok</th>
@@ -55,52 +55,14 @@
 <script type="text/javascript">
 var table, save_method;
 $(function(){
-   table = $('.table').DataTable({
-     "processing" : true,
-     "serverside" : true,
-     "ajax" : {
-       "url" : "{{ route('produk.data') }}",
-       "type" : "GET"
-     },
-     'columnDefs': [{
-         'targets': 0,
-         'searchable': false,
-         'orderable': false
-      }],
-      'order': [1, 'asc']
-   }); 
-   
-   $('#select-all').click(function(){
-      $('input[type="checkbox"]').prop('checked', this.checked);
-   });
-
-  $('#modal-form form').validator().on('submit', function(e){
-      if(!e.isDefaultPrevented()){
-         var id = $('#id').val();
-         if(save_method == "add") url = "{{ route('produk.store') }}";
-         else url = "produk/"+id;
-         
-         $.ajax({
-           url : url,
-           type : "POST",
-           data : $('#modal-form form').serialize(),
-           dataType: 'JSON',
-           success : function(data){
-             if(data.msg=="error"){
-                alert('Kode produk sudah digunakan!');
-                $('#kode').focus().select();
-             }else{
-                $('#modal-form').modal('hide');
-                table.ajax.reload();
-             }            
-           },
-           error : function(){
-             alert("Tidak dapat menyimpan data!");
-           }   
-         });
-         return false;
-     }
-  });
+  table = $('.table').DataTable({
+    "processing" : true,
+    "serverside" : true,
+    "ajax" : {
+      "url" : "{{ route('produk.data') }}",
+      "type" : "GET"
+    },
+  }); 
 });
 
 function addForm(){

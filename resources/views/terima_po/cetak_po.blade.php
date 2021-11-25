@@ -8,7 +8,7 @@
     }
     .box1{
         width:320px;
-        height:70px;
+        height:130px;
         padding-top: 5px;
         padding-left: 5px;
         margin-top: 40px;
@@ -20,7 +20,7 @@
 
     .box2{
         width:250px;
-        height:100px;
+        height:130px;
         padding-top: 12px;
         padding-left: 7px;
         margin-left: 30px;
@@ -43,7 +43,7 @@
     .box-kiri{
         display: inline-block;
         width: 300px;
-        height: 170px;
+        height: 195px;
         margin-left: 84px;
     }
 

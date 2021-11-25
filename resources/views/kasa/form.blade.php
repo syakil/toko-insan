@@ -107,28 +107,39 @@
          <input id="jml_seratus" type="text" class="form-control" name="jml_seratus" value="0"> 
          <span class="help-block with-errors"></span>
       </div>
-         <label for="lima_puluh" class="col-md-3 control-label">50 Rupiah</label>
-      <div class="col-xs-2">
-         <input id="lima_puluh" type="text" tabindex="9" class="form-control" name="lima_puluh" onkeyup="lmplh();" autofocus required>
-         <span class="help-block with-errors"></span>
-      </div>
-         <label for="jml_lima_puluh" class="col-md-3 control-label">Jumlah</label>
-      <div class="col-xs-2">
-         <input id="jml_lima_puluh" type="text" class="form-control" name="jml_lima_puluh" value="0">
-         <span class="help-block with-errors"></span>
-      </div>
+      
       <label for="jumlah" class="col-md-3 control-label">Total Cash</label>
       <div class="col-xs-2">
          <input id="jumlah" type="text" class="form-control" name="jumlah" value="0" onkeyup="total_jml();">
          <span class="help-block with-errors"></span>
       </div>
 
-<label for="jumlah" class="col-md-3 control-label">Total Penjualan Cash</label>
+
+      <label for="jumlah" class="col-md-3 control-label">Penjualan Cash</label>
       <div class="col-xs-2">
-         <input id="pendapatan" type="text" class="form-control" name="pendapatan" value="{{$pendapatan->pendapatan}}">
+         <input id="pendapatan" type="text" class="form-control" name="pendapatan" value="{{number_format($cash)}}" readonly>
          <span class="help-block with-errors"></span>
       </div>
-</div>
+            
+      <label for="jumlah" class="col-md-3 control-label">Setoran Angsuran/Pelunasan</label>
+      <div class="col-xs-2">
+         <input id="pendapatan" type="text" class="form-control" name="pendapatan" value="{{number_format($setoran->setoran)}}" readonly>
+         <span class="help-block with-errors"></span>
+      </div>
+      
+      <label for="jumlah" class="col-md-3 control-label">Penjualan Musawamah</label>
+      <div class="col-xs-2">
+         <input id="pendapatan" type="text" class="form-control" name="pendapatan" value="{{number_format($musawamah)}}" readonly>
+         <span class="help-block with-errors"></span>
+      </div>
+
+      <label for="jumlah" class="col-md-3 control-label">Cash Penjualan Lebih Plafond</label>
+      <div class="col-xs-2">
+         <input id="pendapatan" type="text" class="form-control" name="pendapatan" value="{{number_format($cash_lebih_plafond->cash_lebih)}}" readonly>
+         <span class="help-block with-errors"></span>
+      </div>
+      
+      </div>
 
 
    <div class="modal-footer">
@@ -141,3 +152,5 @@
          </div>
       </div>
    </div>
+
+

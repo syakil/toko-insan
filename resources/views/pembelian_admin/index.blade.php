@@ -22,22 +22,28 @@
   <div class="col-xs-12">
     <div class="box">
       <div class="box-header">
+@if ($message = Session::get('error'))
+   <div class="alert alert-danger alert-block">
+       <button type="button" class="close" data-dismiss="alert">×</button> 
+       <strong>{{ $message }}</strong>
+   </div>
+@endif
       </div>
       <div class="box-body"> 
       
       <form action="{{ route('pembelian.update_jurnal') }}" method="post">
                     {{ csrf_field() }}
-            <table class="table table-striped" id="tables">
+            <table class="table table-striped" id="table_terima">
                 <thead>
                     <tr>
                         <th width='1%'></th>
                         <th width='1%'>No.</th>
-                        <th>No. Po</th>
-                        <th>Unit</th>
+                        <th width='1%'>No. Po</th>
+                        <th width='1%'>Unit</th>
                         <th>Supplier</th>
                         <th>Tanggal</th>
-                        <th>Total Harga</th>
-                        <th>Jatuh Tempo <small>(yyyy-mm-dd)</small></th>
+                        <th width='1%'>Total Harga</th>
+                        <th width='1%'>Jatuh Tempo</th>
                         <th width='1%'>Jenis</th>
                         <th>Opsi</th>
                     </tr>
@@ -53,11 +59,11 @@
                         <td>{{$p->id_pembelian}}</td>
                         <td>{{$p->kode_gudang}}</td>
                         <td>{{$p->nama}}</td>
-                        <td>{{ tanggal_indonesia(substr($p->created_at, 0, 10), false)}}</td>
-                        <td>{{$p->total_harga_terima}}</td>
+                        <td>{{ $p->created_at}}</td>
+                        <td>{{number_format($p->total_harga_terima)}}</td>
                         <td>
                         <!-- <a href="#" class="tanggal" data-type="combodate" data-pk="1" data-url="/post" data-value="{{date('Y-m-d')}}" data-title="Select date">{{$p->jatuh_tempo}}</a> -->
-                        <a href="#" class="tanggal" data-type="combodate" data-pk="{{$p->id_pembelian}}" data-url="{{ route('ubah.jatuh_tempo',$p->id_pembelian)}}" data-value="{{date('Y-m-d')}}" data-title="Masukan Tanggal"></a>
+                        <a href="#" class="tanggal" data-type="combodate" data-pk="{{$p->id_pembelian}}" data-url="{{ route('ubah.jatuh_tempo',$p->id_pembelian)}}" data-value="{{$p->jatuh_tempo}}" data-title="Masukan Tanggal"></a>
                         </td>
                         <td>
                         <a href="#" class="status" data-type="select" data-pk="{{$p->id_pembelian}}" data-url="{{ route('ubah.tipe_bayar',$p->id_pembelian)}}" data-title="Select status" data-value="{{$p->tipe_bayar}}"></a></td>
@@ -113,10 +119,12 @@ $(function(){
     $('.status').editable({
         value: 2,    
         source: [
+{value: 0, text: 'Pilih'},
               {value: 1, text: 'TOP'},
               {value: 2, text: 'CASH'}
            ]
     });
 });
 </script>
+<script>    $(document).ready(function(){    $('#table_terima').DataTable({    "paging":false,         "scrollY" : "500px",    })    });</script>
 @endsection

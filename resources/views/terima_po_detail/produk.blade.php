@@ -20,13 +20,23 @@
       </thead>
       <tbody>
          @foreach($produk as $data)
+         @if($data->status == 1)
          <tr>
+            <th bgcolor="#ffd700">{{ $data->kode_produk }}</th>
+            <th bgcolor="#ffd700">{{ $data->nama_produk }}</th>
+            <th bgcolor="#ffd700">{{ $data->jumlah }}</th>
+            
+            <th><a onclick="selectItem({{ $data->kode_produk }})" class="btn btn-primary"><i class="fa fa-check-circle"></i> Pilih</a></th>
+          </tr>
+          @else
+          <tr>
             <th>{{ $data->kode_produk }}</th>
             <th>{{ $data->nama_produk }}</th>
             <th>{{ $data->jumlah }}</th>
             
             <th><a onclick="selectItem({{ $data->kode_produk }})" class="btn btn-primary"><i class="fa fa-check-circle"></i> Pilih</a></th>
           </tr>
+          @endif
          @endforeach
       </tbody>
    </table>

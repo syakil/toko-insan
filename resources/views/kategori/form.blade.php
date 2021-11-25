@@ -1,5 +1,5 @@
 <div class="modal" id="modal-form" tabindex="-1" role="dialog" aria-hidden="true" data-backdrop="static">
-   <div class="modal-dialog modal-lg">
+   <div class="modal-dialog">
       <div class="modal-content">
      
    <form class="form-horizontal" data-toggle="validator" method="post">
@@ -21,6 +21,17 @@
       </div>
    </div>
    
+   
+   <input type="hidden" id="id" name="id">
+   <div class="form-group">
+      <label for="expired" class="col-md-3 control-label">Parameter Expired</label>
+      <div class="col-md-6">
+         <input id="expired" type="number" class="form-control" name="expired" autofocus required>
+         <span class="help-block with-errors"></span>
+      </div>
+   </div>
+   
+
 </div>
    
    <div class="modal-footer">

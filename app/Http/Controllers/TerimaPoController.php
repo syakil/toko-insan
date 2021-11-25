@@ -8,10 +8,12 @@ use App\Pembelian;
 use Auth;
 use PDF;
 use App\Supplier;
+use App\Kategori;
 use App\PembelianTemporary;
 use App\PembelianTemporaryDetail;
 use App\Produk;
 use App\ProdukDetail;
+use App\KartuStok;
 use DB;
 use Session;
 use App\PembelianDetail;
@@ -19,45 +21,54 @@ use App\PembelianDetail;
 class TerimaPoController extends Controller
 {
     public function index(){
+
         $pembelian = PembelianTemporary::leftJoin('supplier','pembelian_temporary.id_supplier','=','supplier.id_supplier')
                             ->where('kode_gudang',Auth::user()->unit)
-                            ->where('status',null)
+                            ->where('pembelian_temporary.status',1)
                             ->get();
         return view('terima_po.index', compact('pembelian')); 
     }
 
-    public function listData()
-    {
+    public function listData(){
     
-        $pembelian = Pembelian::leftJoin('supplier', 'supplier.id_supplier', '=', 'pembelian.id_supplier')
+        $pembelian = Pembelian::select('pembelian.*','supplier.nama')->leftJoin('supplier', 'supplier.id_supplier', '=', 'pembelian.id_supplier')
                                 ->where('kode_gudang',Auth::user()->unit)
+                                ->where('pembelian.status',1)
                                 ->orderBy('pembelian.id_pembelian', 'desc')
                                 ->get();
         $no = 0;
         $data = array();
         foreach($pembelian as $list){
-        $no ++;
-        $row = array();
-        $row[] = $no;
-        $row[] = $list->id_pembelian;
-        $row[] = tanggal_indonesia(substr($list->created_at, 0, 10), false);
-        $row[] = $list->nama;
-        $row[] = $list->total_item;
-        $row[] = $list->total_terima;
-        $row[] = '<div class="btn-group">
-                <a onclick="showDetail('.$list->id_pembelian.')" class="btn btn-primary btn-sm"><i class="fa fa-eye"></i></a>
-                <a onclick="deleteData('.$list->id_pembelian.')" class="btn btn-danger btn-sm"><i class="fa fa-trash"></i></a>
-                <a href="/toko-master/terima_po/'.$list->id_pembelian.'/poPDF" class="btn btn-print btn-sm" target="_blank"><i class="fa fa-print"></i></a>
-                </div>';
-        $data[] = $row;
+            $no ++;
+            $row = array();
+            $row[] = $no;
+            $row[] = $list->id_pembelian_t;
+            $row[] = tanggal_indonesia($list->created_at);
+            $row[] = $list->nama;
+            $row[] = $list->total_item;
+            $row[] = $list->total_terima;
+            
+            switch ($list->status) {
+                case '1':
+                    $row[] = "<div class='btn-group'>
+                    <a href='".route('terima_po.edit',$list->id_pembelian)."' class='btn btn-warning btn-sm'><i class='fa fa-pencil'></i></a>
+                    </div>";
+                    break;
+                default:
+                    $row[] = '<div class="btn-group">
+                    <button class="btn btn-warning btn-sm" disabled><i class="fa fa-pencil" ></i></button>
+                    </div>';
+                    break;
+            }
+            $data[] = $row;
+            
         }
 
         $output = array("data" => $data);
         return response()->json($output);
     }
 
-    public function show($id)
-    {
+    public function show($id){
     
         $detail = PembelianDetail::leftJoin('produk', 'produk.kode_produk', '=', 'pembelian_detail.kode_produk')
             ->where('id_pembelian', '=', $id)
@@ -75,7 +86,7 @@ class TerimaPoController extends Controller
         $row[] = $list->jumlah;
         $row[] = $list->jumlah_terima;
         $row[] = $list->status_jurnal;
-        $row[] = $list->expired_date;
+        $row[] = 'Rp.' . $list->sub_total;
         $data[] = $row;
         }
 
@@ -84,9 +95,8 @@ class TerimaPoController extends Controller
     }
 
 
-
-
     public function cetak($id){
+
         $data['produk'] = DB::table('pembelian_detail','produk')
                             ->select('pembelian_detail.*','produk.kode_produk','produk.nama_produk')
                             ->leftJoin('produk','pembelian_detail.kode_produk','=','produk.kode_produk')
@@ -102,14 +112,18 @@ class TerimaPoController extends Controller
         $data['nosurat'] = Pembelian::where('id_pembelian',$id)->get();
         $data['no'] =1;
         $pdf = PDF::loadView('terima_po.cetak_po', $data);
+        
         return $pdf->stream('surat_jalan.pdf');
-        }
+    
+    }
 
-    public function create($id)
-    {
+
+    public function create($id){
+
         $temporary = PembelianTemporary::find($id);
-        // dd($temporary);
+        
         $pembelian = new Pembelian;
+        $pembelian->id_pembelian_t = $temporary->id_pembelian;
         $pembelian->id_supplier = $temporary->id_supplier;     
         $pembelian->total_item = $temporary->total_item;     
         $pembelian->total_harga = 0;
@@ -121,6 +135,7 @@ class TerimaPoController extends Controller
         $pembelian->bayar = 0;      
         $pembelian->jatuh_tempo = date('Y-m-d');
         $pembelian->kode_gudang = 0;    
+        $pembelian->status = 0;
         $pembelian->tipe_bayar = 2;    
         $pembelian->id_user = Auth::user()->id;
         $pembelian->kode_gudang = Auth::user()->unit;
@@ -134,70 +149,61 @@ class TerimaPoController extends Controller
         return Redirect::route('terima_po_detail.index');      
     }
 
-    public function store(Request $request)
-    {   
-        // dd($request['idpembelian']);
-        $pembelian = Pembelian::find($request['idpembelian']);
-        $pembelian->total_terima = $request['totalitem'];
-        $pembelian->total_harga = $request['total'];
-        $pembelian->diskon = $request['diskon'];
-        $pembelian->bayar = $request['bayar'];
-        $pembelian->update();
-            // input ke gudang
-            
-            $produk = DB::table('pembelian_detail','produk')
-                        ->select('pembelian_detail.*','produk.kode_produk','produk.nama_produk','produk.id_kategori','produk.id_kategori','produk.unit')
-                        ->leftJoin('produk','pembelian_detail.kode_produk','=','produk.kode_produk')
-                        ->where('unit',Auth::user()->unit)
-                        ->where('id_pembelian',$request['idpembelian'])
-                        ->get();
-        
-                        
-            foreach ($produk as $p ) {
-            
-                // update table produk
-                $produk_main = Produk::where('kode_produk',$p->kode_produk)
-                ->where('unit',$p->unit)
-                ->first();
-                $produk_main->stok += $p->jumlah_terima*$produk_main->isi_satuan;
-                // $produk_main->pack += $p->jumlah_terima;
-                // dd($new_pack);
-                $produk_main->update();
-                // dd($produk_main->isi_satuan);
-                
+    public function edit($id){
 
-                //insert to produk_detail 
-                $insert_produk = new ProdukDetail;
-                $insert_produk->kode_produk = $p->kode_produk;
-                $insert_produk->id_kategori = $p->id_kategori;
-                $insert_produk->nama_produk = $p->nama_produk;
-                $insert_produk->isi_satuan_detail = $produk_main->isi_satuan;
-                $insert_produk->satuan = $produk_main->satuan;
-                $insert_produk->stok_detail = $p->jumlah_terima*$produk_main->isi_satuan;
-                $insert_produk->harga_beli = $p->harga_beli;
-                $insert_produk->expired_date = $p->expired_date;
-                $insert_produk->unit = $p->unit;
-                $insert_produk->save();
+        $pembelian_temporary = Pembelian::where('id_pembelian',$id)->first();
 
-            }
-        
-        // update status_app menjadi 1
-        // $pembelian=Pembelian::where('id_pembelian',$p->id_pembelian);
-        // $pembelian->update(['status'=>1]);
-        
-        
-        $pembelianT=PembelianTemporary::where('id_pembelian',$request->session()->get('idtemporary'));
-        $pembelianT->update(['status'=>1]);
-        
-        // dd($request->session()->get('idtemporary'));
+        session(['idpembelian' => $id]);
+        session(['idtemporary' => $pembelian_temporary->id_pembelian_t]);
+        session(['idsupplier' => $pembelian_temporary->id_supplier]);
 
-        Session::forget('idpembelian');
-        return Redirect::route('terima_po.index');
+        return Redirect::route('terima_po_detail.index');      
+
+    }
+
+    public function store(Request $request){
+           
+        try{
+
+            DB::beginTransaction();
+
+            $pembelian = Pembelian::find($request['idpembelian']);
+            $pembelian->total_terima = $request['totalitem'];
+            $pembelian->total_selisih = $pembelian->total_item - $request['totalitem'];
+            $pembelian->total_harga = $request['total'];
+            $pembelian->diskon = $request['diskon'];
+            $pembelian->bayar = $request['bayar'];
+            $pembelian->status = 1;
+            $pembelian->update();
+
+            $pembelian_temporary = PembelianTemporary::find($pembelian->id_pembelian_t);
+            $pembelian_temporary->total_terima = $request['totalitem'];
+            $pembelian_temporary->total_selisih = $pembelian_temporary->total_item - $request['totalitem'];
+            $pembelian_temporary->total_harga = $request['total'];
+            $pembelian_temporary->diskon = $request['diskon'];
+            $pembelian_temporary->bayar = $request['bayar'];
+            $pembelian_temporary->status = 2;
+            $pembelian_temporary->update();
+
+            DB::commit();
+
+              $request->session()->forget('idtemporary');
+              $request->session()->forget('idpembelian');
+              $request->session()->forget('idsupplier');
+
+            return Redirect::route('terima_po.index')->with((['success' => 'Terima Barang Berhasil Disimpan !']));      
+        
+        }catch(\Exception $e){
+         
+            DB::rollback();
+            return back()->with(['error' => $e->getmessage()]);
+    
+        }
+       
     }
     
-    public function destroy($id)
-    {
-        dd($id);
+    public function destroy($id){
+        
         $pembelian = Pembelian::find($id);
         $pembelian->delete();
 

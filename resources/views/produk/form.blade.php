@@ -2,7 +2,7 @@
    <div class="modal-dialog modal-lg">
       <div class="modal-content">
     
-   <form class="form-horizontal" id="form_produk" data-toggle="validator" method="post">
+   <form class="form-horizontal" id="form_produk" action="{{route('produk.store')}}" method="post">
    {{ csrf_field() }} {{ method_field('POST') }}
    
    <div class="modal-header">
@@ -12,7 +12,6 @@
         
 <div class="modal-body">
   
-  <input type="hidden" id="id" name="id">
   <div class="form-group">
     <label for="kode" class="col-md-3 control-label">Kode Produk</label>
     <div class="col-md-6">
@@ -30,12 +29,37 @@
   </div>
 
   <div class="form-group">
-    <label for="kategori" class="col-md-3 control-label">Kategori</label>
+    <label for="nama_struk" class="col-md-3 control-label">Nama Struk</label>
     <div class="col-md-6">
-      <select id="kategori" type="text" class="form-control" name="kategori" required>
-        <option value=""> -- Pilih Kategori-- </option>
-        @foreach($kategori as $list)
-        <option value="{{ $list->id_kategori }}">{{ $list->nama_kategori }}</option>
+      <input id="nama_struk" type="text" class="form-control" name="nama_struk" required>
+      <span class="help-block with-errors"></span>
+    </div>
+  </div>
+
+  <div class="form-group">
+    <label for="status" class="col-md-3 control-label">Satuan</label>
+    <div class="col-md-6">
+      <select id="status" type="text" class="form-control" name="satuan" required>
+        <option value=""> -- Pilih Satuan-- </option>
+        <option value="Pcs">Pcs</option>
+        <option value="Kg">Kg</option>
+        <option value="Grm">Grm</option>
+        <option value="Liter">Liter</option>
+        <option value="Pack">Pack</option>
+        <option value="Box/Dus">Box/Dus</option>
+        <option value="Rcg">Rcg</option>
+        </select>
+      <span class="help-block with-errors"></span>
+    </div>
+  </div>
+
+  <div class="form-group">
+    <label for="status" class="col-md-3 control-label">Status</label>
+    <div class="col-md-6">
+      <select id="status" type="text" class="form-control" name="status" required>
+        <option value=""> -- Pilih Status-- </option>
+        @foreach($status as $list)
+        <option value="{{ $list->id_status }}">{{ $list->keterangan }}</option>
         @endforeach
       </select>
       <span class="help-block with-errors"></span>
@@ -43,89 +67,27 @@
   </div>
 
   <div class="form-group">
-    <label for="merk" class="col-md-3 control-label">Merk</label>
+    <label for="supplier" class="col-md-3 control-label">Supplier</label>
     <div class="col-md-6">
-      <input id="merk" type="text" class="form-control" name="merk" required>
+      <select id="supplier" type="text" class="form-control" name="supplier" required>
+        <option value=""> -- Pilih Supplier-- </option>
+        @foreach($supplier as $list)
+        <option value="{{ $list->id_supplier }}">{{ $list->nama }}</option>
+        @endforeach
+      </select>
       <span class="help-block with-errors"></span>
     </div>
   </div>
 
   <div class="form-group">
-    <label for="harga_beli" class="col-md-3 control-label">Harga Beli</label>
-    <div class="col-md-3">
-      <input id="harga_beli" type="text" class="form-control" name="harga_beli" required>
-      <span class="help-block with-errors"></span>
-    </div>
-  </div>
-
-  <div class="form-group">
-    <label for="diskon" class="col-md-3 control-label">Diskon</label>
-    <div class="col-md-2">
-      <input id="diskon" type="text" class="form-control" name="diskon" required>
-      <span class="help-block with-errors"></span>
-    </div>
-  </div>
-
-  <div class="form-group">
-    <label for="harga_jual" class="col-md-3 control-label">Harga Jual Umum</label>
-    <div class="col-md-3">
-      <input id="harga_jual" type="text" class="form-control" name="harga_jual" required>
-      <span class="help-block with-errors"></span>
-    </div>
-
-    <label for="competitor1" class="col-md-1 control-label">Alfamart</label>
-    <div class="col-md-3">
-      <input id="competitor1" type="text" class="form-control" name="competitor1" required>
-      <span class="help-block with-errors"></span>
-    </div>
-  </div>
-
-  <div class="form-group">
-    <label for="harga_jual_insan" class="col-md-3 control-label">Harga Jual Insan</label>
-    <div class="col-md-3">
-      <input id="harga_jual_insan" type="text" class="form-control" name="harga_jual_insan" required>
-      <span class="help-block with-errors"></span>
-    </div>
-
-    
-    <label for="competitor2" class="col-md-1 control-label">Indomart</label>
-    <div class="col-md-3">
-      <input id="competitor2" type="text" class="form-control" name="competitor2" required>
-      <span class="help-block with-errors"></span>
-    </div>
-  </div>
-
-  <div class="form-group">
-    <label for="harga_jual_pabrik" class="col-md-3 control-label">Harga Jual Pabrik</label>
-    <div class="col-md-3">
-      <input id="harga_jual_pabrik" type="text" class="form-control" name="harga_jual_pabrik" required>
-      <span class="help-block with-errors"></span>
-    </div>
-
-    
-    <label for="competitor3" class="col-md-1 control-label">Carefour</label>
-    <div class="col-md-3">
-      <input id="competitor3" type="text" class="form-control" name="competitor3" required>
-      <span class="help-block with-errors"></span>
-    </div>
-  </div>
-
-  <div class="form-group">
-    <label for="stok" class="col-md-3 control-label">Stok</label>
-    <div class="col-md-2">
-      <input id="stok" type="text" class="form-control" name="stok" required>
-      <span class="help-block with-errors"></span>
-    </div>
-
-    <label for="margin" class="col-md-1 control-label">Margin %</label>
-    <div class="col-md-2">
-      <input id="margin" type="text" class="form-control" name="margin" required>
-      <span class="help-block with-errors"></span>
-    </div>
-
-    <label for="avg" class="col-md-1 control-label">Avg</label>
-    <div class="col-md-2">
-      <input id="avg" type="text" class="form-control" name="avg" required>
+    <label for="kategori" class="col-md-3 control-label">Kategori</label>
+    <div class="col-md-6">
+      <select id="kategori" type="text" class="form-control" name="kategori" required>
+        <option value=""> -- Pilih Kategori-- </option>
+        @foreach($kategori as $list)
+        <option value="{{ $list->id_kategori}}">{{ $list->nama_kategori }}</option>
+        @endforeach
+      </select>
       <span class="help-block with-errors"></span>
     </div>
   </div>

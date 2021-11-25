@@ -26,7 +26,7 @@
         <div class="box-body"> 
             <form action="{{ route('pembelian.simpan') }}" method="post">
             {{ csrf_field() }}
-            <table class="table table-bordered" id="tables">
+            <table class="table table-bordered table-detail">
                 <thead>
                     <tr>
                         <th width='1%'>No.</th>
@@ -46,7 +46,7 @@
                         <td>{{$nomer++}}</td>
                         <td>{{$p->kode_produk}}</td>
                         <td>{{$p->nama_produk}}</td>
-                        <td>{{$p->jumlah}}</td>
+                        <td>{{$p->jumlah_terima}}</td>
                         <td>{{$p->satuan}}</td>
                         <td>{{$p->isi_satuan}}</td>
                         <td><a href="#" class="edit" data-type="number" data-pk="{{$p->id_pembelian_detail}}" data-url="{{ route('ubah.harga',$p->id_pembelian_detail)}}" data-title="Masukan Harga">{{$p->sub_total_terima}}</a></td>        
@@ -54,7 +54,7 @@
                     @endforeach
                 </tbody>
             </table>
-                <button type="submit" class="btn btn-danger">Simpan</button>
+                <button type="submit" class="btn btn-danger pull-right">Approve</button>
                 </form>
                 </div>
         </div>
@@ -66,14 +66,19 @@
 
     <script src="//cdnjs.cloudflare.com/ajax/libs/x-editable/1.5.0/bootstrap3-editable/js/bootstrap-editable.min.js"></script>
     <script type="text/javascript">
-        $(document).ready(function() {
+    $(document).ready(function() {
         $('.edit').editable();
     });
     </script>
     <script>
-    $(document).ready(function(){
-    $('#tables').DataTable()
-    });
+    var table;
+    $(function(){
+        $('.tables').DataTable();
+        table = $('.table-detail').DataTable({
+            "scrollY" : "500px",
+            "paging" : false
+        })
+    })
     </script>
     <script>
     $.fn.editable.defaults.mode = 'inline';

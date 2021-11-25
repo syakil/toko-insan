@@ -31,9 +31,9 @@
                         <th width='1%'>No.</th>
                         <th>Barcode</th>
                         <th>Nama Produk</th>
-                        <th>Harga Beli</th>
                         <th>Stock</th>
                         <th>Tanggal Kadaluarsa</th>
+                        <th>Aksi</th>
                     </tr>
                 </thead>
 
@@ -44,10 +44,10 @@
                         <td>{{$no++}}</td>
                         <td>{{$p->kode_produk}}</td>
                         <td>{{$p->nama_produk}}</td>
-                        <td>{{$p->harga_beli}}</td>
-                        <td><a href="#" class="edit" data-type="number" data-pk="{{$p->id_produk_detail}}" data-url="{{ route('updateStock.stock',$p->id_produk_detail)}}" data-title="Masukan Qty">{{$p->stok_detail}}</a></td>
-                        <td><a href="#" class="tanggal" data-type="combodate" data-pk="{{$p->id_produk_detail}}" data-url="{{ route('updateStock.expired_date',$p->id_produk_detail)}}" data-value="{{date('Y-m-d')}}" data-title="Masukan Tanggal">{{$p->expired_date}}</a></td>
-                    </tr>
+                        <td><a href="#" class="edit" data-type="number" data-pk="{{$p->id_produk_detail}}" data-url="/toko/api/update_stock/{{$p->id_produk_detail}}" data-title="Enter username">{{$p->stok_detail}}</a></td>
+                        <td><a href="#" class="tanggal" data-type="combodate" data-pk="{{$p->id_produk_detail}}" data-url="/toko/api/update_expired_stock/{{$p->id_produk_detail}}" data-title="Enter username">{{$p->expired_date}}</a></td>
+                        <td><a href="{{route('stockToko.delete',$p->id_produk_detail)}}" class="btn btn-sm btn-danger"><i class="fa fa-trash"></i></a></td>
+                        </tr>
                     @endforeach
                 </tbody>
             </table>

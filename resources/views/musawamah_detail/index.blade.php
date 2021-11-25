@@ -28,7 +28,8 @@
       <th width="20">No</th>
       <th>Kode Member</th>
       <th>Nama Member</th>
-      <th>Plafond</th>
+      
+<th>Sisa OS</th>
       <th>Angsuran</th>
       <th width="100">Aksi</th>
    </tr>
@@ -170,5 +171,10 @@ function printCard(){
     $('#form-member').attr('target', '_blank').attr('action', "member/cetak").submit();
   }
 }
+</script>
+<script>
+$('.tombol-simpan').on('click',function(){
+  location.reload(); // then reload the page.(3)
+})
 </script>
 @endsection
