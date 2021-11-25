@@ -28,6 +28,7 @@ class KirimBarangController extends Controller{
     
     $kirim = Kirim::leftJoin('branch', 'branch.kode_toko', '=', 'kirim_barang.id_supplier')
     ->where('status','hold')
+    ->where('tujuan','toko')
     ->where('kirim_barang.kode_gudang',Auth::user()->unit)
     ->orderBy('kirim_barang.updated_at', 'desc')
     ->get();

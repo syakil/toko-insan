@@ -12,6 +12,11 @@
 */
 Route::get('/home', 'HomeController@index')->name('home');
 
+Route::get('/', function () {
+   return redirect()->route('login');
+});
+
+
 Route::post('/home/store', 'HomeController@store')->name('home.store');
 Route::post('/home/update/{id}', 'HomeController@update')->name('home.update');
 Route::get('/logout', 'Auth\LoginController@logout');
@@ -344,20 +349,23 @@ Route::group(['middleware' => ['web', 'cekuser:4' ]], function(){
    Route::get('kirim_barang_detail/{id}/data', 'KirimBarangDetailController@listData')->name('barang_detail.data');
    Route::get('kirim_barang_detail/loadform/{diskon}/{total}', 'KirimBarangDetailController@loadForm');
    Route::resource('kirim_barang_detail', 'KirimBarangDetailController');  
+
    // antar_gudang
+   Route::get('kirim_antar_gudang/index', 'KirimAntarGudangController@index')->name('kirim_antar_gudang.index');
    Route::get('kirim_antar_gudang/data', 'KirimAntarGudangController@listData')->name('kirim_antar_gudang.data');
-   Route::get('kirim_antar_gudang/{id}/tambah', 'KirimAntarGudangController@create');
+   Route::get('kirim_antar_gudang/{id}/tambah', 'KirimAntarGudangController@create')->name('kirim_antar_gudang.tambah');
    Route::get('kirim_antar_gudang/{id}/lihat', 'KirimAntarGudangController@show');
    Route::get('kirim_antar_gudang/{id}/poPDF', 'KirimAntarGudangController@cetak')->name('kirim_antar_gudang.cetak');
-   Route::resource('kirim_antar_gudang', 'KirimAntarGudangController');   
+   Route::post('kirim_antar_gudang/store', 'KirimAntarGudangController@store')->name('kirim_antar_gudang.store');
    
+   Route::post('kirim_antar_gudang_detail/store', 'KirimAntarGudangDetailController@store')->name('kirim_antar_gudang_detail.store');
+   Route::get('kirim_antar_gudang_detail/index', 'KirimAntarGudangDetailController@index')->name('kirim_antar_gudang_detail.index');
    Route::get('kirim_antar_gudang_detail/{id}/data', 'KirimAntarGudangDetailController@listData')->name('kirim_antar_gudang_detail.data');
    Route::get('kirim_antar_gudang_detail/continued/{id}', 'KirimAntarGudangDetailController@continued_hold')->name('kirim_antar_gudang_detail.continued');
-   Route::get('kirim_antar_gudang_detail/update/{id}', 'KirimAntarGudangDetailController@update')->name('kirim_antar_gudang_detail.update');
+   Route::post('kirim_antar_gudang_detail/update/{id}', 'KirimAntarGudangDetailController@update')->name('kirim_antar_gudang_detail.update');
    Route::get('kirim_antar_gudang_detail/expired/{id}', 'KirimAntarGudangDetailController@expired')->name('kirim_antar_gudang_detail.update_expired');
    Route::delete('kirim_antar_gudang_detail/destroy/{id}', 'KirimAntarGudangDetailController@destroy')->name('kirim_antar_gudang_detail.destroy');
    Route::get('kirim_antar_gudang_detail/loadform/{id}', 'KirimAntarGudangDetailController@loadForm')->name('kirim_antar_gudang_detail.loadForm');
-   Route::resource('kirim_antar_gudang_detail', 'KirimAntarGudangDetailController');
 
    // terima gudang
    Route::get('terima_antar_gudang/index', 'TerimaGudangController@index')->name('terima_antar_gudang.index');

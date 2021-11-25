@@ -85,7 +85,7 @@ class ApproveKirimBarangTokoController extends Controller{
         $data = array();
         $id_toko = Kirim::where('id_pembelian',$id)->first();
 
- $detail = KirimDetailTemporary::
+        $detail = KirimDetailTemporary::
         leftJoin('produk', 'produk.kode_produk', '=', 'kirim_barang_detail_temporary.kode_produk')
         ->leftJoin('status_kirim','status_kirim.id_status','kirim_barang_detail_temporary.keterangan')
         ->where('id_pembelian', '=', $id)

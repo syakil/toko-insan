@@ -23,7 +23,7 @@
             <th>{{ $data->nama_toko }}</th>
             <th>{{ $data->alamat }}</th>
             <th>{{ $data->nama_gudang }}</th>
-            <th><a href="kirim_antar_gudang/{{ $data->kode_toko }}/tambah" class="btn btn-primary"><i class="fa fa-check-circle"></i> Pilih</a></th>
+            <th><a href="{{route('kirim_antar_gudang.tambah',$data->kode_toko)}}" class="btn btn-primary"><i class="fa fa-check-circle"></i> Pilih</a></th>
           </tr>
          @endforeach
       </tbody>

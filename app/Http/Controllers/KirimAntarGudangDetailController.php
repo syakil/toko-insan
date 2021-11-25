@@ -7,7 +7,7 @@ use App\Supplier;
 use Auth;
 use App\Produk;
 use App\ProdukDetail;
-use App\KirimDetail;
+use App\KirimDetailTemporary;
 use App\Branch;
 use DB;
 
@@ -35,20 +35,22 @@ class KirimAntarGudangDetailController extends Controller
    }
 
 
-   public function listData($id)
-   {
+   public function listData($id){
    
-     $detail = KirimDetail::leftJoin('produk', 'produk.kode_produk', '=', 'kirim_barang_detail.kode_produk')
+     $detail = KirimDetailTemporary::leftJoin('produk', 'produk.kode_produk', '=', 'kirim_barang_detail_temporary.kode_produk')
          ->where('id_pembelian', '=', $id)
          ->where('unit', '=', Auth::user()->unit)
-         ->select('kirim_barang_detail.*','produk.kode_produk','produk.nama_produk','produk.stok')
+         ->select('kirim_barang_detail_temporary.*','produk.kode_produk','produk.nama_produk','produk.stok')
          ->orderBy('updated_at','desc')        
          ->get();
-         $no = 0;
-         $data = array();
-         $total = 0;
-         $total_item = 0;
-         foreach($detail as $list){
+
+      $no = 0;
+      $data = array();
+      $total = 0;
+      $total_item = 0;
+
+      foreach($detail as $list){
+
          $no ++;
          $row = array();
          $row[] = $no;
@@ -61,16 +63,18 @@ class KirimAntarGudangDetailController extends Controller
          $data[] = $row;
          $total += $list->harga_beli * $list->jumlah_terima;
          $total_item += $list->jumlah_terima;
-         }
-   
-         $data[] = array("<span class='hide total'>$total</span><span class='hide totalitem'>$total_item</span>", "", "", "", "", "", "");
-         
-         $output = array("data" => $data);
-         return response()->json($output);
-     }
+      
+      }
 
-   public function store(Request $request)
-   {
+      $data[] = array("<span class='hide total'>$total</span><span class='hide totalitem'>$total_item</span>", "", "", "", "", "", "");
+      
+      $output = array("data" => $data);
+      return response()->json($output);
+
+   }
+
+   public function store(Request $request){
+
       $unit = Auth::user()->unit;
       $produk = DB::table('produk')
       ->where('produk.kode_produk','like','%'.$request['kode'])
@@ -78,62 +82,34 @@ class KirimAntarGudangDetailController extends Controller
       ->first();
       
       $kode_produk = $request['kode'];
-      
-      $kirimDetail = KirimDetail::where('id_pembelian',$request['idpembelian'])->where('kode_produk','like','%'.$kode_produk)->first();
-      
-      if ($kirimDetail) {
-
-         $jumlah_kirim = $kirimDetail->jumlah;
-         $jumlah_kirim += 1;
-
-         $data_produk = Produk::where('kode_produk',$kode_produk)->where('unit',$unit)->first();
-
-         if ($data_produk->stok < $jumlah_kirim) {
-   
-            $data = array(
-               "alert" => "Stok Kurang",
-               );
-            return response()->json($data);
-   
-         }else {
-          
-            $kirimDetail->jumlah += 1;
-            $kirimDetail->sub_total += $produk->harga_beli;
-            $kirimDetail->sub_total_margin += $produk->harga_jual;
-            $kirimDetail->update();
-         }
-
-      }else{
-
          
-         $detail = new KirimDetail;
-         $detail->id_pembelian = $request['idpembelian'];
-         $detail->kode_produk = $produk->kode_produk;
-         $detail->harga_jual = $produk->harga_jual_member_insan;
-         $detail->harga_beli = $produk->harga_beli;
-         $detail->jumlah = '';
-         $detail->jumlah_terima = 0;
-         $detail->sub_total = $produk->harga_beli;
-         $detail->sub_total_terima = $produk->harga_beli;
-         $detail->sub_total_margin = $produk->harga_jual_member_insan;
-         $detail->sub_total_margin_terima = 0;
-         $detail->expired_date = '';
-         $detail->jurnal_status = 0;
-         $detail->save();
+      $detail = new KirimDetailTemporary;
+      $detail->id_pembelian = $request['idpembelian'];
+      $detail->kode_produk = $produk->kode_produk;
+      $detail->harga_jual = $produk->harga_jual_member_insan;
+      $detail->harga_beli = $produk->harga_beli;
+      $detail->jumlah = '';
+      $detail->jumlah_terima = 0;
+      $detail->sub_total = $produk->harga_beli;
+      $detail->sub_total_terima = $produk->harga_beli;
+      $detail->sub_total_margin = $produk->harga_jual_member_insan;
+      $detail->sub_total_margin_terima = 0;
+      $detail->expired_date = '';
+      $detail->jurnal_status = 0;
+      $detail->save();
       
-      }
-
-      $total = KirimDetail::where('id_pembelian',$request['idpembelian'])->sum('jumlah');
+      $total = KirimDetailTemporary::where('id_pembelian',$request['idpembelian'])->sum('jumlah');
       
       $data = array(
          "tota" => $total,
          );
       return response()->json($data);
+
    }
 
-   public function update(Request $request, $id)
-   {
-      $detail = KirimDetail::find($id);
+   public function update(Request $request, $id){
+
+      $detail = KirimDetailTemporary::find($id);
       
       $unit = Auth::user()->unit;
 
@@ -171,8 +147,8 @@ class KirimAntarGudangDetailController extends Controller
    }
 
    
-   public function expired(Request $request, $id)
-   {
+   public function expired(Request $request, $id){
+      
       $exp_input = "expired_".$id;
 
       $tanggal = $request[$exp_input];
@@ -210,7 +186,7 @@ class KirimAntarGudangDetailController extends Controller
 
       $expired = '20' . $tahun . '-' . $bulan . '-' . $hari;
 
-      $detail = KirimDetail::find($id);
+      $detail = KirimDetailTemporary::find($id);
       $detail->expired_date = $expired;
       $detail->update();
    }
@@ -218,13 +194,13 @@ class KirimAntarGudangDetailController extends Controller
    
    public function destroy($id)
    {
-      $detail = KirimDetail::find($id);
+      $detail = KirimDetailTemporary::find($id);
       $detail->delete();
    }
 
    public function loadForm($id){
 
-      $total = KirimDetail::where('id_pembelian',$id)->sum('jumlah');
+      $total = KirimDetailTemporary::where('id_pembelian',$id)->sum('jumlah');
 
       $data = array(
          "totalitem" => format_uang($total),

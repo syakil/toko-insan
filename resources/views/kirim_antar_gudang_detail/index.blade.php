@@ -51,7 +51,7 @@
 </form>
 
 <form class="form-keranjang">
-{{ csrf_field() }} {{ method_field('PATCH') }}
+{{ csrf_field() }}
 <table class="table table-striped tabel-pembelian">
 <thead>
   <tr>
@@ -182,7 +182,7 @@ function changeCount(id){
   url = url.replace(':id', id);
      $.ajax({
         url : url,
-        type : "PUT",
+        type : "POST",
         data : $('.form-keranjang').serialize(),
         success : function(data){
           if(data.alert){
