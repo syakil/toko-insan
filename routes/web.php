@@ -370,7 +370,7 @@ Route::group(['middleware' => ['web', 'cekuser:4' ]], function(){
    // terima gudang
    Route::get('terima_antar_gudang/index', 'TerimaGudangController@index')->name('terima_antar_gudang.index');
    Route::get('terima_antar_gudang/detail/{id}', 'TerimaGudangController@detail')->name('terima_antar_gudang.detail');
-   Route::post('terima_antar_gudang/create', 'TerimaGudangController@create_jurnal')->name('terima_antar_gudang.create_jurnal');
+   Route::post('terima_antar_gudang/terima', 'TerimaGudangController@terima')->name('terima_antar_gudang.terima');
    Route::resource('terima_antar_gudang', 'TerimaGudangController');
    // ----//
    

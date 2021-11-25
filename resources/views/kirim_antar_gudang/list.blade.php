@@ -29,7 +29,7 @@
             <td>{{$data->nama_toko}}</td>
             <td>{{ number_format($data->total_item)}}</td>
             <td>Rp. {{format_uang($data->total_harga)}}</td>
-            <td><a href="{{route('barang_detail.continued', $data->id_pembelian)}}" class="btn btn-primary"><i class="fa fa-check-circle"></i> Pilih</a></td>
+            <td><a href="{{route('kirim_antar_gudang_detail.continued', $data->id_pembelian)}}" class="btn btn-primary"><i class="fa fa-check-circle"></i> Pilih</a></td>
           </tr>
          @endforeach
       </tbody>
