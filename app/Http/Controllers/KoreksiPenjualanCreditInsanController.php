@@ -260,7 +260,7 @@ class KoreksiPenjualanCreditInsanController extends Controller{
                 $new_produk_detail->expired_date = '';
                 $new_produk_detail->promo = 0;
                 $new_produk_detail->tanggal_masuk = $tgl_masuk;
-                $new_produk_detail->no_faktur = $list->faktur;
+                $new_produk_detail->no_faktur = $list->no_faktur;
                 $new_produk_detail->unit = $unit_toko;
                 $new_produk_detail->status = null;
                 $new_produk_detail->promo = 0;
@@ -368,94 +368,11 @@ class KoreksiPenjualanCreditInsanController extends Controller{
         
                 // jika qty penjualan == jumlah stok yang tersedia ditoko
                 if ($jumlah_penjualan == $stok_toko) {
-                
-                if ($d->harga_jual > $produk_detail->harga_beli) {
                     
-                    $harga_beli_0 = $stok_toko * $produk_detail->harga_beli; 
-                    $harga_jual_0 = $stok_toko * $d->harga_sebelum_margin;
-                    
-                    $jurnal = new TabelTransaksi;
-                    $jurnal->unit =  Auth::user()->unit; 
-                    $jurnal->kode_transaksi = $request['idpenjualan'];
-                    $jurnal->kode_rekening = 1482000;
-                    $jurnal->tanggal_transaksi  = $now;
-                    $jurnal->jenis_transaksi  = 'Jurnal System';
-                    $jurnal->keterangan_transaksi = 'Persediaan Barang Dagang '.$produk_detail->kode_produk;
-                    $jurnal->debet = 0;
-                    $jurnal->kredit = $harga_jual_0;
-                    $jurnal->tanggal_posting = '';
-                    $jurnal->keterangan_posting = '0';
-                    $jurnal->id_admin = Auth::user()->id; 
-                    $jurnal->save();
-                    
-                }else {
-                    
-                    $harga_beli_promo_0 = $stok_toko * $produk_detail->harga_beli; 
-                    $harga_jual_promo_0 = $stok_toko * $d->harga_sebelum_margin;
-                    
-                    $jurnal = new TabelTransaksi;
-                    $jurnal->unit =  Auth::user()->unit; 
-                    $jurnal->kode_transaksi = $request['idpenjualan'];
-                    $jurnal->kode_rekening = 1482000;
-                    $jurnal->tanggal_transaksi  = $now;
-                    $jurnal->jenis_transaksi  = 'Jurnal System';
-                    $jurnal->keterangan_transaksi = 'Persediaan Barang Dagang '.$produk_detail->kode_produk;
-                    $jurnal->debet = 0;
-                    $jurnal->kredit = $harga_beli_promo_0;
-                    $jurnal->tanggal_posting = '';
-                    $jurnal->keterangan_posting = '0';
-                    $jurnal->id_admin = Auth::user()->id; 
-                    $jurnal->save();
-
-                }
-                
-                
-                $produk_detail->update(['stok_detail'=>0]);
-
-                // crate penjualan_detail berdasarkan penjualan_detail_temporarary
-                $new_detail = new PenjualanDetail;
-                $new_detail->id_penjualan = $id_penjualan;
-                $new_detail->kode_produk = $kode;
-                // harga_jual disesuaikan dengan yang ada dimaster produk/table produk, yang sudah ter record pada penjualan_detail_temporary
-                $new_detail->harga_jual = $d->harga_jual;
-                $new_detail->harga_sebelum_margin = $d->harga_sebelum_margin;
-                // harga_beli disesuaikan dengan produk_detail
-                $new_detail->harga_beli = $produk_detail->harga_beli;
-                $new_detail->promo = $d->promo;
-                $new_detail->jumlah = $stok_toko;
-                $new_detail->diskon = $d->diskon;
-                $new_detail->sub_total = $d->harga_jual * $stok_toko;
-                $new_detail->sub_total_sebelum_margin = $d->harga_sebelum_margin * $stok_toko;
-                $new_detail->sub_total_beli = $produk_detail->harga_beli * $stok_toko;  
-                $new_detail->no_faktur = $produk_detail->no_faktur;
-                $new_detail->save();
-                
-                
-                $kartu_stok = new KartuStok;
-                $kartu_stok->buss_date = date('Y-m-d');
-                $kartu_stok->kode_produk = $kode;
-                $kartu_stok->masuk = 0;
-                $kartu_stok->keluar = $stok_toko;
-                $kartu_stok->status = 'penjualan';
-                $kartu_stok->kode_transaksi = $id_penjualan;
-                $kartu_stok->unit = Auth::user()->unit;
-                $kartu_stok->save();
-
-                // jika selisih qty penjualan dengan jumlah stok yang tersedia
-                }else {
-                
-                // mengurangi qty penjualan dengan stok toko berdasarkan stok_detail(table produk_detail)
-                $stok = $jumlah_penjualan - $stok_toko;
-
-                // jika hasilnya lebih dari nol atau tidak minus, stok_detail tsb tidak memenuhi qty penjualan dan harus ambil lagi record pada produk detail~
-                // ~ yang stok nya lebih dari nol
-
-                if ($stok >= 0) {
-                
-                    if ($d->harga_sebelum_margin > $produk_detail->harga_beli) {
-                    
-                        $harga_beli_0 = $produk_detail->stok_detail * $produk_detail->harga_beli; 
-                        $harga_jual_0 = $produk_detail->stok_detail * $d->harga_sebelum_margin;            
+                    if ($d->harga_jual > $produk_detail->harga_beli) {
+                        
+                        $harga_beli_0 = $stok_toko * $produk_detail->harga_beli; 
+                        $harga_jual_0 = $stok_toko * $d->harga_sebelum_margin;
                         
                         $jurnal = new TabelTransaksi;
                         $jurnal->unit =  Auth::user()->unit; 
@@ -473,8 +390,8 @@ class KoreksiPenjualanCreditInsanController extends Controller{
                         
                     }else {
                         
-                        $harga_beli_promo_0 = $produk_detail->stok_detail * $produk_detail->harga_beli; 
-                        $harga_jual_promo_0 = $produk_detail->stok_detail * $d->harga_sebelum_margin;
+                        $harga_beli_promo_0 = $stok_toko * $produk_detail->harga_beli; 
+                        $harga_jual_promo_0 = $stok_toko * $d->harga_sebelum_margin;
                         
                         $jurnal = new TabelTransaksi;
                         $jurnal->unit =  Auth::user()->unit; 
@@ -489,11 +406,12 @@ class KoreksiPenjualanCreditInsanController extends Controller{
                         $jurnal->keterangan_posting = '0';
                         $jurnal->id_admin = Auth::user()->id; 
                         $jurnal->save();
-        
+
                     }
                     
-                    $produk_detail->update(['stok_detail'=>0]);
                     
+                    $produk_detail->update(['stok_detail'=>0]);
+
                     // crate penjualan_detail berdasarkan penjualan_detail_temporarary
                     $new_detail = new PenjualanDetail;
                     $new_detail->id_penjualan = $id_penjualan;
@@ -501,18 +419,16 @@ class KoreksiPenjualanCreditInsanController extends Controller{
                     // harga_jual disesuaikan dengan yang ada dimaster produk/table produk, yang sudah ter record pada penjualan_detail_temporary
                     $new_detail->harga_jual = $d->harga_jual;
                     $new_detail->harga_sebelum_margin = $d->harga_sebelum_margin;
-                    // harga_beli disesuaikan dengan produk_detail   
+                    // harga_beli disesuaikan dengan produk_detail
                     $new_detail->harga_beli = $produk_detail->harga_beli;
                     $new_detail->promo = $d->promo;
-                    // jumlah yang di record adalah jumlah stok_detail pada produk_detail yang harganya paling rendah
                     $new_detail->jumlah = $stok_toko;
                     $new_detail->diskon = $d->diskon;
                     $new_detail->sub_total = $d->harga_jual * $stok_toko;
                     $new_detail->sub_total_sebelum_margin = $d->harga_sebelum_margin * $stok_toko;
-                    $new_detail->sub_total_beli = $produk_detail->harga_beli * $stok_toko;
+                    $new_detail->sub_total_beli = $produk_detail->harga_beli * $stok_toko;  
                     $new_detail->no_faktur = $produk_detail->no_faktur;
                     $new_detail->save();
-
                     
                     $kartu_stok = new KartuStok;
                     $kartu_stok->buss_date = date('Y-m-d');
@@ -524,84 +440,164 @@ class KoreksiPenjualanCreditInsanController extends Controller{
                     $kartu_stok->unit = Auth::user()->unit;
                     $kartu_stok->save();
 
-                    // sisa qty penjualan yang dikurangi stok toko yang harganya paling rendah
-                    $jumlah_penjualan = $stok;
-
-                    // mengulangi looping untuk mencari harga yang paling rendah
-                    goto produk;
+                // jika selisih qty penjualan dengan jumlah stok yang tersedia
+                }else {
                     
-                // jika pengurangan qty penjualan dengan stok toko hasilnya kurang dari 0 atau minus
-                }else if($stok < 0){
+                    // mengurangi qty penjualan dengan stok toko berdasarkan stok_detail(table produk_detail)
+                    $stok = $jumlah_penjualan - $stok_toko;
 
-                    if ($d->harga_sebelum_margin > $produk_detail->harga_beli) {
+                    // jika hasilnya lebih dari nol atau tidak minus, stok_detail tsb tidak memenuhi qty penjualan dan harus ambil lagi record pada produk detail~
+                    // ~ yang stok nya lebih dari nol
+
+                    if ($stok >= 0) {
                     
-                        $harga_beli_0 = $jumlah_penjualan * $produk_detail->harga_beli; 
-                        $harga_jual_0 = $jumlah_penjualan * $d->harga_sebelum_margin;
+                        if ($d->harga_sebelum_margin > $produk_detail->harga_beli) {
                         
-                        $jurnal = new TabelTransaksi;
-                        $jurnal->unit =  Auth::user()->unit; 
-                        $jurnal->kode_transaksi = $request['idpenjualan'];
-                        $jurnal->kode_rekening = 1482000;
-                        $jurnal->tanggal_transaksi  = $now;
-                        $jurnal->jenis_transaksi  = 'Jurnal System';
-                        $jurnal->keterangan_transaksi = 'Persediaan Barang Dagang '.$produk_detail->kode_produk;
-                        $jurnal->debet = 0;
-                        $jurnal->kredit = $harga_jual_0;
-                        $jurnal->tanggal_posting = '';
-                        $jurnal->keterangan_posting = '0';
-                        $jurnal->id_admin = Auth::user()->id; 
-                        $jurnal->save();
+                            $harga_beli_0 = $produk_detail->stok_detail * $produk_detail->harga_beli; 
+                            $harga_jual_0 = $produk_detail->stok_detail * $d->harga_sebelum_margin;            
+                            
+                            $jurnal = new TabelTransaksi;
+                            $jurnal->unit =  Auth::user()->unit; 
+                            $jurnal->kode_transaksi = $request['idpenjualan'];
+                            $jurnal->kode_rekening = 1482000;
+                            $jurnal->tanggal_transaksi  = $now;
+                            $jurnal->jenis_transaksi  = 'Jurnal System';
+                            $jurnal->keterangan_transaksi = 'Persediaan Barang Dagang '.$produk_detail->kode_produk;
+                            $jurnal->debet = 0;
+                            $jurnal->kredit = $harga_jual_0;
+                            $jurnal->tanggal_posting = '';
+                            $jurnal->keterangan_posting = '0';
+                            $jurnal->id_admin = Auth::user()->id; 
+                            $jurnal->save();
+                            
+                        }else {
+                            
+                            $harga_beli_promo_0 = $produk_detail->stok_detail * $produk_detail->harga_beli; 
+                            $harga_jual_promo_0 = $produk_detail->stok_detail * $d->harga_sebelum_margin;
+                            
+                            $jurnal = new TabelTransaksi;
+                            $jurnal->unit =  Auth::user()->unit; 
+                            $jurnal->kode_transaksi = $request['idpenjualan'];
+                            $jurnal->kode_rekening = 1482000;
+                            $jurnal->tanggal_transaksi  = $now;
+                            $jurnal->jenis_transaksi  = 'Jurnal System';
+                            $jurnal->keterangan_transaksi = 'Persediaan Barang Dagang '.$produk_detail->kode_produk;
+                            $jurnal->debet = 0;
+                            $jurnal->kredit = $harga_beli_promo_0;
+                            $jurnal->tanggal_posting = '';
+                            $jurnal->keterangan_posting = '0';
+                            $jurnal->id_admin = Auth::user()->id; 
+                            $jurnal->save();
+            
+                        }
                         
-                    }else {
+                        $produk_detail->update(['stok_detail'=>0]);
                         
+                        // crate penjualan_detail berdasarkan penjualan_detail_temporarary
+                        $new_detail = new PenjualanDetail;
+                        $new_detail->id_penjualan = $id_penjualan;
+                        $new_detail->kode_produk = $kode;
+                        $new_detail->harga_jual = $d->harga_jual;
+                        $new_detail->harga_sebelum_margin = $d->harga_sebelum_margin;
+                        $new_detail->harga_beli = $produk_detail->harga_beli;
+                        $new_detail->promo = $d->promo;
+                        $new_detail->jumlah = $stok_toko;
+                        $new_detail->diskon = $d->diskon;
+                        $new_detail->sub_total = $d->harga_jual * $stok_toko;
+                        $new_detail->sub_total_sebelum_margin = $d->harga_sebelum_margin * $stok_toko;
+                        $new_detail->sub_total_beli = $produk_detail->harga_beli * $stok_toko;
+                        $new_detail->no_faktur = $produk_detail->no_faktur;
+                        $new_detail->save();
+
                         
-                        $harga_beli_promo_0 = $jumlah_penjualan * $produk_detail->harga_beli; 
-                        $harga_jual_promo_0 = $jumlah_penjualan * $d->harga_sebelum_margin;
-        
-                        $jurnal = new TabelTransaksi;
-                        $jurnal->unit =  Auth::user()->unit; 
-                        $jurnal->kode_transaksi = $request['idpenjualan'];
-                        $jurnal->kode_rekening = 1482000;
-                        $jurnal->tanggal_transaksi  = $now;
-                        $jurnal->jenis_transaksi  = 'Jurnal System';
-                        $jurnal->keterangan_transaksi = 'Persediaan Barang Dagang '.$produk_detail->kode_produk;
-                        $jurnal->debet = 0;
-                        $jurnal->kredit = $harga_beli_promo_0;
-                        $jurnal->tanggal_posting = '';
-                        $jurnal->keterangan_posting = '0';
-                        $jurnal->id_admin = Auth::user()->id; 
-                        $jurnal->save();
-        
+                        $kartu_stok = new KartuStok;
+                        $kartu_stok->buss_date = date('Y-m-d');
+                        $kartu_stok->kode_produk = $kode;
+                        $kartu_stok->masuk = 0;
+                        $kartu_stok->keluar = $stok_toko;
+                        $kartu_stok->status = 'penjualan';
+                        $kartu_stok->kode_transaksi = $id_penjualan;
+                        $kartu_stok->unit = Auth::user()->unit;
+                        $kartu_stok->save();
+
+                        // sisa qty penjualan yang dikurangi stok toko yang harganya paling rendah
+                        $jumlah_penjualan = $stok;
+
+                        // mengulangi looping untuk mencari harga yang paling rendah
+                        goto produk;
+                        
+                    // jika pengurangan qty penjualan dengan stok toko hasilnya kurang dari 0 atau minus
+                    }else if($stok < 0){
+
+                        if ($d->harga_sebelum_margin > $produk_detail->harga_beli) {
+                        
+                            $harga_beli_0 = $jumlah_penjualan * $produk_detail->harga_beli; 
+                            $harga_jual_0 = $jumlah_penjualan * $d->harga_sebelum_margin;
+                            
+                            $jurnal = new TabelTransaksi;
+                            $jurnal->unit =  Auth::user()->unit; 
+                            $jurnal->kode_transaksi = $request['idpenjualan'];
+                            $jurnal->kode_rekening = 1482000;
+                            $jurnal->tanggal_transaksi  = $now;
+                            $jurnal->jenis_transaksi  = 'Jurnal System';
+                            $jurnal->keterangan_transaksi = 'Persediaan Barang Dagang '.$produk_detail->kode_produk;
+                            $jurnal->debet = 0;
+                            $jurnal->kredit = $harga_jual_0;
+                            $jurnal->tanggal_posting = '';
+                            $jurnal->keterangan_posting = '0';
+                            $jurnal->id_admin = Auth::user()->id; 
+                            $jurnal->save();
+                            
+                        }else {
+                            
+                            
+                            $harga_beli_promo_0 = $jumlah_penjualan * $produk_detail->harga_beli; 
+                            $harga_jual_promo_0 = $jumlah_penjualan * $d->harga_sebelum_margin;
+            
+                            $jurnal = new TabelTransaksi;
+                            $jurnal->unit =  Auth::user()->unit; 
+                            $jurnal->kode_transaksi = $request['idpenjualan'];
+                            $jurnal->kode_rekening = 1482000;
+                            $jurnal->tanggal_transaksi  = $now;
+                            $jurnal->jenis_transaksi  = 'Jurnal System';
+                            $jurnal->keterangan_transaksi = 'Persediaan Barang Dagang '.$produk_detail->kode_produk;
+                            $jurnal->debet = 0;
+                            $jurnal->kredit = $harga_beli_promo_0;
+                            $jurnal->tanggal_posting = '';
+                            $jurnal->keterangan_posting = '0';
+                            $jurnal->id_admin = Auth::user()->id; 
+                            $jurnal->save();
+            
+                        }
+                        
+                        // update stok_detail berdasar sisa pengurangan qty penjualan dengan stok toko hasilnya kurang dari 0 atau minus
+                        $produk_detail->update(['stok_detail'=>abs($stok)]);
+                        
+                        $new_detail = new PenjualanDetail;
+                        $new_detail->id_penjualan = $id_penjualan;
+                        $new_detail->kode_produk = $kode;
+                        $new_detail->harga_jual = $d->harga_jual;
+                        $new_detail->harga_sebelum_margin = $d->harga_sebelum_margin;
+                        $new_detail->harga_beli = $produk_detail->harga_beli;
+                        $new_detail->promo = $d->promo;
+                        $new_detail->jumlah = $jumlah_penjualan;
+                        $new_detail->diskon = $d->diskon;
+                        $new_detail->sub_total = $d->harga_jual * $jumlah_penjualan;
+                        $new_detail->sub_total_sebelum_margin = $d->harga_sebelum_margin * $jumlah_penjualan;
+                        $new_detail->sub_total_beli = $produk_detail->harga_beli * $jumlah_penjualan;
+                        $new_detail->no_faktur = $produk_detail->no_faktur;
+                        $new_detail->save();
+                        
+                        $kartu_stok = new KartuStok;
+                        $kartu_stok->buss_date = date('Y-m-d');
+                        $kartu_stok->kode_produk = $kode;
+                        $kartu_stok->masuk = 0;
+                        $kartu_stok->keluar = $jumlah_penjualan;
+                        $kartu_stok->status = 'penjualan';
+                        $kartu_stok->kode_transaksi = $id_penjualan;
+                        $kartu_stok->unit = Auth::user()->unit;
+                        $kartu_stok->save();
                     }
-                    
-                    // update stok_detail berdasar sisa pengurangan qty penjualan dengan stok toko hasilnya kurang dari 0 atau minus
-                    $produk_detail->update(['stok_detail'=>abs($stok)]);
-                    
-                    $new_detail = new PenjualanDetail;
-                    $new_detail->id_penjualan = $id_penjualan;
-                    $new_detail->kode_produk = $kode;
-                    $new_detail->harga_jual = $d->harga_jual;
-                    $new_detail->harga_sebelum_margin = $d->harga_sebelum_margin;
-                    $new_detail->harga_beli = $produk_detail->harga_beli;
-                    $new_detail->promo = $d->promo;
-                    $new_detail->jumlah = $jumlah_penjualan;
-                    $new_detail->diskon = $d->diskon;
-                    $new_detail->sub_total = $d->harga_jual * $jumlah_penjualan;
-                    $new_detail->sub_total_sebelum_margin = $d->harga_sebelum_margin * $jumlah_penjualan;
-                    $new_detail->sub_total_beli = $produk_detail->harga_beli * $jumlah_penjualan;
-                    $new_detail->no_faktur = $produk_detail->no_faktur;
-                    $new_detail->save();
-                    
-                    $kartu_stok = new KartuStok;
-                    $kartu_stok->buss_date = date('Y-m-d');
-                    $kartu_stok->kode_produk = $kode;
-                    $kartu_stok->masuk = 0;
-                    $kartu_stok->keluar = $jumlah_penjualan;
-                    $kartu_stok->status = 'penjualan';
-                    $kartu_stok->kode_transaksi = $id_penjualan;
-                    $kartu_stok->unit = Auth::user()->unit;
-                    $kartu_stok->save();
-                }
                 }
             }
 
@@ -689,6 +685,7 @@ class KoreksiPenjualanCreditInsanController extends Controller{
             $penjualan->diskon = $total_diskon;
             $penjualan->bayar = $harus_dibayar;
             $penjualan->diterima = $request['diterima'];
+            $penjualan->koreksi = 1;
             $penjualan->update();
 
             $musawamah = Musawamah::find(session('idmember'));

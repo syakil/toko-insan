@@ -43,10 +43,12 @@ class KoreksiPenjualanController extends Controller{
       $tanggal_sekarang = date('Y-m-d',strtotime("+1 days"));
       $tanggal_kemarin = date('Y-m-d',strtotime("-1 days"));
 
+
       $penjualan = Penjualan::leftJoin('member','member.kode_member','penjualan.kode_member')
       ->select('penjualan.*','member.nama')
       ->whereIn('id_user',$users)
       ->where('total_item','>',0)
+      ->where('koreksi',0)
       ->whereBetween('penjualan.created_at',[$tanggal_kemarin.'%',$tanggal_sekarang.'%'])
       ->get();
 
@@ -95,7 +97,7 @@ class KoreksiPenjualanController extends Controller{
    public function newSessionInsan($id){
       
       PenjualanDetailTemporary::where('id_penjualan',$id)->delete();
-      $penjualan_detail = PenjualanDetail::select(DB::raw('kode_produk,harga_jual,harga_beli,promo,sum(jumlah) as jumlah,diskon'))->where('id_penjualan',$id)->groupBy('kode_produk')->get();
+      $penjualan_detail = PenjualanDetail::select(DB::raw('kode_produk,harga_jual,harga_sebelum_margin,harga_beli,promo,sum(jumlah) as jumlah,diskon'))->where('id_penjualan',$id)->groupBy('kode_produk')->get();
       $member = Penjualan::where('id_penjualan',$id)->first();
    
       foreach ($penjualan_detail as $list) {
@@ -111,7 +113,7 @@ class KoreksiPenjualanController extends Controller{
          $detail->jumlah = $list->jumlah;
          $detail->diskon = $list->diskon;
          $detail->sub_total = $list->jumlah * $list->harga_jual;
-         $detail->sub_total_sebelum_margin = $list->jumlah * $list->harga_jual_sebelum_margin;
+         $detail->sub_total_sebelum_margin = $list->jumlah * $list->harga_sebelum_margin;
          $detail->sub_total_beli = $list->jumlah * $list->harga_beli;  
          $detail->save();
 
@@ -212,7 +214,7 @@ class KoreksiPenjualanController extends Controller{
    public function newSessionCash($id){
 
       PenjualanDetailTemporary::where('id_penjualan',$id)->delete();
-      $penjualan_detail = PenjualanDetail::select(DB::raw('kode_produk,harga_jual,harga_beli,promo,sum(jumlah) as jumlah,diskon'))->where('id_penjualan',$id)->groupBy('kode_produk')->get();
+      $penjualan_detail = PenjualanDetail::select(DB::raw('kode_produk,harga_jual,harga_sebelum_margin,harga_beli,promo,sum(jumlah) as jumlah,diskon,no_faktur'))->where('id_penjualan',$id)->groupBy('kode_produk')->get();
       $member = Penjualan::where('id_penjualan',$id)->first();
    
       foreach ($penjualan_detail as $list) {
@@ -229,7 +231,7 @@ class KoreksiPenjualanController extends Controller{
          $detail->diskon = $list->diskon;
          $detail->sub_total = $list->jumlah * $list->harga_jual;
          $detail->sub_total_beli = $list->jumlah * $list->harga_beli;  
-         $detail->sub_total_sebelum_margin = $list->jumlah * $list->harga_jual_sebelum_margin;
+         $detail->sub_total_sebelum_margin = $list->jumlah * $list->harga_sebelum_margin;
          $detail->save();
 
       }
@@ -244,7 +246,7 @@ class KoreksiPenjualanController extends Controller{
    public function newSessionPabrik($id){
       
       PenjualanDetailTemporary::where('id_penjualan',$id)->delete();
-      $penjualan_detail = PenjualanDetail::select(DB::raw('kode_produk,harga_jual,harga_beli,promo,sum(jumlah) as jumlah,diskon'))->where('id_penjualan',$id)->groupBy('kode_produk')->get();
+      $penjualan_detail = PenjualanDetail::select(DB::raw('kode_produk,harga_jual,harga_sebelum_margin,harga_beli,promo,sum(jumlah) as jumlah,diskon'))->where('id_penjualan',$id)->groupBy('kode_produk')->get();
       $member = Penjualan::where('id_penjualan',$id)->first();
    
       foreach ($penjualan_detail as $list) {
@@ -260,7 +262,7 @@ class KoreksiPenjualanController extends Controller{
          $detail->jumlah = $list->jumlah;
          $detail->diskon = $list->diskon;
          $detail->sub_total = $list->jumlah * $list->harga_jual;
-         $detail->sub_total_sebelum_margin = $list->jumlah * $list->harga_jual_sebelum_margin;
+         $detail->sub_total_sebelum_margin = $list->jumlah * $list->harga_sebelum_margin;
          $detail->sub_total_beli = $list->jumlah * $list->harga_beli;  
          $detail->save();
 
