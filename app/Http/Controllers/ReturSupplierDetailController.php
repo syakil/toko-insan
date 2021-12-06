@@ -26,7 +26,7 @@ class ReturSupplierDetailController extends Controller
       $supplier = Supplier::find(session('idsupplier'));
       $branch = Branch::find(session('kode_gudang'));
 
-      return view('retur_supplier_detail.index', compact('produk', 'idpembelian', 'supplier','branch'));
+      return view('retur_supplier_detail.itndex', compact('produk', 'idpembelian', 'supplier','branch'));
    }
 
    public function listData($id){

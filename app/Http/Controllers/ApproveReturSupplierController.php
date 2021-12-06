@@ -126,7 +126,7 @@ class ApproveReturSupplierController extends Controller{
                     $cek_sum_kirim= KirimDetailTemporary::where('id_pembelian', $id)->where('kode_produk',$list->kode_produk)->sum('jumlah');
                     $produk_wo = ProdukWriteOff::where('kode_produk',$list->kode_produk)
                     ->where('unit',Auth::user()->unit)
-                    ->where('param_status',1)
+                    ->where('param_status',2)
                     ->sum('stok');
             
                     if($cek_sum_kirim > $produk_wo){
@@ -146,7 +146,7 @@ class ApproveReturSupplierController extends Controller{
                     $produk_detail = ProdukWriteOff::where('kode_produk',$kode)
                     ->where('unit',Auth::user()->unit)
                     ->where('stok','>','0')
-                    ->where('param_status',1)
+                    ->where('param_status',2)
                     ->orderBy('tanggal_input','ASC')
                     ->first();
                     
