@@ -337,16 +337,6 @@ class AngsuranController extends Controller
                         
                     }
                     
-                    $musawamah = Musawamah::where('id_member',$id)->first();
-                    // jika tidak ada lgi tunggakan 
-                    if ($musawamah->bulat == 0) {
-                        
-                        $member_status = Member::where('kode_member',$id)->first();
-                        // status member di aktifkan kembali
-                        $member_status->status_member ="active";
-                        $member_status->update();            
-        
-                    }
 
 
                     break;
@@ -398,15 +388,6 @@ class AngsuranController extends Controller
                     $member->tgl_input = $tanggal;
                     $member->cao =$cao;
                     $member->save();
-    
-                    $musawamah = Musawamah::where('id_member',$id)->first();
-                    
-                    
-                    $member_status = Member::where('kode_member',$id)->first();
-                    // status di blokir karena ada tunggakan
-                    $member_status->status_member ="Blok";
-                    $member_status->update();
-                    
                     
                     break;
                 
@@ -487,21 +468,24 @@ class AngsuranController extends Controller
                         $musawamah = Musawamah::where('id_member',$id)->first();
                         
                         if($musawamah->bulat > 0 ){
-                        $tunggakan = new TunggakanToko;
-                        $tunggakan->tgl_tunggak = $tanggal;
-                        $tunggakan->NOREK = $id;
-                        $tunggakan->unit = $unit_member;
-                        $tunggakan->CIF = $id;
-                        $tunggakan->CODE_KEL = $kode_kelompok;
-                        $tunggakan->DEBIT = $os;
-                        $tunggakan->type = "01";
-                        $tunggakan->KREDIT = 0;
-                        $tunggakan->USERID = Auth::user()->id;
-                        $tunggakan->KET = 'Pelunasan' . ' ' . $id . ' an/ ' . $nama;
-                        $tunggakan->cao = $cao;
-                        $tunggakan->blok = 1;
-                        $tunggakan->save();
+                        
+                            $tunggakan = new TunggakanToko;
+                            $tunggakan->tgl_tunggak = $tanggal;
+                            $tunggakan->NOREK = $id;
+                            $tunggakan->unit = $unit_member;
+                            $tunggakan->CIF = $id;
+                            $tunggakan->CODE_KEL = $kode_kelompok;
+                            $tunggakan->DEBIT = $os;
+                            $tunggakan->type = "01";
+                            $tunggakan->KREDIT = 0;
+                            $tunggakan->USERID = Auth::user()->id;
+                            $tunggakan->KET = 'Pelunasan' . ' ' . $id . ' an/ ' . $nama;
+                            $tunggakan->cao = $cao;
+                            $tunggakan->blok = 1;
+                            $tunggakan->save();
+                        
                         }
+
                         $musawamah->bulat = 0;    
                         $musawamah->os = 0;
                         $musawamah->angsuran = 0;

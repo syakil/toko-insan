@@ -197,7 +197,7 @@ class KoreksiPenjualanCreditPabrikController extends Controller{
                 $new_produk_detail->expired_date = '';
                 $new_produk_detail->promo = 0;
                 $new_produk_detail->tanggal_masuk = $tgl_masuk;
-                $new_produk_detail->no_faktur = $list->faktur;
+                $new_produk_detail->no_faktur = $list->no_faktur;
                 $new_produk_detail->unit = $unit_toko;
                 $new_produk_detail->status = null;
                 $new_produk_detail->promo = 0;

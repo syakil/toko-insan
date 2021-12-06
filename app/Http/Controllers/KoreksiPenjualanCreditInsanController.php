@@ -736,632 +736,818 @@ class KoreksiPenjualanCreditInsanController extends Controller{
             
             $saldo_musa = $plafond-$param;
 
-            // all of case transaksi
             switch (true) {
-                
+            
                 // case unit member = unit toko
                 case ($unit_member == $unit_toko):
-                
-                switch (true) {
-                    
-                    // belanja melebihi plafon unit toko = unit member
-                    case ($total_belanja > $os_baru):
-
-                        // jika ada barang promo unit toko = unit member
-                        if ($cek_promo) {
+                   
+                    switch (true) {
+                      
+                        // belanja melebihi plafon unit toko = unit member
+                        case ($total_belanja > $os_baru):
+        
+                            // jika ada barang promo unit toko = unit member
+                            if ($cek_promo) {
+                                
+                                // 1412000	Piutang Musawamah
+                                $jurnal = new TabelTransaksi;
+                                $jurnal->unit =  Auth::user()->unit; 
+                                $jurnal->kode_transaksi = $request['idpenjualan'];
+                                $jurnal->kode_rekening = 1412000;
+                                $jurnal->tanggal_transaksi = $now;
+                                $jurnal->jenis_transaksi  = 'Jurnal System';
+                                $jurnal->keterangan_transaksi = 'Musawamah ';
+                                $jurnal->debet = $os_baru;
+                                $jurnal->kredit = 0;
+                                $jurnal->tanggal_posting = ' ';
+                                $jurnal->keterangan_posting = '0';
+                                $jurnal->id_admin = Auth::user()->id; 
+                                $jurnal->save();
+                                
+                                // 1120000	Kas Unit - Toko
+                                $jurnal = new TabelTransaksi;
+                                $jurnal->unit =  Auth::user()->unit; 
+                                $jurnal->kode_transaksi = $request['idpenjualan'];
+                                $jurnal->kode_rekening = 1120000;
+                                $jurnal->tanggal_transaksi = $now;
+                                $jurnal->jenis_transaksi  = 'Jurnal System';
+                                $jurnal->keterangan_transaksi = 'Musawamah ';
+                                $jurnal->debet =$harus_dibayar;
+                                $jurnal->kredit = 0;
+                                $jurnal->tanggal_posting = ' ';
+                                $jurnal->keterangan_posting = ' ';
+                                $jurnal->id_admin = Auth::user()->id; 
+                                $jurnal->save();
+        
+                                //BOL-TI Promo/Discount/Kupon
+                                $jurnal = new TabelTransaksi;
+                                $jurnal->unit =  Auth::user()->unit; 
+                                $jurnal->kode_transaksi = $request['idpenjualan'];
+                                $jurnal->kode_rekening = 56412;
+                                $jurnal->tanggal_transaksi = $now;
+                                $jurnal->jenis_transaksi  = 'Jurnal System';
+                                $jurnal->keterangan_transaksi = 'BOL-TI Promo';
+                                $jurnal->debet = $bol;
+                                $jurnal->kredit = 0;
+                                $jurnal->tanggal_posting = ' ';
+                                $jurnal->keterangan_posting = '0';
+                                $jurnal->id_admin = Auth::user()->id; 
+                                $jurnal->save();
+                                
+                            // jika tidak ada promo unit toko = unit member
+                            }else {
+                                
+                                // 1412000	Piutang Musawamah
+                                $jurnal = new TabelTransaksi;
+                                $jurnal->unit =  Auth::user()->unit; 
+                                $jurnal->kode_transaksi = $request['idpenjualan'];
+                                $jurnal->kode_rekening = 1412000;
+                                $jurnal->tanggal_transaksi = $now;
+                                $jurnal->jenis_transaksi  = 'Jurnal System';
+                                $jurnal->keterangan_transaksi = 'Musawamah ';
+                                $jurnal->debet = $os_baru;
+                                $jurnal->kredit = 0;
+                                $jurnal->tanggal_posting = ' ';
+                                $jurnal->keterangan_posting = '0';
+                                $jurnal->id_admin = Auth::user()->id; 
+                                $jurnal->save();
+                                
+                                // 1120000	Kas Unit - Toko
+                                $jurnal = new TabelTransaksi;
+                                $jurnal->unit =  Auth::user()->unit; 
+                                $jurnal->kode_transaksi = $request['idpenjualan'];
+                                $jurnal->kode_rekening = 1120000;
+                                $jurnal->tanggal_transaksi = $now;
+                                $jurnal->jenis_transaksi  = 'Jurnal System';
+                                $jurnal->keterangan_transaksi = 'Musawamah ';
+                                $jurnal->debet =$harus_dibayar;
+                                $jurnal->kredit = 0;
+                                $jurnal->tanggal_posting = ' ';
+                                $jurnal->keterangan_posting = ' ';
+                                $jurnal->id_admin = Auth::user()->id; 
+                                $jurnal->save();
+                                
+                            }
+                            // end of if else barang promo unit toko = unit member
+        
+                        break;
+                        // end of case belanja melebih plafon unit toko = unit member
+                         
+                        // belanja tidak melebihi plafond unit toko = unit member
+                        default:
                             
-                            // 1412000	Piutang Musawamah
-                            $jurnal = new TabelTransaksi;
-                            $jurnal->unit =  Auth::user()->unit; 
-                            $jurnal->kode_transaksi = $request['idpenjualan'];
-                            $jurnal->kode_rekening = 1412000;
-                            $jurnal->tanggal_transaksi = $now;
-                            $jurnal->jenis_transaksi  = 'Jurnal System';
-                            $jurnal->keterangan_transaksi = 'Musawamah ';
-                            $jurnal->debet = $os_baru;
-                            $jurnal->kredit = 0;
-                            $jurnal->tanggal_posting = ' ';
-                            $jurnal->keterangan_posting = '0';
-                            $jurnal->id_admin = Auth::user()->id; 
-                            $jurnal->save();
+                            // case ada barang promo unit toko = unit member
+                            if ($cek_promo) {
+                                
+                                // 1412000	Piutang Musawamah
+                                $jurnal = new TabelTransaksi;
+                                $jurnal->unit =  Auth::user()->unit; 
+                                $jurnal->kode_transaksi = $request['idpenjualan'];
+                                $jurnal->kode_rekening = 1412000;
+                                $jurnal->tanggal_transaksi = $now;
+                                $jurnal->jenis_transaksi  = 'Jurnal System';
+                                $jurnal->keterangan_transaksi = 'Musawamah ';
+                                $jurnal->debet = $os_baru;
+                                $jurnal->kredit = 0;
+                                $jurnal->tanggal_posting = ' ';
+                                $jurnal->keterangan_posting = '0';
+                                $jurnal->id_admin = Auth::user()->id; 
+                                $jurnal->save();
+        
+                                //BOL-TI Promo/Discount/Kupon
+                                $jurnal = new TabelTransaksi;
+                                $jurnal->unit =  Auth::user()->unit; 
+                                $jurnal->kode_transaksi = $request['idpenjualan'];
+                                $jurnal->kode_rekening = 56412;
+                                $jurnal->tanggal_transaksi = $now;
+                                $jurnal->jenis_transaksi  = 'Jurnal System';
+                                $jurnal->keterangan_transaksi = 'BOL-TI Promo 1';
+                                $jurnal->debet = $bol;
+                                $jurnal->kredit = 0;
+                                $jurnal->tanggal_posting = ' ';
+                                $jurnal->keterangan_posting = '0';
+                                $jurnal->id_admin = Auth::user()->id; 
+                                $jurnal->save();
+        
+                            // jika tidak ada promo unit toko = unit member
+                            }else {
+                                
+                                // 1412000	Piutang Musawamah
+                                $jurnal = new TabelTransaksi;
+                                $jurnal->unit =  Auth::user()->unit; 
+                                $jurnal->kode_transaksi = $request['idpenjualan'];
+                                $jurnal->kode_rekening = 1412000;
+                                $jurnal->tanggal_transaksi = $now;
+                                $jurnal->jenis_transaksi  = 'Jurnal System';
+                                $jurnal->keterangan_transaksi = 'Musawamah ';
+                                $jurnal->debet = $os_baru;
+                                $jurnal->kredit = 0;
+                                $jurnal->tanggal_posting = ' ';
+                                $jurnal->keterangan_posting = '0';
+                                $jurnal->id_admin = Auth::user()->id; 
+                                $jurnal->save();
+        
+                            }
+                            // end of if else barang promo unit toko = unit member
                             
-                            // 1120000	Kas Unit - Toko
-                            $jurnal = new TabelTransaksi;
-                            $jurnal->unit =  Auth::user()->unit; 
-                            $jurnal->kode_transaksi = $request['idpenjualan'];
-                            $jurnal->kode_rekening = 1120000;
-                            $jurnal->tanggal_transaksi = $now;
-                            $jurnal->jenis_transaksi  = 'Jurnal System';
-                            $jurnal->keterangan_transaksi = 'Musawamah ';
-                            $jurnal->debet =$harus_dibayar;
-                            $jurnal->kredit = 0;
-                            $jurnal->tanggal_posting = ' ';
-                            $jurnal->keterangan_posting = ' ';
-                            $jurnal->id_admin = Auth::user()->id; 
-                            $jurnal->save();
-
-                            //BOL-TI Promo/Discount/Kupon
-                            $jurnal = new TabelTransaksi;
-                            $jurnal->unit =  Auth::user()->unit; 
-                            $jurnal->kode_transaksi = $request['idpenjualan'];
-                            $jurnal->kode_rekening = 56412;
-                            $jurnal->tanggal_transaksi = $now;
-                            $jurnal->jenis_transaksi  = 'Jurnal System';
-                            $jurnal->keterangan_transaksi = 'BOL-TI Promo';
-                            $jurnal->debet = $bol;
-                            $jurnal->kredit = 0;
-                            $jurnal->tanggal_posting = ' ';
-                            $jurnal->keterangan_posting = '0';
-                            $jurnal->id_admin = Auth::user()->id; 
-                            $jurnal->save();
-                            
-                        // jika tidak ada promo unit toko = unit member
-                        }else {
-                            
-                            // 1412000	Piutang Musawamah
-                            $jurnal = new TabelTransaksi;
-                            $jurnal->unit =  Auth::user()->unit; 
-                            $jurnal->kode_transaksi = $request['idpenjualan'];
-                            $jurnal->kode_rekening = 1412000;
-                            $jurnal->tanggal_transaksi = $now;
-                            $jurnal->jenis_transaksi  = 'Jurnal System';
-                            $jurnal->keterangan_transaksi = 'Musawamah ';
-                            $jurnal->debet = $os_baru;
-                            $jurnal->kredit = 0;
-                            $jurnal->tanggal_posting = ' ';
-                            $jurnal->keterangan_posting = '0';
-                            $jurnal->id_admin = Auth::user()->id; 
-                            $jurnal->save();
-                            
-                            // 1120000	Kas Unit - Toko
-                            $jurnal = new TabelTransaksi;
-                            $jurnal->unit =  Auth::user()->unit; 
-                            $jurnal->kode_transaksi = $request['idpenjualan'];
-                            $jurnal->kode_rekening = 1120000;
-                            $jurnal->tanggal_transaksi = $now;
-                            $jurnal->jenis_transaksi  = 'Jurnal System';
-                            $jurnal->keterangan_transaksi = 'Musawamah ';
-                            $jurnal->debet =$harus_dibayar;
-                            $jurnal->kredit = 0;
-                            $jurnal->tanggal_posting = ' ';
-                            $jurnal->keterangan_posting = ' ';
-                            $jurnal->id_admin = Auth::user()->id; 
-                            $jurnal->save();
-                            
-                        }
-                        // end of if else barang promo unit toko = unit member
-
-                    break;
-                    // end of case belanja melebih plafon unit toko = unit member
-                        
-                    // belanja tidak melebihi plafond unit toko = unit member
-                    default:
-                            
-                        // case ada barang promo unit toko = unit member
-                        if ($cek_promo) {
-                            
-                            // 1412000	Piutang Musawamah
-                            $jurnal = new TabelTransaksi;
-                            $jurnal->unit =  Auth::user()->unit; 
-                            $jurnal->kode_transaksi = $request['idpenjualan'];
-                            $jurnal->kode_rekening = 1412000;
-                            $jurnal->tanggal_transaksi = $now;
-                            $jurnal->jenis_transaksi  = 'Jurnal System';
-                            $jurnal->keterangan_transaksi = 'Musawamah ';
-                            $jurnal->debet = $os_baru;
-                            $jurnal->kredit = 0;
-                            $jurnal->tanggal_posting = ' ';
-                            $jurnal->keterangan_posting = '0';
-                            $jurnal->id_admin = Auth::user()->id; 
-                            $jurnal->save();
-
-                            //BOL-TI Promo/Discount/Kupon
-                            $jurnal = new TabelTransaksi;
-                            $jurnal->unit =  Auth::user()->unit; 
-                            $jurnal->kode_transaksi = $request['idpenjualan'];
-                            $jurnal->kode_rekening = 56412;
-                            $jurnal->tanggal_transaksi = $now;
-                            $jurnal->jenis_transaksi  = 'Jurnal System';
-                            $jurnal->keterangan_transaksi = 'BOL-TI Promo 1';
-                            $jurnal->debet = $bol;
-                            $jurnal->kredit = 0;
-                            $jurnal->tanggal_posting = ' ';
-                            $jurnal->keterangan_posting = '0';
-                            $jurnal->id_admin = Auth::user()->id; 
-                            $jurnal->save();
-
-                        // jika tidak ada promo unit toko = unit member
-                        }else {
-                            
-                            // 1412000	Piutang Musawamah
-                            $jurnal = new TabelTransaksi;
-                            $jurnal->unit =  Auth::user()->unit; 
-                            $jurnal->kode_transaksi = $request['idpenjualan'];
-                            $jurnal->kode_rekening = 1412000;
-                            $jurnal->tanggal_transaksi = $now;
-                            $jurnal->jenis_transaksi  = 'Jurnal System';
-                            $jurnal->keterangan_transaksi = 'Musawamah ';
-                            $jurnal->debet = $os_baru;
-                            $jurnal->kredit = 0;
-                            $jurnal->tanggal_posting = ' ';
-                            $jurnal->keterangan_posting = '0';
-                            $jurnal->id_admin = Auth::user()->id; 
-                            $jurnal->save();
-
-                        }
-                        // end of if else barang promo unit toko = unit member
-                            
-                    break;
-                    // end of case belanja tidak melebihi plafond unit toko = unit member
-                
-                }
-
+                        break;
+                        // end of case belanja tidak melebihi plafond unit toko = unit member
+                   
+                    }
+    
                 break;
                 // end of case  unit member = unit toko
-
+    
                 // case unit member != unit toko
                 default:
-                
-                switch (true) {
-                    
-                    // case belanja melebihi plafond antar toko
-                    case ($total_belanja > $os_baru):
-
-                        // jika ada barang promo && belanja melbih plafond antar toko
-                        if ($cek_promo) {
-                            
-                            // D	2500000	RAK PASIVA - KP
-                            $jurnal = new TabelTransaksi;
-                            $jurnal->unit =  $unit_toko; 
-                            $jurnal->kode_transaksi = $request['idpenjualan'];
-                            $jurnal->kode_rekening = 2500000;
-                            $jurnal->tanggal_transaksi = $now;
-                            $jurnal->jenis_transaksi  = 'Jurnal System';
-                            $jurnal->keterangan_transaksi = 'RAK PASIVA ';
-                            $jurnal->debet = $os_baru;
-                            $jurnal->kredit = 0;
-                            $jurnal->tanggal_posting = ' ';
-                            $jurnal->keterangan_posting = '0';
-                            $jurnal->id_admin = Auth::user()->id; 
-                            $jurnal->save();                     
-
-                            // 1120000	Kas Unit - Toko
-                            $jurnal = new TabelTransaksi;
-                            $jurnal->unit =  Auth::user()->unit; 
-                            $jurnal->kode_transaksi = $request['idpenjualan'];
-                            $jurnal->kode_rekening = 1120000;
-                            $jurnal->tanggal_transaksi = $now;
-                            $jurnal->jenis_transaksi  = 'Jurnal System';
-                            $jurnal->keterangan_transaksi = 'Musawamah ';
-                            $jurnal->debet =$harus_dibayar;
-                            $jurnal->kredit = 0;
-                            $jurnal->tanggal_posting = ' ';
-                            $jurnal->keterangan_posting = ' ';
-                            $jurnal->id_admin = Auth::user()->id; 
-                            $jurnal->save();
-                            
-                            // D	56412	BOL-TI Promo/Discount/Kupon
-                            $jurnal = new TabelTransaksi;
-                            $jurnal->unit =  $unit_toko; 
-                            $jurnal->kode_transaksi = $request['idpenjualan'];
-                            $jurnal->kode_rekening = 56412;
-                            $jurnal->tanggal_transaksi = $now;
-                            $jurnal->jenis_transaksi  = 'Jurnal System';
-                            $jurnal->keterangan_transaksi = 'BOL-TI Promo';
-                            $jurnal->debet = $bol;
-                            $jurnal->kredit = 0;
-                            $jurnal->tanggal_posting = ' ';
-                            $jurnal->keterangan_posting = '0';
-                            $jurnal->id_admin = Auth::user()->id; 
-                            $jurnal->save();                     
-
-                            // D	2500000	RAK PASIVA - KP
-                            $jurnal = new TabelTransaksi;
-                            $jurnal->unit =  $unit_toko; 
-                            $jurnal->kode_transaksi = $request['idpenjualan'];
-                            $jurnal->kode_rekening = 2500000;
-                            $jurnal->tanggal_transaksi = $now;
-                            $jurnal->jenis_transaksi  = 'Jurnal System';
-                            $jurnal->keterangan_transaksi = 'RAK PASIVA ';
-                            $jurnal->debet = 0;
-                            $jurnal->kredit = $margin;
-                            $jurnal->tanggal_posting = ' ';
-                            $jurnal->keterangan_posting = '0';
-                            $jurnal->id_admin = Auth::user()->id; 
-                            $jurnal->save();             
-
-                            // K	2500000	RAK PASIVA - KP
-                            $jurnal = new TabelTransaksi;
-                            $jurnal->unit =  $unit_member; 
-                            $jurnal->kode_transaksi = $request['idpenjualan'];
-                            $jurnal->kode_rekening = 2500000;
-                            $jurnal->tanggal_transaksi = $now;
-                            $jurnal->jenis_transaksi  = 'Jurnal System';
-                            $jurnal->keterangan_transaksi = 'Musawamah ';
-                            $jurnal->debet = 0;
-                            $jurnal->kredit = $rak_pasiva;
-                            $jurnal->tanggal_posting = ' ';
-                            $jurnal->keterangan_posting = '0';
-                            $jurnal->id_admin = Auth::user()->id; 
-                            $jurnal->save();
-
-                            // D	1412000	Piutang Musawamah
-                            $jurnal = new TabelTransaksi;
-                            $jurnal->unit =  $unit_member; 
-                            $jurnal->kode_transaksi = $request['idpenjualan'];
-                            $jurnal->kode_rekening = 1412000;
-                            $jurnal->tanggal_transaksi = $now;
-                            $jurnal->jenis_transaksi  = 'Jurnal System';
-                            $jurnal->keterangan_transaksi = 'Musawamah ';
-                            $jurnal->debet = $os_baru;
-                            $jurnal->kredit = 0;
-                            $jurnal->tanggal_posting = ' ';
-                            $jurnal->keterangan_posting = '0';
-                            $jurnal->id_admin = Auth::user()->id; 
-                            $jurnal->save();                     
-
-                            // D	1833000	RAK Aktiva - Unit TI CIRANJANG 2
-                            $jurnal = new TabelTransaksi;
-                            $jurnal->unit = '1010'; 
-                            $jurnal->kode_transaksi = $request['idpenjualan'];
-                            $jurnal->kode_rekening = $coa_aktiva_member;
-                            $jurnal->tanggal_transaksi = $now;
-                            $jurnal->jenis_transaksi  = 'Jurnal System';
-                            $jurnal->keterangan_transaksi = 'Musawamah ';
-                            $jurnal->debet = $rak_pasiva;
-                            $jurnal->kredit = 0;
-                            $jurnal->tanggal_posting = ' ';
-                            $jurnal->keterangan_posting = '0';
-                            $jurnal->id_admin = Auth::user()->id; 
-                            $jurnal->save();
-                        
-                            // K	1831000	RAK Aktiva - Unit TI CIANJUR
-                            $jurnal = new TabelTransaksi;
-                            $jurnal->unit =  '1010'; 
-                            $jurnal->kode_transaksi = $request['idpenjualan'];
-                            $jurnal->kode_rekening = $coa_aktiva_user;
-                            $jurnal->tanggal_transaksi = $now;
-                            $jurnal->jenis_transaksi  = 'Jurnal System';
-                            $jurnal->keterangan_transaksi = 'Musawamah ';
-                            $jurnal->debet =0;
-                            $jurnal->kredit = $rak_pasiva;
-                            $jurnal->tanggal_posting = ' ';
-                            $jurnal->keterangan_posting = '0';
-                            $jurnal->id_admin = Auth::user()->id; 
-                            $jurnal->save();
-        
-                        // jika tidak ada barang promo && belanja melbih plafond antar toko
-                        }else {
-                            
-                            // D	2500000	RAK PASIVA - KP
-                            $jurnal = new TabelTransaksi;
-                            $jurnal->unit =  $unit_toko; 
-                            $jurnal->kode_transaksi = $request['idpenjualan'];
-                            $jurnal->kode_rekening = 2500000;
-                            $jurnal->tanggal_transaksi = $now;
-                            $jurnal->jenis_transaksi  = 'Jurnal System';
-                            $jurnal->keterangan_transaksi = 'Musawamah ';
-                            $jurnal->debet = $os_baru;
-                            $jurnal->kredit = 0;
-                            $jurnal->tanggal_posting = ' ';
-                            $jurnal->keterangan_posting = '0';
-                            $jurnal->id_admin = Auth::user()->id; 
-                            $jurnal->save();                     
-
-                            // 1120000	Kas Unit - Toko
-                            $jurnal = new TabelTransaksi;
-                            $jurnal->unit =  Auth::user()->unit; 
-                            $jurnal->kode_transaksi = $request['idpenjualan'];
-                            $jurnal->kode_rekening = 1120000;
-                            $jurnal->tanggal_transaksi = $now;
-                            $jurnal->jenis_transaksi  = 'Jurnal System';
-                            $jurnal->keterangan_transaksi = 'Musawamah ';
-                            $jurnal->debet =$harus_dibayar;
-                            $jurnal->kredit = 0;
-                            $jurnal->tanggal_posting = ' ';
-                            $jurnal->keterangan_posting = ' ';
-                            $jurnal->id_admin = Auth::user()->id; 
-                            $jurnal->save();                
-
-                            
-                            // D	2500000	RAK PASIVA - KP
-                            $jurnal = new TabelTransaksi;
-                            $jurnal->unit =  $unit_toko; 
-                            $jurnal->kode_transaksi = $request['idpenjualan'];
-                            $jurnal->kode_rekening = 2500000;
-                            $jurnal->tanggal_transaksi = $now;
-                            $jurnal->jenis_transaksi  = 'Jurnal System';
-                            $jurnal->keterangan_transaksi = 'Musawamah ';
-                            $jurnal->debet = 0;
-                            $jurnal->kredit = $margin;
-                            $jurnal->tanggal_posting = ' ';
-                            $jurnal->keterangan_posting = '0';
-                            $jurnal->id_admin = Auth::user()->id; 
-                            $jurnal->save();                     
-
-                            // D	1412000	Piutang Musawamah
-                            $jurnal = new TabelTransaksi;
-                            $jurnal->unit =  $unit_member; 
-                            $jurnal->kode_transaksi = $request['idpenjualan'];
-                            $jurnal->kode_rekening = 1412000;
-                            $jurnal->tanggal_transaksi = $now;
-                            $jurnal->jenis_transaksi  = 'Jurnal System';
-                            $jurnal->keterangan_transaksi = 'Musawamah ';
-                            $jurnal->debet = $os_baru;
-                            $jurnal->kredit = 0;
-                            $jurnal->tanggal_posting = ' ';
-                            $jurnal->keterangan_posting = '0';
-                            $jurnal->id_admin = Auth::user()->id; 
-                            $jurnal->save();                     
-
-                            // K	2500000	RAK PASIVA - KP
-                            $jurnal = new TabelTransaksi;
-                            $jurnal->unit =  $unit_member; 
-                            $jurnal->kode_transaksi = $request['idpenjualan'];
-                            $jurnal->kode_rekening = 2500000;
-                            $jurnal->tanggal_transaksi = $now;
-                            $jurnal->jenis_transaksi  = 'Jurnal System';
-                            $jurnal->keterangan_transaksi = 'Musawamah ';
-                            $jurnal->debet = 0;
-                            $jurnal->kredit = $rak_pasiva;
-                            $jurnal->tanggal_posting = ' ';
-                            $jurnal->keterangan_posting = '0';
-                            $jurnal->id_admin = Auth::user()->id; 
-                            $jurnal->save();
-
-                            // D	1833000	RAK Aktiva - Unit TI CIRANJANG 2
-                            $jurnal = new TabelTransaksi;
-                            $jurnal->unit = '1010'; 
-                            $jurnal->kode_transaksi = $request['idpenjualan'];
-                            $jurnal->kode_rekening = $coa_aktiva_member;
-                            $jurnal->tanggal_transaksi = $now;
-                            $jurnal->jenis_transaksi  = 'Jurnal System';
-                            $jurnal->keterangan_transaksi = 'Musawamah ';
-                            $jurnal->debet = $rak_pasiva;
-                            $jurnal->kredit = 0;
-                            $jurnal->tanggal_posting = ' ';
-                            $jurnal->keterangan_posting = '0';
-                            $jurnal->id_admin = Auth::user()->id; 
-                            $jurnal->save();
-                        
-                            // K	1831000	RAK Aktiva - Unit TI CIANJUR
-                            $jurnal = new TabelTransaksi;
-                            $jurnal->unit =  '1010'; 
-                            $jurnal->kode_transaksi = $request['idpenjualan'];
-                            $jurnal->kode_rekening = $coa_aktiva_user;
-                            $jurnal->tanggal_transaksi = $now;
-                            $jurnal->jenis_transaksi  = 'Jurnal System';
-                            $jurnal->keterangan_transaksi = 'Musawamah ';
-                            $jurnal->debet =0;
-                            $jurnal->kredit = $rak_pasiva;
-                            $jurnal->tanggal_posting = ' ';
-                            $jurnal->keterangan_posting = '0';
-                            $jurnal->id_admin = Auth::user()->id; 
-                            $jurnal->save();
-                        }
-                        // end of if else barang promo && belanja melbih plafond antar toko
-                            
-                    break;
-                    // end off case belanja melebihi plafond antar toko
-
-                    // case belanja tidak melebihi plafond antar toko
-                    default:
-                            
-                        // jika belanja tidak melebihi plafond antar toko && ada barang promo
-                        if ($cek_promo) {
-                            
-                            // D	2500000	RAK PASIVA - KP
-                            $jurnal = new TabelTransaksi;
-                            $jurnal->unit =  $unit_toko; 
-                            $jurnal->kode_transaksi = $request['idpenjualan'];
-                            $jurnal->kode_rekening = 2500000;
-                            $jurnal->tanggal_transaksi = $now;
-                            $jurnal->jenis_transaksi  = 'Jurnal System';
-                            $jurnal->keterangan_transaksi = 'RAK PASIVA ';
-                            $jurnal->debet = $os_baru;
-                            $jurnal->kredit = 0;
-                            $jurnal->tanggal_posting = ' ';
-                            $jurnal->keterangan_posting = '0';
-                            $jurnal->id_admin = Auth::user()->id; 
-                            $jurnal->save();                     
-
-                            // D	56412	BOL-TI Promo/Discount/Kupon
-                            $jurnal = new TabelTransaksi;
-                            $jurnal->unit =  $unit_toko; 
-                            $jurnal->kode_transaksi = $request['idpenjualan'];
-                            $jurnal->kode_rekening = 56412;
-                            $jurnal->tanggal_transaksi = $now;
-                            $jurnal->jenis_transaksi  = 'Jurnal System';
-                            $jurnal->keterangan_transaksi = 'BOL-TI Promo';
-                            $jurnal->debet = $bol;
-                            $jurnal->kredit = 0;
-                            $jurnal->tanggal_posting = ' ';
-                            $jurnal->keterangan_posting = '0';
-                            $jurnal->id_admin = Auth::user()->id; 
-                            $jurnal->save();                     
-
-                            // K	2500000	RAK PASIVA - KP
-                            $jurnal = new TabelTransaksi;
-                            $jurnal->unit =  $unit_toko; 
-                            $jurnal->kode_transaksi = $request['idpenjualan'];
-                            $jurnal->kode_rekening = 2500000;
-                            $jurnal->tanggal_transaksi = $now;
-                            $jurnal->jenis_transaksi  = 'Jurnal System';
-                            $jurnal->keterangan_transaksi = 'RAK PASIVA ';
-                            $jurnal->debet = 0;
-                            $jurnal->kredit = $margin;
-                            $jurnal->tanggal_posting = ' ';
-                            $jurnal->keterangan_posting = '0';
-                            $jurnal->id_admin = Auth::user()->id; 
-                            $jurnal->save();         
-                            
-
-                            // D	1412000	Piutang Musawamah
-                            $jurnal = new TabelTransaksi;
-                            $jurnal->unit =  $unit_member; 
-                            $jurnal->kode_transaksi = $request['idpenjualan'];
-                            $jurnal->kode_rekening = 1412000;
-                            $jurnal->tanggal_transaksi = $now;
-                            $jurnal->jenis_transaksi  = 'Jurnal System';
-                            $jurnal->keterangan_transaksi = 'Musawamah ';
-                            $jurnal->debet = $os_baru;
-                            $jurnal->kredit = 0;
-                            $jurnal->tanggal_posting = ' ';
-                            $jurnal->keterangan_posting = '0';
-                            $jurnal->id_admin = Auth::user()->id; 
-                            $jurnal->save();                     
-
-                            // K	2500000	RAK PASIVA - KP
-                            $jurnal = new TabelTransaksi;
-                            $jurnal->unit =  $unit_member; 
-                            $jurnal->kode_transaksi = $request['idpenjualan'];
-                            $jurnal->kode_rekening = 2500000;
-                            $jurnal->tanggal_transaksi = $now;
-                            $jurnal->jenis_transaksi  = 'Jurnal System';
-                            $jurnal->keterangan_transaksi = 'Musawamah ';
-                            $jurnal->debet = 0;
-                            $jurnal->kredit = $rak_pasiva;
-                            $jurnal->tanggal_posting = ' ';
-                            $jurnal->keterangan_posting = '0';
-                            $jurnal->id_admin = Auth::user()->id; 
-                            $jurnal->save();
-
-                            // D	1833000	RAK Aktiva - Unit TI CIRANJANG 2
-                            $jurnal = new TabelTransaksi;
-                            $jurnal->unit = '1010'; 
-                            $jurnal->kode_transaksi = $request['idpenjualan'];
-                            $jurnal->kode_rekening = $coa_aktiva_member;
-                            $jurnal->tanggal_transaksi = $now;
-                            $jurnal->jenis_transaksi  = 'Jurnal System';
-                            $jurnal->keterangan_transaksi = 'Musawamah ';
-                            $jurnal->debet = $rak_pasiva;
-                            $jurnal->kredit = 0;
-                            $jurnal->tanggal_posting = ' ';
-                            $jurnal->keterangan_posting = '0';
-                            $jurnal->id_admin = Auth::user()->id; 
-                            $jurnal->save();
-                        
-                            // K	1831000	RAK Aktiva - Unit TI CIANJUR
-                            $jurnal = new TabelTransaksi;
-                            $jurnal->unit =  '1010'; 
-                            $jurnal->kode_transaksi = $request['idpenjualan'];
-                            $jurnal->kode_rekening = $coa_aktiva_user;
-                            $jurnal->tanggal_transaksi = $now;
-                            $jurnal->jenis_transaksi  = 'Jurnal System';
-                            $jurnal->keterangan_transaksi = 'Musawamah ';
-                            $jurnal->debet =0;
-                            $jurnal->kredit = $rak_pasiva;
-                            $jurnal->tanggal_posting = ' ';
-                            $jurnal->keterangan_posting = '0';
-                            $jurnal->id_admin = Auth::user()->id; 
-                            $jurnal->save();
-
-                            
-                        // jika belanja tidak melebihi plafond antar toko && tidak ada barang promo
-                        }else {                        
-
-                            // D	2500000	RAK PASIVA - KP
-                            $jurnal = new TabelTransaksi;
-                            $jurnal->unit =  $unit_toko; 
-                            $jurnal->kode_transaksi = $request['idpenjualan'];
-                            $jurnal->kode_rekening = 2500000;
-                            $jurnal->tanggal_transaksi = $now;
-                            $jurnal->jenis_transaksi  = 'Jurnal System';
-                            $jurnal->keterangan_transaksi = 'RAK PASIVA ';
-                            $jurnal->debet = $os_baru;
-                            $jurnal->kredit = 0;
-                            $jurnal->tanggal_posting = ' ';
-                            $jurnal->keterangan_posting = '0';
-                            $jurnal->id_admin = Auth::user()->id; 
-                            $jurnal->save();             
-                            
-                            $jurnal = new TabelTransaksi;
-                            $jurnal->unit =  $unit_toko; 
-                            $jurnal->kode_transaksi = $request['idpenjualan'];
-                            $jurnal->kode_rekening = 2500000;
-                            $jurnal->tanggal_transaksi = $now;
-                            $jurnal->jenis_transaksi  = 'Jurnal System';
-                            $jurnal->keterangan_transaksi = 'RAK PASIVA ';
-                            $jurnal->debet = 0;
-                            $jurnal->kredit = $margin;
-                            $jurnal->tanggal_posting = ' ';
-                            $jurnal->keterangan_posting = '0';
-                            $jurnal->id_admin = Auth::user()->id; 
-                            $jurnal->save();                     
+                   
+                    switch (true) {
+                      
+                        // case belanja melebihi plafond antar toko
+                        case ($total_belanja > $os_baru):
+    
+                            // jika ada barang promo && belanja melbih plafond antar toko
+                            if ($cek_promo) {
+                                
+                                    // D	2500000	RAK PASIVA - KP
+                                    $jurnal = new TabelTransaksi;
+                                    $jurnal->unit =  $unit_toko; 
+                                    $jurnal->kode_transaksi = $request['idpenjualan'];
+                                    $jurnal->kode_rekening = 2500000;
+                                    $jurnal->tanggal_transaksi = $now;
+                                    $jurnal->jenis_transaksi  = 'Jurnal System';
+                                    $jurnal->keterangan_transaksi = 'RAK PASIVA ';
+                                    $jurnal->debet = $os_baru;
+                                    $jurnal->kredit = 0;
+                                    $jurnal->tanggal_posting = ' ';
+                                    $jurnal->keterangan_posting = '0';
+                                    $jurnal->id_admin = Auth::user()->id; 
+                                    $jurnal->save();                     
+            
+                                    // 1120000	Kas Unit - Toko
+                                    $jurnal = new TabelTransaksi;
+                                    $jurnal->unit =  Auth::user()->unit; 
+                                    $jurnal->kode_transaksi = $request['idpenjualan'];
+                                    $jurnal->kode_rekening = 1120000;
+                                    $jurnal->tanggal_transaksi = $now;
+                                    $jurnal->jenis_transaksi  = 'Jurnal System';
+                                    $jurnal->keterangan_transaksi = 'KAS BELANJA LEBIH PLAFOND ';
+                                    $jurnal->debet =$harus_dibayar;
+                                    $jurnal->kredit = 0;
+                                    $jurnal->tanggal_posting = ' ';
+                                    $jurnal->keterangan_posting = ' ';
+                                    $jurnal->id_admin = Auth::user()->id; 
+                                    $jurnal->save();
                                     
-
-                            // D	1412000	Piutang Musawamah
-                            $jurnal = new TabelTransaksi;
-                            $jurnal->unit =  $unit_member; 
-                            $jurnal->kode_transaksi = $request['idpenjualan'];
-                            $jurnal->kode_rekening = 1412000;
-                            $jurnal->tanggal_transaksi = $now;
-                            $jurnal->jenis_transaksi  = 'Jurnal System';
-                            $jurnal->keterangan_transaksi = 'Musawamah ';
-                            $jurnal->debet = $os_baru;
-                            $jurnal->kredit = 0;
-                            $jurnal->tanggal_posting = ' ';
-                            $jurnal->keterangan_posting = '0';
-                            $jurnal->id_admin = Auth::user()->id; 
-                            $jurnal->save();             
-
-                            // K	2500000	RAK PASIVA - KP
-                            $jurnal = new TabelTransaksi;
-                            $jurnal->unit =  $unit_member; 
-                            $jurnal->kode_transaksi = $request['idpenjualan'];
-                            $jurnal->kode_rekening = 2500000;
-                            $jurnal->tanggal_transaksi = $now;
-                            $jurnal->jenis_transaksi  = 'Jurnal System';
-                            $jurnal->keterangan_transaksi = 'RAK PASIVA ';
-                            $jurnal->debet = 0;
-                            $jurnal->kredit = $rak_pasiva;
-                            $jurnal->tanggal_posting = ' ';
-                            $jurnal->keterangan_posting = '0';
-                            $jurnal->id_admin = Auth::user()->id; 
-                            $jurnal->save();
-
-                            // D	1833000	RAK Aktiva - Unit TI CIRANJANG 2
-                            $jurnal = new TabelTransaksi;
-                            $jurnal->unit = '1010'; 
-                            $jurnal->kode_transaksi = $request['idpenjualan'];
-                            $jurnal->kode_rekening = $coa_aktiva_member;
-                            $jurnal->tanggal_transaksi = $now;
-                            $jurnal->jenis_transaksi  = 'Jurnal System';
-                            $jurnal->keterangan_transaksi = 'Musawamah ';
-                            $jurnal->debet = $rak_pasiva;
-                            $jurnal->kredit = 0;
-                            $jurnal->tanggal_posting = ' ';
-                            $jurnal->keterangan_posting = '0';
-                            $jurnal->id_admin = Auth::user()->id; 
-                            $jurnal->save();
+                                    // D	56412	BOL-TI Promo/Discount/Kupon
+                                    $jurnal = new TabelTransaksi;
+                                    $jurnal->unit =  $unit_toko; 
+                                    $jurnal->kode_transaksi = $request['idpenjualan'];
+                                    $jurnal->kode_rekening = 56412;
+                                    $jurnal->tanggal_transaksi = $now;
+                                    $jurnal->jenis_transaksi  = 'Jurnal System';
+                                    $jurnal->keterangan_transaksi = 'BOL-TI Promo';
+                                    $jurnal->debet = $bol;
+                                    $jurnal->kredit = 0;
+                                    $jurnal->tanggal_posting = ' ';
+                                    $jurnal->keterangan_posting = '0';
+                                    $jurnal->id_admin = Auth::user()->id; 
+                                    $jurnal->save();                     
+        
+                                    if ($margin > 0) {
+                                    
+                                        // K	2500000	RAK PASIVA - KP
+                                        $jurnal = new TabelTransaksi;
+                                        $jurnal->unit =  $unit_toko; 
+                                        $jurnal->kode_transaksi = $request['idpenjualan'];
+                                        $jurnal->kode_rekening = 2500000;
+                                        $jurnal->tanggal_transaksi = $now;
+                                        $jurnal->jenis_transaksi  = 'Jurnal System';
+                                        $jurnal->keterangan_transaksi = 'RAK PASIVA ';
+                                        $jurnal->debet = 0;
+                                        $jurnal->kredit = $margin;
+                                        $jurnal->tanggal_posting = ' ';
+                                        $jurnal->keterangan_posting = '0';
+                                        $jurnal->id_admin = Auth::user()->id; 
+                                        $jurnal->save();    
+                
+                                        // K	2500000	RAK PASIVA - KP
+                                        $jurnal = new TabelTransaksi;
+                                        $jurnal->unit =  $unit_member; 
+                                        $jurnal->kode_transaksi = $request['idpenjualan'];
+                                        $jurnal->kode_rekening = 2500000;
+                                        $jurnal->tanggal_transaksi = $now;
+                                        $jurnal->jenis_transaksi  = 'Jurnal System';
+                                        $jurnal->keterangan_transaksi = 'RAK PASIVA ';
+                                        $jurnal->debet = $margin;
+                                        $jurnal->kredit = 0;
+                                        $jurnal->tanggal_posting = ' ';
+                                        $jurnal->keterangan_posting = '0';
+                                        $jurnal->id_admin = Auth::user()->id; 
+                                        $jurnal->save();    
+                                        
+                                        // D	1833000	RAK Aktiva - Unit TI CIRANJANG 2
+                                        $jurnal = new TabelTransaksi;
+                                        $jurnal->unit = '1010'; 
+                                        $jurnal->kode_transaksi = $request['idpenjualan'];
+                                        $jurnal->kode_rekening = $coa_aktiva_member;
+                                        $jurnal->tanggal_transaksi = $now;
+                                        $jurnal->jenis_transaksi  = 'Jurnal System';
+                                        $jurnal->keterangan_transaksi = 'Musawamah ';
+                                        $jurnal->debet = 0;
+                                        $jurnal->kredit = $margin;
+                                        $jurnal->tanggal_posting = ' ';
+                                        $jurnal->keterangan_posting = '0';
+                                        $jurnal->id_admin = Auth::user()->id; 
+                                        $jurnal->save();
+                                        
+                                        // K	1831000	RAK Aktiva - Unit TI CIANJUR
+                                        $jurnal = new TabelTransaksi;
+                                        $jurnal->unit =  '1010'; 
+                                        $jurnal->kode_transaksi = $request['idpenjualan'];
+                                        $jurnal->kode_rekening = $coa_aktiva_user;
+                                        $jurnal->tanggal_transaksi = $now;
+                                        $jurnal->jenis_transaksi  = 'Jurnal System';
+                                        $jurnal->keterangan_transaksi = 'Musawamah ';
+                                        $jurnal->debet = $margin;
+                                        $jurnal->kredit = 0;
+                                        $jurnal->tanggal_posting = ' ';
+                                        $jurnal->keterangan_posting = '0';
+                                        $jurnal->id_admin = Auth::user()->id; 
+                                        $jurnal->save();
+            
+                                    }
+        
+                                    // K	2500000	RAK PASIVA - KP
+                                    $jurnal = new TabelTransaksi;
+                                    $jurnal->unit =  $unit_member; 
+                                    $jurnal->kode_transaksi = $request['idpenjualan'];
+                                    $jurnal->kode_rekening = 2500000;
+                                    $jurnal->tanggal_transaksi = $now;
+                                    $jurnal->jenis_transaksi  = 'Jurnal System';
+                                    $jurnal->keterangan_transaksi = 'Musawamah ';
+                                    $jurnal->debet = 0;
+                                    $jurnal->kredit = $os_baru;
+                                    $jurnal->tanggal_posting = ' ';
+                                    $jurnal->keterangan_posting = '0';
+                                    $jurnal->id_admin = Auth::user()->id; 
+                                    $jurnal->save();
+            
+                                    // D	1412000	Piutang Musawamah
+                                    $jurnal = new TabelTransaksi;
+                                    $jurnal->unit =  $unit_member; 
+                                    $jurnal->kode_transaksi = $request['idpenjualan'];
+                                    $jurnal->kode_rekening = 1412000;
+                                    $jurnal->tanggal_transaksi = $now;
+                                    $jurnal->jenis_transaksi  = 'Jurnal System';
+                                    $jurnal->keterangan_transaksi = 'Musawamah ';
+                                    $jurnal->debet = $os_baru;
+                                    $jurnal->kredit = 0;
+                                    $jurnal->tanggal_posting = ' ';
+                                    $jurnal->keterangan_posting = '0';
+                                    $jurnal->id_admin = Auth::user()->id; 
+                                    $jurnal->save();                     
+        
+                                    // D	1833000	RAK Aktiva - Unit TI CIRANJANG 2
+                                    $jurnal = new TabelTransaksi;
+                                    $jurnal->unit = '1010'; 
+                                    $jurnal->kode_transaksi = $request['idpenjualan'];
+                                    $jurnal->kode_rekening = $coa_aktiva_member;
+                                    $jurnal->tanggal_transaksi = $now;
+                                    $jurnal->jenis_transaksi  = 'Jurnal System';
+                                    $jurnal->keterangan_transaksi = 'Musawamah ';
+                                    $jurnal->debet = $os_baru;
+                                    $jurnal->kredit = 0;
+                                    $jurnal->tanggal_posting = ' ';
+                                    $jurnal->keterangan_posting = '0';
+                                    $jurnal->id_admin = Auth::user()->id; 
+                                    $jurnal->save();
+                                
+                                    // K	1831000	RAK Aktiva - Unit TI CIANJUR
+                                    $jurnal = new TabelTransaksi;
+                                    $jurnal->unit =  '1010'; 
+                                    $jurnal->kode_transaksi = $request['idpenjualan'];
+                                    $jurnal->kode_rekening = $coa_aktiva_user;
+                                    $jurnal->tanggal_transaksi = $now;
+                                    $jurnal->jenis_transaksi  = 'Jurnal System';
+                                    $jurnal->keterangan_transaksi = 'Musawamah ';
+                                    $jurnal->debet =0;
+                                    $jurnal->kredit = $os_baru;
+                                    $jurnal->tanggal_posting = ' ';
+                                    $jurnal->keterangan_posting = '0';
+                                    $jurnal->id_admin = Auth::user()->id; 
+                                    $jurnal->save();
+            
+                            // jika tidak ada barang promo && belanja melbih plafond antar toko
+                            }else {
+                                
+                                // D	2500000	RAK PASIVA - KP
+                                $jurnal = new TabelTransaksi;
+                                $jurnal->unit =  $unit_toko; 
+                                $jurnal->kode_transaksi = $request['idpenjualan'];
+                                $jurnal->kode_rekening = 2500000;
+                                $jurnal->tanggal_transaksi = $now;
+                                $jurnal->jenis_transaksi  = 'Jurnal System';
+                                $jurnal->keterangan_transaksi = 'RAK PASIVA ';
+                                $jurnal->debet = $os_baru;
+                                $jurnal->kredit = 0;
+                                $jurnal->tanggal_posting = ' ';
+                                $jurnal->keterangan_posting = '0';
+                                $jurnal->id_admin = Auth::user()->id; 
+                                $jurnal->save();                     
+        
+                                // 1120000	Kas Unit - Toko
+                                $jurnal = new TabelTransaksi;
+                                $jurnal->unit =  Auth::user()->unit; 
+                                $jurnal->kode_transaksi = $request['idpenjualan'];
+                                $jurnal->kode_rekening = 1120000;
+                                $jurnal->tanggal_transaksi = $now;
+                                $jurnal->jenis_transaksi  = 'Jurnal System';
+                                $jurnal->keterangan_transaksi = 'Kas Unit - Toko ';
+                                $jurnal->debet =$harus_dibayar;
+                                $jurnal->kredit = 0;
+                                $jurnal->tanggal_posting = ' ';
+                                $jurnal->keterangan_posting = ' ';
+                                $jurnal->id_admin = Auth::user()->id; 
+                                $jurnal->save();                
+                                
+                                // D	2500000	RAK PASIVA - KP
+                                $jurnal = new TabelTransaksi;
+                                $jurnal->unit =  $unit_toko; 
+                                $jurnal->kode_transaksi = $request['idpenjualan'];
+                                $jurnal->kode_rekening = 2500000;
+                                $jurnal->tanggal_transaksi = $now;
+                                $jurnal->jenis_transaksi  = 'Jurnal System';
+                                $jurnal->keterangan_transaksi = 'RAK PASIVA ';
+                                $jurnal->debet = 0;
+                                $jurnal->kredit = $margin;
+                                $jurnal->tanggal_posting = ' ';
+                                $jurnal->keterangan_posting = '0';
+                                $jurnal->id_admin = Auth::user()->id; 
+                                $jurnal->save();  
+        
+                                // D	2500000	RAK PASIVA - KP
+                                $jurnal = new TabelTransaksi;
+                                $jurnal->unit =  $unit_member; 
+                                $jurnal->kode_transaksi = $request['idpenjualan'];
+                                $jurnal->kode_rekening = 2500000;
+                                $jurnal->tanggal_transaksi = $now;
+                                $jurnal->jenis_transaksi  = 'Jurnal System';
+                                $jurnal->keterangan_transaksi = 'RAK PASIVA ';
+                                $jurnal->debet = $margin;
+                                $jurnal->kredit = 0;
+                                $jurnal->tanggal_posting = ' ';
+                                $jurnal->keterangan_posting = '0';
+                                $jurnal->id_admin = Auth::user()->id; 
+                                $jurnal->save();       
+                                
+                                // D	1833000	RAK Aktiva - Unit TI CIRANJANG 2
+                                $jurnal = new TabelTransaksi;
+                                $jurnal->unit = '1010'; 
+                                $jurnal->kode_transaksi = $request['idpenjualan'];
+                                $jurnal->kode_rekening = $coa_aktiva_member;
+                                $jurnal->tanggal_transaksi = $now;
+                                $jurnal->jenis_transaksi  = 'Jurnal System';
+                                $jurnal->keterangan_transaksi = 'Margin Penjualan ';
+                                $jurnal->kredit = $margin;
+                                $jurnal->debet = 0;
+                                $jurnal->tanggal_posting = ' ';
+                                $jurnal->keterangan_posting = '0';
+                                $jurnal->id_admin = Auth::user()->id; 
+                                $jurnal->save();
+                            
+                                // K	1831000	RAK Aktiva - Unit TI CIANJUR
+                                $jurnal = new TabelTransaksi;
+                                $jurnal->unit =  '1010'; 
+                                $jurnal->kode_transaksi = $request['idpenjualan'];
+                                $jurnal->kode_rekening = $coa_aktiva_user;
+                                $jurnal->tanggal_transaksi = $now;
+                                $jurnal->jenis_transaksi  = 'Jurnal System';
+                                $jurnal->keterangan_transaksi = 'Margin Penjualan ';
+                                $jurnal->debet = $margin;
+                                $jurnal->kredit =0;
+                                $jurnal->tanggal_posting = ' ';
+                                $jurnal->keterangan_posting = '0';
+                                $jurnal->id_admin = Auth::user()->id; 
+                                $jurnal->save();
+        
+                                // D	1412000	Piutang Musawamah
+                                $jurnal = new TabelTransaksi;
+                                $jurnal->unit =  $unit_member; 
+                                $jurnal->kode_transaksi = $request['idpenjualan'];
+                                $jurnal->kode_rekening = 1412000;
+                                $jurnal->tanggal_transaksi = $now;
+                                $jurnal->jenis_transaksi  = 'Jurnal System';
+                                $jurnal->keterangan_transaksi = 'Musawamah ';
+                                $jurnal->debet = $os_baru;
+                                $jurnal->kredit = 0;
+                                $jurnal->tanggal_posting = ' ';
+                                $jurnal->keterangan_posting = '0';
+                                $jurnal->id_admin = Auth::user()->id; 
+                                $jurnal->save();                     
+        
+                                // K	2500000	RAK PASIVA - KP
+                                $jurnal = new TabelTransaksi;
+                                $jurnal->unit =  $unit_member; 
+                                $jurnal->kode_transaksi = $request['idpenjualan'];
+                                $jurnal->kode_rekening = 2500000;
+                                $jurnal->tanggal_transaksi = $now;
+                                $jurnal->jenis_transaksi  = 'Jurnal System';
+                                $jurnal->keterangan_transaksi = 'RAK PASIVA';
+                                $jurnal->debet = 0;
+                                $jurnal->kredit = $os_baru;
+                                $jurnal->tanggal_posting = ' ';
+                                $jurnal->keterangan_posting = '0';
+                                $jurnal->id_admin = Auth::user()->id; 
+                                $jurnal->save();
+        
+                                // D	1833000	RAK Aktiva - Unit TI CIRANJANG 2
+                                $jurnal = new TabelTransaksi;
+                                $jurnal->unit = '1010'; 
+                                $jurnal->kode_transaksi = $request['idpenjualan'];
+                                $jurnal->kode_rekening = $coa_aktiva_member;
+                                $jurnal->tanggal_transaksi = $now;
+                                $jurnal->jenis_transaksi  = 'Jurnal System';
+                                $jurnal->keterangan_transaksi = 'Musawamah ';
+                                $jurnal->debet = $rak_pasiva;
+                                $jurnal->kredit = 0;
+                                $jurnal->tanggal_posting = ' ';
+                                $jurnal->keterangan_posting = '0';
+                                $jurnal->id_admin = Auth::user()->id; 
+                                $jurnal->save();
+                            
+                                // K	1831000	RAK Aktiva - Unit TI CIANJUR
+                                $jurnal = new TabelTransaksi;
+                                $jurnal->unit =  '1010'; 
+                                $jurnal->kode_transaksi = $request['idpenjualan'];
+                                $jurnal->kode_rekening = $coa_aktiva_user;
+                                $jurnal->tanggal_transaksi = $now;
+                                $jurnal->jenis_transaksi  = 'Jurnal System';
+                                $jurnal->keterangan_transaksi = 'Musawamah ';
+                                $jurnal->debet =0;
+                                $jurnal->kredit = $rak_pasiva;
+                                $jurnal->tanggal_posting = ' ';
+                                $jurnal->keterangan_posting = '0';
+                                $jurnal->id_admin = Auth::user()->id; 
+                                $jurnal->save();
+                            }
+                            // end of if else barang promo && belanja melbih plafond antar toko
+                               
+                        break;
+                        // end off case belanja melebihi plafond antar toko
+    
+                        // case belanja tidak melebihi plafond antar toko
+                        default:
+                            // jika belanja tidak melebihi plafond antar toko && ada barang promo
+                            if ($cek_promo) {
+                            
+                                // D	2500000	RAK PASIVA - KP
+                                $jurnal = new TabelTransaksi;
+                                $jurnal->unit =  $unit_toko; 
+                                $jurnal->kode_transaksi = $request['idpenjualan'];
+                                $jurnal->kode_rekening = 2500000;
+                                $jurnal->tanggal_transaksi = $now;
+                                $jurnal->jenis_transaksi  = 'Jurnal System';
+                                $jurnal->keterangan_transaksi = 'RAK PASIVA ';
+                                $jurnal->debet = $os_baru;
+                                $jurnal->kredit = 0;
+                                $jurnal->tanggal_posting = ' ';
+                                $jurnal->keterangan_posting = '0';
+                                $jurnal->id_admin = Auth::user()->id; 
+                                $jurnal->save();                     
+        
+                                // D	56412	BOL-TI Promo/Discount/Kupon
+                                $jurnal = new TabelTransaksi;
+                                $jurnal->unit =  $unit_toko; 
+                                $jurnal->kode_transaksi = $request['idpenjualan'];
+                                $jurnal->kode_rekening = 56412;
+                                $jurnal->tanggal_transaksi = $now;
+                                $jurnal->jenis_transaksi  = 'Jurnal System';
+                                $jurnal->keterangan_transaksi = 'BOL-TI Promo';
+                                $jurnal->debet = $bol;
+                                $jurnal->kredit = 0;
+                                $jurnal->tanggal_posting = ' ';
+                                $jurnal->keterangan_posting = '0';
+                                $jurnal->id_admin = Auth::user()->id; 
+                                $jurnal->save();                     
+        
+                                if ($margin > 0) {
+                               
+                                    // K	2500000	RAK PASIVA - KP
+                                    $jurnal = new TabelTransaksi;
+                                    $jurnal->unit =  $unit_toko; 
+                                    $jurnal->kode_transaksi = $request['idpenjualan'];
+                                    $jurnal->kode_rekening = 2500000;
+                                    $jurnal->tanggal_transaksi = $now;
+                                    $jurnal->jenis_transaksi  = 'Jurnal System';
+                                    $jurnal->keterangan_transaksi = 'RAK PASIVA ';
+                                    $jurnal->debet = 0;
+                                    $jurnal->kredit = $margin;
+                                    $jurnal->tanggal_posting = ' ';
+                                    $jurnal->keterangan_posting = '0';
+                                    $jurnal->id_admin = Auth::user()->id; 
+                                    $jurnal->save();    
+            
+                                    // K	2500000	RAK PASIVA - KP
+                                    $jurnal = new TabelTransaksi;
+                                    $jurnal->unit =  $unit_member; 
+                                    $jurnal->kode_transaksi = $request['idpenjualan'];
+                                    $jurnal->kode_rekening = 2500000;
+                                    $jurnal->tanggal_transaksi = $now;
+                                    $jurnal->jenis_transaksi  = 'Jurnal System';
+                                    $jurnal->keterangan_transaksi = 'RAK PASIVA ';
+                                    $jurnal->debet = $margin;
+                                    $jurnal->kredit = 0;
+                                    $jurnal->tanggal_posting = ' ';
+                                    $jurnal->keterangan_posting = '0';
+                                    $jurnal->id_admin = Auth::user()->id; 
+                                    $jurnal->save();    
+                                    
+                                    // D	1833000	RAK Aktiva - Unit TI CIRANJANG 2
+                                    $jurnal = new TabelTransaksi;
+                                    $jurnal->unit = '1010'; 
+                                    $jurnal->kode_transaksi = $request['idpenjualan'];
+                                    $jurnal->kode_rekening = $coa_aktiva_member;
+                                    $jurnal->tanggal_transaksi = $now;
+                                    $jurnal->jenis_transaksi  = 'Jurnal System';
+                                    $jurnal->keterangan_transaksi = 'Musawamah ';
+                                    $jurnal->debet = 0;
+                                    $jurnal->kredit = $margin;
+                                    $jurnal->tanggal_posting = ' ';
+                                    $jurnal->keterangan_posting = '0';
+                                    $jurnal->id_admin = Auth::user()->id; 
+                                    $jurnal->save();
+                                    
+                                    // K	1831000	RAK Aktiva - Unit TI CIANJUR
+                                    $jurnal = new TabelTransaksi;
+                                    $jurnal->unit =  '1010'; 
+                                    $jurnal->kode_transaksi = $request['idpenjualan'];
+                                    $jurnal->kode_rekening = $coa_aktiva_user;
+                                    $jurnal->tanggal_transaksi = $now;
+                                    $jurnal->jenis_transaksi  = 'Jurnal System';
+                                    $jurnal->keterangan_transaksi = 'Musawamah ';
+                                    $jurnal->debet = $margin;
+                                    $jurnal->kredit = 0;
+                                    $jurnal->tanggal_posting = ' ';
+                                    $jurnal->keterangan_posting = '0';
+                                    $jurnal->id_admin = Auth::user()->id; 
+                                    $jurnal->save();
+            
+                                }
+    
+                                // D	1412000	Piutang Musawamah
+                                $jurnal = new TabelTransaksi;
+                                $jurnal->unit =  $unit_member; 
+                                $jurnal->kode_transaksi = $request['idpenjualan'];
+                                $jurnal->kode_rekening = 1412000;
+                                $jurnal->tanggal_transaksi = $now;
+                                $jurnal->jenis_transaksi  = 'Jurnal System';
+                                $jurnal->keterangan_transaksi = 'Musawamah ';
+                                $jurnal->debet = $os_baru;
+                                $jurnal->kredit = 0;
+                                $jurnal->tanggal_posting = ' ';
+                                $jurnal->keterangan_posting = '0';
+                                $jurnal->id_admin = Auth::user()->id; 
+                                $jurnal->save();                     
+        
+                                // K	2500000	RAK PASIVA - KP
+                                $jurnal = new TabelTransaksi;
+                                $jurnal->unit =  $unit_member; 
+                                $jurnal->kode_transaksi = $request['idpenjualan'];
+                                $jurnal->kode_rekening = 2500000;
+                                $jurnal->tanggal_transaksi = $now;
+                                $jurnal->jenis_transaksi  = 'Jurnal System';
+                                $jurnal->keterangan_transaksi = 'Musawamah ';
+                                $jurnal->debet = 0;
+                                $jurnal->kredit = $os_baru;
+                                $jurnal->tanggal_posting = ' ';
+                                $jurnal->keterangan_posting = '0';
+                                $jurnal->id_admin = Auth::user()->id; 
+                                $jurnal->save();
+        
+                                // D	1833000	RAK Aktiva - Unit TI CIRANJANG 2
+                                $jurnal = new TabelTransaksi;
+                                $jurnal->unit = '1010'; 
+                                $jurnal->kode_transaksi = $request['idpenjualan'];
+                                $jurnal->kode_rekening = $coa_aktiva_member;
+                                $jurnal->tanggal_transaksi = $now;
+                                $jurnal->jenis_transaksi  = 'Jurnal System';
+                                $jurnal->keterangan_transaksi = 'Musawamah ';
+                                $jurnal->debet = $os_baru;
+                                $jurnal->kredit = 0;
+                                $jurnal->tanggal_posting = ' ';
+                                $jurnal->keterangan_posting = '0';
+                                $jurnal->id_admin = Auth::user()->id; 
+                                $jurnal->save();
+                                
+                                // K	1831000	RAK Aktiva - Unit TI CIANJUR
+                                $jurnal = new TabelTransaksi;
+                                $jurnal->unit =  '1010'; 
+                                $jurnal->kode_transaksi = $request['idpenjualan'];
+                                $jurnal->kode_rekening = $coa_aktiva_user;
+                                $jurnal->tanggal_transaksi = $now;
+                                $jurnal->jenis_transaksi  = 'Jurnal System';
+                                $jurnal->keterangan_transaksi = 'Musawamah ';
+                                $jurnal->debet =0;
+                                $jurnal->kredit = $os_baru;
+                                $jurnal->tanggal_posting = ' ';
+                                $jurnal->keterangan_posting = '0';
+                                $jurnal->id_admin = Auth::user()->id; 
+                                $jurnal->save();
+        
                         
-                            // K	1831000	RAK Aktiva - Unit TI CIANJUR
-                            $jurnal = new TabelTransaksi;
-                            $jurnal->unit =  '1010'; 
-                            $jurnal->kode_transaksi = $request['idpenjualan'];
-                            $jurnal->kode_rekening = $coa_aktiva_user;
-                            $jurnal->tanggal_transaksi = $now;
-                            $jurnal->jenis_transaksi  = 'Jurnal System';
-                            $jurnal->keterangan_transaksi = 'Musawamah ';
-                            $jurnal->debet =0;
-                            $jurnal->kredit = $rak_pasiva;
-                            $jurnal->tanggal_posting = ' ';
-                            $jurnal->keterangan_posting = '0';
-                            $jurnal->id_admin = Auth::user()->id; 
-                            $jurnal->save();
+                            // TODO= COA RAK Salah
+        
+                            // jika belanja tidak melebihi plafond antar toko && tidak ada barang promo
+                            }else {                        
+    
+                                // D	2500000	RAK PASIVA - KP
+                                $jurnal = new TabelTransaksi;
+                                $jurnal->unit =  $unit_toko; 
+                                $jurnal->kode_transaksi = $request['idpenjualan'];
+                                $jurnal->kode_rekening = 2500000;
+                                $jurnal->tanggal_transaksi = $now;
+                                $jurnal->jenis_transaksi  = 'Jurnal System';
+                                $jurnal->keterangan_transaksi = 'RAK PASIVA ';
+                                $jurnal->debet = $persediaan_barang_dagang;
+                                $jurnal->kredit = 0;
+                                $jurnal->tanggal_posting = ' ';
+                                $jurnal->keterangan_posting = '0';
+                                $jurnal->id_admin = Auth::user()->id; 
+                                $jurnal->save();             
+                                
+                                $jurnal = new TabelTransaksi;
+                                $jurnal->unit =  $unit_toko; 
+                                $jurnal->kode_transaksi = $request['idpenjualan'];
+                                $jurnal->kode_rekening = 2500000;
+                                $jurnal->tanggal_transaksi = $now;
+                                $jurnal->jenis_transaksi  = 'Jurnal System';
+                                $jurnal->keterangan_transaksi = 'RAK PASIVA ';
+                                $jurnal->debet = 0;
+                                $jurnal->kredit = $margin_persediaan;
+                                $jurnal->tanggal_posting = ' ';
+                                $jurnal->keterangan_posting = '0';
+                                $jurnal->id_admin = Auth::user()->id; 
+                                $jurnal->save();                                                     
+        
+                                // D	1412000	Piutang Musawamah
+                                $jurnal = new TabelTransaksi;
+                                $jurnal->unit =  $unit_member; 
+                                $jurnal->kode_transaksi = $request['idpenjualan'];
+                                $jurnal->kode_rekening = 1412000;
+                                $jurnal->tanggal_transaksi = $now;
+                                $jurnal->jenis_transaksi  = 'Jurnal System';
+                                $jurnal->keterangan_transaksi = 'Musawamah ';
+                                $jurnal->debet = $os_baru;
+                                $jurnal->kredit = 0;
+                                $jurnal->tanggal_posting = ' ';
+                                $jurnal->keterangan_posting = '0';
+                                $jurnal->id_admin = Auth::user()->id; 
+                                $jurnal->save();             
+        
+                                // K	2500000	RAK PASIVA - KP
+                                $jurnal = new TabelTransaksi;
+                                $jurnal->unit =  $unit_member; 
+                                $jurnal->kode_transaksi = $request['idpenjualan'];
+                                $jurnal->kode_rekening = 2500000;
+                                $jurnal->tanggal_transaksi = $now;
+                                $jurnal->jenis_transaksi  = 'Jurnal System';
+                                $jurnal->keterangan_transaksi = 'RAK PASIVA ';
+                                $jurnal->debet = 0;
+                                $jurnal->kredit = $persediaan_barang_dagang;
+                                $jurnal->tanggal_posting = ' ';
+                                $jurnal->keterangan_posting = '0';
+                                $jurnal->id_admin = Auth::user()->id; 
+                                $jurnal->save();
+                                
+                                // K	2500000	RAK PASIVA - KP
+                                $jurnal = new TabelTransaksi;
+                                $jurnal->unit =  $unit_member; 
+                                $jurnal->kode_transaksi = $request['idpenjualan'];
+                                $jurnal->kode_rekening = 2500000;
+                                $jurnal->tanggal_transaksi = $now;
+                                $jurnal->jenis_transaksi  = 'Jurnal System';
+                                $jurnal->keterangan_transaksi = 'RAK PASIVA ';
+                                $jurnal->debet = $margin_persediaan;
+                                $jurnal->kredit = 0;
+                                $jurnal->tanggal_posting = ' ';
+                                $jurnal->keterangan_posting = '0';
+                                $jurnal->id_admin = Auth::user()->id; 
+                                $jurnal->save();
+        
+                                // D	1833000	RAK Aktiva - Unit TI CIRANJANG 2
+                                $jurnal = new TabelTransaksi;
+                                $jurnal->unit = '1010'; 
+                                $jurnal->kode_transaksi = $request['idpenjualan'];
+                                $jurnal->kode_rekening = $coa_aktiva_member;
+                                $jurnal->tanggal_transaksi = $now;
+                                $jurnal->jenis_transaksi  = 'Jurnal System';
+                                $jurnal->keterangan_transaksi = 'Musawamah ';
+                                $jurnal->debet = $persediaan_barang_dagang;
+                                $jurnal->kredit = 0;
+                                $jurnal->tanggal_posting = ' ';
+                                $jurnal->keterangan_posting = '0';
+                                $jurnal->id_admin = Auth::user()->id; 
+                                $jurnal->save();
+                            
+                                // K	1831000	RAK Aktiva - Unit TI CIANJUR
+                                $jurnal = new TabelTransaksi;
+                                $jurnal->unit =  '1010'; 
+                                $jurnal->kode_transaksi = $request['idpenjualan'];
+                                $jurnal->kode_rekening = $coa_aktiva_user;
+                                $jurnal->tanggal_transaksi = $now;
+                                $jurnal->jenis_transaksi  = 'Jurnal System';
+                                $jurnal->keterangan_transaksi = 'Musawamah ';
+                                $jurnal->debet =0;
+                                $jurnal->kredit = $persediaan_barang_dagang;
+                                $jurnal->tanggal_posting = ' ';
+                                $jurnal->keterangan_posting = '0';
+                                $jurnal->id_admin = Auth::user()->id; 
+                                $jurnal->save();                        
+        
+                                // D	1833000	RAK Aktiva - Unit TI CIRANJANG 2
+                                $jurnal = new TabelTransaksi;
+                                $jurnal->unit = '1010'; 
+                                $jurnal->kode_transaksi = $request['idpenjualan'];
+                                $jurnal->kode_rekening = $coa_aktiva_member;
+                                $jurnal->tanggal_transaksi = $now;
+                                $jurnal->jenis_transaksi  = 'Jurnal System';
+                                $jurnal->keterangan_transaksi = 'Musawamah ';
+                                $jurnal->debet = 0;
+                                $jurnal->kredit = $margin_persediaan;
+                                $jurnal->tanggal_posting = ' ';
+                                $jurnal->keterangan_posting = '0';
+                                $jurnal->id_admin = Auth::user()->id; 
+                                $jurnal->save();
+                            
+                                // K	1831000	RAK Aktiva - Unit TI CIANJUR
+                                $jurnal = new TabelTransaksi;
+                                $jurnal->unit =  '1010'; 
+                                $jurnal->kode_transaksi = $request['idpenjualan'];
+                                $jurnal->kode_rekening = $coa_aktiva_user;
+                                $jurnal->tanggal_transaksi = $now;
+                                $jurnal->jenis_transaksi  = 'Jurnal System';
+                                $jurnal->keterangan_transaksi = 'Musawamah ';
+                                $jurnal->debet = $margin_persediaan;
+                                $jurnal->kredit =0;
+                                $jurnal->tanggal_posting = ' ';
+                                $jurnal->keterangan_posting = '0';
+                                $jurnal->id_admin = Auth::user()->id; 
+                                $jurnal->save();
+        
+                            }
+                            // end of if else belanja tidak melebih plafond && barang promo antar toko
+    
+                        break;
+                        // end of case belanja tidak melebihi plafond antar toko 
 
-                        }
-                        // end of if else belanja tidak melebih plafond && barang promo antar toko
-
-                    break;
-                    // end of case belanja tidak melebihi plafond antar toko 
-                    
-                }
-
+                    }
+    
                 break;
                 // end of case unit member != unit toko
-            
+             
             }
+            
             // end of all case transaksi
             if ($margin > 0) {
 

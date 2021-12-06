@@ -7,7 +7,6 @@ use App\Kirim;
 use App\KirimDetail;
 use App\TabelTransaksi;
 use App\ProdukDetail;
-
 use App\Produk;
 use Illuminate\Support\Facades\DB;
 use PDF;

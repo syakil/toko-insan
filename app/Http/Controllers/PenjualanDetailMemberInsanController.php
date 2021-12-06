@@ -273,7 +273,6 @@ class PenjualanDetailMemberInsanController extends Controller
       try{
 
          DB::beginTransaction();
-         
          $details = PenjualanDetailTemporary::where('id_penjualan', '=', $request['idpenjualan'])->get();
       
          // cek stok tersedia, jika melibih akan kembali kemenu transaksi dan memberikan notifikasi bahwa stok kurang/kosong
@@ -299,15 +298,17 @@ class PenjualanDetailMemberInsanController extends Controller
 
          }
 
+         $param_tgl = \App\ParamTgl::where('nama_param_tgl','tanggal_transaksi')->where('unit',Auth::user()->id)->first();
+
+         $now = $param_tgl->param_tgl;
+
          // looping mengurangi stok pada table produk_detail
          foreach($details as $d){
 
             $kode = $d->kode_produk;
             $jumlah_penjualan = $d->jumlah;
             $id_penjualan = $d->id_penjualan;
-
-            $now = \Carbon\Carbon::now();
-
+            
             // mengaambil stok di produk_detail berdasar barcode dan harga beli lebih rendah (stok yang tesedria) yang terdapat di penjualan_detail_temporary
             produk:
             $produk_detail = ProdukDetail::where('kode_produk',$kode)
@@ -324,7 +325,7 @@ class PenjualanDetailMemberInsanController extends Controller
             // jika qty penjualan == jumlah stok yang tersedia ditoko
             if ($jumlah_penjualan == $stok_toko) {
             
-               if ($d->harga_jual > $produk_detail->harga_beli) {
+               if ($d->harga_sebelum_margin > $produk_detail->harga_beli) {
                   
                   $harga_beli_0 = $stok_toko * $produk_detail->harga_beli; 
                   $harga_jual_0 = $stok_toko * $d->harga_sebelum_margin;
@@ -592,14 +593,16 @@ class PenjualanDetailMemberInsanController extends Controller
          $total_harga_jual_keseluruhan = PenjualanDetail::where('id_penjualan',$request['idpenjualan'])->sum('sub_total');
          $total_harga_beli_keseluruhan = PenjualanDetail::where('id_penjualan',$request['idpenjualan'])->sum('sub_total_beli');
          
-         $cek_promo = PenjualanDetail::where('id_penjualan',$request['idpenjualan'])->whereRaw('harga_beli > harga_jual')->first();
+         $cek_promo = PenjualanDetail::where('id_penjualan',$request['idpenjualan'])->whereRaw('harga_beli > harga_sebelum_margin')->first();
          
          $total_diskon = PenjualanDetail::where('id_penjualan',$request['idpenjualan'])->sum('diskon');
          
          $total_harga_jual_sebelum_margin = PenjualanDetail::where('id_penjualan',$request['idpenjualan'])->whereRAW('harga_beli < harga_sebelum_margin')->sum('sub_total_sebelum_margin');
+        
          if ($total_harga_jual_sebelum_margin > 0 ) {
             
             $margin_persediaan = $total_harga_jual_sebelum_margin - $total_harga_beli_non_promo;
+            
          }else {
             
             $margin_persediaan = 0;
@@ -622,7 +625,7 @@ class PenjualanDetailMemberInsanController extends Controller
 
             $bol = $total_harga_beli_barang_promo - $total_harga_jual_barang_promo;
 
-            $persediaan_barang_dagang_promo = PenjualanDetail::where('id_penjualan',$request['idpenjualan'])->whereRaw('harga_beli > harga_sebelum_margin')->sum('sub_total_beli');
+            $persediaan_barang_dagang_promo = PenjualanDetail::where('id_penjualan',$request['idpenjualan'])->whereRaw('harga_beli > harga_jual')->sum('sub_total_beli');
 
             $persediaan_barang_dagang = $total_harga_jual_sebelum_margin + $persediaan_barang_dagang_promo;
 
@@ -647,30 +650,43 @@ class PenjualanDetailMemberInsanController extends Controller
          if ($musawamah->os == 0) {
 
             $musawamah->tgl_wakalah = $now;
-         
+            
+            //update os & saldo margin 
+            $musawamah->os = $os_baru;
+            $musawamah->saldo_margin = $margin;
+            $musawamah->update();
+
+            // update ansuran & ijaroh
+            $musawamah->angsuran = $musawamah->os / $musawamah->Tenor;
+            $musawamah->ijaroh = $musawamah->saldo_margin / $musawamah->Tenor;
+            $musawamah->update();
+            
+         }else {
+            
+            //update os & saldo margin
+            $musawamah->os += $os_baru;
+            $musawamah->saldo_margin += $margin;
+            $musawamah->update();
+
+            // update ansuran & ijaroh
+            $musawamah->angsuran = $musawamah->os / $musawamah->Tenor;
+            $musawamah->ijaroh = $musawamah->saldo_margin / $musawamah->Tenor;
+            $musawamah->update();
+            
          }
 
-         $musawamah->os += $os_baru;
-         $musawamah->saldo_margin += $margin;
-         $musawamah->angsuran = $musawamah->os / $musawamah->Tenor;
-         $musawamah->ijaroh = $musawamah->saldo_margin / $musawamah->Tenor;
-         $musawamah->update();
-         
-         $musa = Musawamah::where('id_member', '=', session('idmember'))
-         ->first();
-         
          $Mdetail = new MusawamahDetail;
          $Mdetail->BUSS_DATE = $now;
          $Mdetail->NOREK = session('idmember');
-         $Mdetail->UNIT = $musa->unit;
+         $Mdetail->UNIT = $musawamah->unit;
          $Mdetail->id_member = session('idmember');
-         $Mdetail->code_kel = $musa->code_kel;
+         $Mdetail->code_kel = $musawamah->code_kel;
          $Mdetail->DEBIT = 0;
          $Mdetail->TYPE = 3;
          $Mdetail->KREDIT =   $os_baru;
          $Mdetail->USERID =  Auth::user()->id;
          $Mdetail->KET =  'musawamah';
-         $Mdetail->CAO =  $musa->cao;
+         $Mdetail->CAO =  $musawamah->cao;
          $Mdetail->kode_transaksi = $request['idpenjualan'];
          $Mdetail->save();
 
@@ -680,8 +696,8 @@ class PenjualanDetailMemberInsanController extends Controller
          $branch_coa_aktiva_member = Branch::find($unit_member);
          $coa_aktiva_member = $branch_coa_aktiva_member->aktiva;
 
-         $param = $musa->os;
-         $plafond = $musa->Plafond;
+         $param = $musawamah->os;
+         $plafond = $musawamah->Plafond;
 
          if($param >= $plafond){
             $saha->status_member = 'Blokir';
@@ -690,7 +706,7 @@ class PenjualanDetailMemberInsanController extends Controller
          
          $saldo_musa = $plafond-$param;
 
-         // all of case transaksi
+         // all of case transaksi   
          switch (true) {
             
             // case unit member = unit toko
@@ -886,7 +902,7 @@ class PenjualanDetailMemberInsanController extends Controller
                         $jurnal->kode_rekening = 1120000;
                         $jurnal->tanggal_transaksi = $now;
                         $jurnal->jenis_transaksi  = 'Jurnal System';
-                        $jurnal->keterangan_transaksi = 'Musawamah ';
+                        $jurnal->keterangan_transaksi = 'KAS BELANJA LEBIH PLAFOND ';
                         $jurnal->debet =$harus_dibayar;
                         $jurnal->kredit = 0;
                         $jurnal->tanggal_posting = ' ';
@@ -909,20 +925,69 @@ class PenjualanDetailMemberInsanController extends Controller
                         $jurnal->id_admin = Auth::user()->id; 
                         $jurnal->save();                     
 
-                        // D	2500000	RAK PASIVA - KP
-                        $jurnal = new TabelTransaksi;
-                        $jurnal->unit =  $unit_toko; 
-                        $jurnal->kode_transaksi = $request['idpenjualan'];
-                        $jurnal->kode_rekening = 2500000;
-                        $jurnal->tanggal_transaksi = $now;
-                        $jurnal->jenis_transaksi  = 'Jurnal System';
-                        $jurnal->keterangan_transaksi = 'RAK PASIVA ';
-                        $jurnal->debet = 0;
-                        $jurnal->kredit = $margin;
-                        $jurnal->tanggal_posting = ' ';
-                        $jurnal->keterangan_posting = '0';
-                        $jurnal->id_admin = Auth::user()->id; 
-                        $jurnal->save();             
+                        if ($margin > 0) {
+                           
+                           // K	2500000	RAK PASIVA - KP
+                           $jurnal = new TabelTransaksi;
+                           $jurnal->unit =  $unit_toko; 
+                           $jurnal->kode_transaksi = $request['idpenjualan'];
+                           $jurnal->kode_rekening = 2500000;
+                           $jurnal->tanggal_transaksi = $now;
+                           $jurnal->jenis_transaksi  = 'Jurnal System';
+                           $jurnal->keterangan_transaksi = 'RAK PASIVA ';
+                           $jurnal->debet = 0;
+                           $jurnal->kredit = $margin;
+                           $jurnal->tanggal_posting = ' ';
+                           $jurnal->keterangan_posting = '0';
+                           $jurnal->id_admin = Auth::user()->id; 
+                           $jurnal->save();    
+
+                           // K	2500000	RAK PASIVA - KP
+                           $jurnal = new TabelTransaksi;
+                           $jurnal->unit =  $unit_member; 
+                           $jurnal->kode_transaksi = $request['idpenjualan'];
+                           $jurnal->kode_rekening = 2500000;
+                           $jurnal->tanggal_transaksi = $now;
+                           $jurnal->jenis_transaksi  = 'Jurnal System';
+                           $jurnal->keterangan_transaksi = 'RAK PASIVA ';
+                           $jurnal->debet = $margin;
+                           $jurnal->kredit = 0;
+                           $jurnal->tanggal_posting = ' ';
+                           $jurnal->keterangan_posting = '0';
+                           $jurnal->id_admin = Auth::user()->id; 
+                           $jurnal->save();    
+                           
+                           // D	1833000	RAK Aktiva - Unit TI CIRANJANG 2
+                           $jurnal = new TabelTransaksi;
+                           $jurnal->unit = '1010'; 
+                           $jurnal->kode_transaksi = $request['idpenjualan'];
+                           $jurnal->kode_rekening = $coa_aktiva_member;
+                           $jurnal->tanggal_transaksi = $now;
+                           $jurnal->jenis_transaksi  = 'Jurnal System';
+                           $jurnal->keterangan_transaksi = 'Musawamah ';
+                           $jurnal->debet = 0;
+                           $jurnal->kredit = $margin;
+                           $jurnal->tanggal_posting = ' ';
+                           $jurnal->keterangan_posting = '0';
+                           $jurnal->id_admin = Auth::user()->id; 
+                           $jurnal->save();
+                        
+                           // K	1831000	RAK Aktiva - Unit TI CIANJUR
+                           $jurnal = new TabelTransaksi;
+                           $jurnal->unit =  '1010'; 
+                           $jurnal->kode_transaksi = $request['idpenjualan'];
+                           $jurnal->kode_rekening = $coa_aktiva_user;
+                           $jurnal->tanggal_transaksi = $now;
+                           $jurnal->jenis_transaksi  = 'Jurnal System';
+                           $jurnal->keterangan_transaksi = 'Musawamah ';
+                           $jurnal->debet = $margin;
+                           $jurnal->kredit = 0;
+                           $jurnal->tanggal_posting = ' ';
+                           $jurnal->keterangan_posting = '0';
+                           $jurnal->id_admin = Auth::user()->id; 
+                           $jurnal->save();
+
+                        }
 
                         // K	2500000	RAK PASIVA - KP
                         $jurnal = new TabelTransaksi;
@@ -933,7 +998,7 @@ class PenjualanDetailMemberInsanController extends Controller
                         $jurnal->jenis_transaksi  = 'Jurnal System';
                         $jurnal->keterangan_transaksi = 'Musawamah ';
                         $jurnal->debet = 0;
-                        $jurnal->kredit = $rak_pasiva;
+                        $jurnal->kredit = $os_baru;
                         $jurnal->tanggal_posting = ' ';
                         $jurnal->keterangan_posting = '0';
                         $jurnal->id_admin = Auth::user()->id; 
@@ -962,7 +1027,7 @@ class PenjualanDetailMemberInsanController extends Controller
                         $jurnal->tanggal_transaksi = $now;
                         $jurnal->jenis_transaksi  = 'Jurnal System';
                         $jurnal->keterangan_transaksi = 'Musawamah ';
-                        $jurnal->debet = $rak_pasiva;
+                        $jurnal->debet = $os_baru;
                         $jurnal->kredit = 0;
                         $jurnal->tanggal_posting = ' ';
                         $jurnal->keterangan_posting = '0';
@@ -978,7 +1043,7 @@ class PenjualanDetailMemberInsanController extends Controller
                         $jurnal->jenis_transaksi  = 'Jurnal System';
                         $jurnal->keterangan_transaksi = 'Musawamah ';
                         $jurnal->debet =0;
-                        $jurnal->kredit = $rak_pasiva;
+                        $jurnal->kredit = $os_baru;
                         $jurnal->tanggal_posting = ' ';
                         $jurnal->keterangan_posting = '0';
                         $jurnal->id_admin = Auth::user()->id; 
@@ -994,7 +1059,7 @@ class PenjualanDetailMemberInsanController extends Controller
                         $jurnal->kode_rekening = 2500000;
                         $jurnal->tanggal_transaksi = $now;
                         $jurnal->jenis_transaksi  = 'Jurnal System';
-                        $jurnal->keterangan_transaksi = 'Musawamah ';
+                        $jurnal->keterangan_transaksi = 'RAK PASIVA ';
                         $jurnal->debet = $os_baru;
                         $jurnal->kredit = 0;
                         $jurnal->tanggal_posting = ' ';
@@ -1009,14 +1074,13 @@ class PenjualanDetailMemberInsanController extends Controller
                         $jurnal->kode_rekening = 1120000;
                         $jurnal->tanggal_transaksi = $now;
                         $jurnal->jenis_transaksi  = 'Jurnal System';
-                        $jurnal->keterangan_transaksi = 'Musawamah ';
+                        $jurnal->keterangan_transaksi = 'Kas Unit - Toko ';
                         $jurnal->debet =$harus_dibayar;
                         $jurnal->kredit = 0;
                         $jurnal->tanggal_posting = ' ';
                         $jurnal->keterangan_posting = ' ';
                         $jurnal->id_admin = Auth::user()->id; 
                         $jurnal->save();                
-
                         
                         // D	2500000	RAK PASIVA - KP
                         $jurnal = new TabelTransaksi;
@@ -1025,13 +1089,58 @@ class PenjualanDetailMemberInsanController extends Controller
                         $jurnal->kode_rekening = 2500000;
                         $jurnal->tanggal_transaksi = $now;
                         $jurnal->jenis_transaksi  = 'Jurnal System';
-                        $jurnal->keterangan_transaksi = 'Musawamah ';
+                        $jurnal->keterangan_transaksi = 'RAK PASIVA ';
                         $jurnal->debet = 0;
                         $jurnal->kredit = $margin;
                         $jurnal->tanggal_posting = ' ';
                         $jurnal->keterangan_posting = '0';
                         $jurnal->id_admin = Auth::user()->id; 
-                        $jurnal->save();                     
+                        $jurnal->save();  
+
+                        // D	2500000	RAK PASIVA - KP
+                        $jurnal = new TabelTransaksi;
+                        $jurnal->unit =  $unit_member; 
+                        $jurnal->kode_transaksi = $request['idpenjualan'];
+                        $jurnal->kode_rekening = 2500000;
+                        $jurnal->tanggal_transaksi = $now;
+                        $jurnal->jenis_transaksi  = 'Jurnal System';
+                        $jurnal->keterangan_transaksi = 'RAK PASIVA ';
+                        $jurnal->debet = $margin;
+                        $jurnal->kredit = 0;
+                        $jurnal->tanggal_posting = ' ';
+                        $jurnal->keterangan_posting = '0';
+                        $jurnal->id_admin = Auth::user()->id; 
+                        $jurnal->save();       
+                        
+                        // D	1833000	RAK Aktiva - Unit TI CIRANJANG 2
+                        $jurnal = new TabelTransaksi;
+                        $jurnal->unit = '1010'; 
+                        $jurnal->kode_transaksi = $request['idpenjualan'];
+                        $jurnal->kode_rekening = $coa_aktiva_member;
+                        $jurnal->tanggal_transaksi = $now;
+                        $jurnal->jenis_transaksi  = 'Jurnal System';
+                        $jurnal->keterangan_transaksi = 'Margin Penjualan ';
+                        $jurnal->kredit = $margin;
+                        $jurnal->debet = 0;
+                        $jurnal->tanggal_posting = ' ';
+                        $jurnal->keterangan_posting = '0';
+                        $jurnal->id_admin = Auth::user()->id; 
+                        $jurnal->save();
+                     
+                        // K	1831000	RAK Aktiva - Unit TI CIANJUR
+                        $jurnal = new TabelTransaksi;
+                        $jurnal->unit =  '1010'; 
+                        $jurnal->kode_transaksi = $request['idpenjualan'];
+                        $jurnal->kode_rekening = $coa_aktiva_user;
+                        $jurnal->tanggal_transaksi = $now;
+                        $jurnal->jenis_transaksi  = 'Jurnal System';
+                        $jurnal->keterangan_transaksi = 'Margin Penjualan ';
+                        $jurnal->debet = $margin;
+                        $jurnal->kredit =0;
+                        $jurnal->tanggal_posting = ' ';
+                        $jurnal->keterangan_posting = '0';
+                        $jurnal->id_admin = Auth::user()->id; 
+                        $jurnal->save();
 
                         // D	1412000	Piutang Musawamah
                         $jurnal = new TabelTransaksi;
@@ -1055,9 +1164,9 @@ class PenjualanDetailMemberInsanController extends Controller
                         $jurnal->kode_rekening = 2500000;
                         $jurnal->tanggal_transaksi = $now;
                         $jurnal->jenis_transaksi  = 'Jurnal System';
-                        $jurnal->keterangan_transaksi = 'Musawamah ';
+                        $jurnal->keterangan_transaksi = 'RAK PASIVA';
                         $jurnal->debet = 0;
-                        $jurnal->kredit = $rak_pasiva;
+                        $jurnal->kredit = $os_baru;
                         $jurnal->tanggal_posting = ' ';
                         $jurnal->keterangan_posting = '0';
                         $jurnal->id_admin = Auth::user()->id; 
@@ -1100,7 +1209,6 @@ class PenjualanDetailMemberInsanController extends Controller
 
                   // case belanja tidak melebihi plafond antar toko
                   default:
-                        
                      // jika belanja tidak melebihi plafond antar toko && ada barang promo
                      if ($cek_promo) {
                         
@@ -1134,21 +1242,69 @@ class PenjualanDetailMemberInsanController extends Controller
                         $jurnal->id_admin = Auth::user()->id; 
                         $jurnal->save();                     
 
-                        // K	2500000	RAK PASIVA - KP
-                        $jurnal = new TabelTransaksi;
-                        $jurnal->unit =  $unit_toko; 
-                        $jurnal->kode_transaksi = $request['idpenjualan'];
-                        $jurnal->kode_rekening = 2500000;
-                        $jurnal->tanggal_transaksi = $now;
-                        $jurnal->jenis_transaksi  = 'Jurnal System';
-                        $jurnal->keterangan_transaksi = 'RAK PASIVA ';
-                        $jurnal->debet = 0;
-                        $jurnal->kredit = $margin;
-                        $jurnal->tanggal_posting = ' ';
-                        $jurnal->keterangan_posting = '0';
-                        $jurnal->id_admin = Auth::user()->id; 
-                        $jurnal->save();         
+                        if ($margin > 0) {
+                           
+                           // K	2500000	RAK PASIVA - KP
+                           $jurnal = new TabelTransaksi;
+                           $jurnal->unit =  $unit_toko; 
+                           $jurnal->kode_transaksi = $request['idpenjualan'];
+                           $jurnal->kode_rekening = 2500000;
+                           $jurnal->tanggal_transaksi = $now;
+                           $jurnal->jenis_transaksi  = 'Jurnal System';
+                           $jurnal->keterangan_transaksi = 'RAK PASIVA ';
+                           $jurnal->debet = 0;
+                           $jurnal->kredit = $margin;
+                           $jurnal->tanggal_posting = ' ';
+                           $jurnal->keterangan_posting = '0';
+                           $jurnal->id_admin = Auth::user()->id; 
+                           $jurnal->save();    
+
+                           // K	2500000	RAK PASIVA - KP
+                           $jurnal = new TabelTransaksi;
+                           $jurnal->unit =  $unit_member; 
+                           $jurnal->kode_transaksi = $request['idpenjualan'];
+                           $jurnal->kode_rekening = 2500000;
+                           $jurnal->tanggal_transaksi = $now;
+                           $jurnal->jenis_transaksi  = 'Jurnal System';
+                           $jurnal->keterangan_transaksi = 'RAK PASIVA ';
+                           $jurnal->debet = $margin;
+                           $jurnal->kredit = 0;
+                           $jurnal->tanggal_posting = ' ';
+                           $jurnal->keterangan_posting = '0';
+                           $jurnal->id_admin = Auth::user()->id; 
+                           $jurnal->save();    
+                           
+                           // D	1833000	RAK Aktiva - Unit TI CIRANJANG 2
+                           $jurnal = new TabelTransaksi;
+                           $jurnal->unit = '1010'; 
+                           $jurnal->kode_transaksi = $request['idpenjualan'];
+                           $jurnal->kode_rekening = $coa_aktiva_member;
+                           $jurnal->tanggal_transaksi = $now;
+                           $jurnal->jenis_transaksi  = 'Jurnal System';
+                           $jurnal->keterangan_transaksi = 'Musawamah ';
+                           $jurnal->debet = 0;
+                           $jurnal->kredit = $margin;
+                           $jurnal->tanggal_posting = ' ';
+                           $jurnal->keterangan_posting = '0';
+                           $jurnal->id_admin = Auth::user()->id; 
+                           $jurnal->save();
                         
+                           // K	1831000	RAK Aktiva - Unit TI CIANJUR
+                           $jurnal = new TabelTransaksi;
+                           $jurnal->unit =  '1010'; 
+                           $jurnal->kode_transaksi = $request['idpenjualan'];
+                           $jurnal->kode_rekening = $coa_aktiva_user;
+                           $jurnal->tanggal_transaksi = $now;
+                           $jurnal->jenis_transaksi  = 'Jurnal System';
+                           $jurnal->keterangan_transaksi = 'Musawamah ';
+                           $jurnal->debet = $margin;
+                           $jurnal->kredit = 0;
+                           $jurnal->tanggal_posting = ' ';
+                           $jurnal->keterangan_posting = '0';
+                           $jurnal->id_admin = Auth::user()->id; 
+                           $jurnal->save();
+
+                        }
 
                         // D	1412000	Piutang Musawamah
                         $jurnal = new TabelTransaksi;
@@ -1174,7 +1330,7 @@ class PenjualanDetailMemberInsanController extends Controller
                         $jurnal->jenis_transaksi  = 'Jurnal System';
                         $jurnal->keterangan_transaksi = 'Musawamah ';
                         $jurnal->debet = 0;
-                        $jurnal->kredit = $rak_pasiva;
+                        $jurnal->kredit = $os_baru;
                         $jurnal->tanggal_posting = ' ';
                         $jurnal->keterangan_posting = '0';
                         $jurnal->id_admin = Auth::user()->id; 
@@ -1188,7 +1344,7 @@ class PenjualanDetailMemberInsanController extends Controller
                         $jurnal->tanggal_transaksi = $now;
                         $jurnal->jenis_transaksi  = 'Jurnal System';
                         $jurnal->keterangan_transaksi = 'Musawamah ';
-                        $jurnal->debet = $rak_pasiva;
+                        $jurnal->debet = $os_baru;
                         $jurnal->kredit = 0;
                         $jurnal->tanggal_posting = ' ';
                         $jurnal->keterangan_posting = '0';
@@ -1204,13 +1360,15 @@ class PenjualanDetailMemberInsanController extends Controller
                         $jurnal->jenis_transaksi  = 'Jurnal System';
                         $jurnal->keterangan_transaksi = 'Musawamah ';
                         $jurnal->debet =0;
-                        $jurnal->kredit = $rak_pasiva;
+                        $jurnal->kredit = $os_baru;
                         $jurnal->tanggal_posting = ' ';
                         $jurnal->keterangan_posting = '0';
                         $jurnal->id_admin = Auth::user()->id; 
                         $jurnal->save();
 
-                        
+                  
+                     // TODO= COA RAK Salah
+
                      // jika belanja tidak melebihi plafond antar toko && tidak ada barang promo
                      }else {                        
 
@@ -1222,7 +1380,7 @@ class PenjualanDetailMemberInsanController extends Controller
                         $jurnal->tanggal_transaksi = $now;
                         $jurnal->jenis_transaksi  = 'Jurnal System';
                         $jurnal->keterangan_transaksi = 'RAK PASIVA ';
-                        $jurnal->debet = $os_baru;
+                        $jurnal->debet = $persediaan_barang_dagang;
                         $jurnal->kredit = 0;
                         $jurnal->tanggal_posting = ' ';
                         $jurnal->keterangan_posting = '0';
@@ -1237,12 +1395,11 @@ class PenjualanDetailMemberInsanController extends Controller
                         $jurnal->jenis_transaksi  = 'Jurnal System';
                         $jurnal->keterangan_transaksi = 'RAK PASIVA ';
                         $jurnal->debet = 0;
-                        $jurnal->kredit = $margin;
+                        $jurnal->kredit = $margin_persediaan;
                         $jurnal->tanggal_posting = ' ';
                         $jurnal->keterangan_posting = '0';
                         $jurnal->id_admin = Auth::user()->id; 
-                        $jurnal->save();                     
-                                
+                        $jurnal->save();                                                     
 
                         // D	1412000	Piutang Musawamah
                         $jurnal = new TabelTransaksi;
@@ -1268,7 +1425,22 @@ class PenjualanDetailMemberInsanController extends Controller
                         $jurnal->jenis_transaksi  = 'Jurnal System';
                         $jurnal->keterangan_transaksi = 'RAK PASIVA ';
                         $jurnal->debet = 0;
-                        $jurnal->kredit = $rak_pasiva;
+                        $jurnal->kredit = $persediaan_barang_dagang;
+                        $jurnal->tanggal_posting = ' ';
+                        $jurnal->keterangan_posting = '0';
+                        $jurnal->id_admin = Auth::user()->id; 
+                        $jurnal->save();
+                        
+                        // K	2500000	RAK PASIVA - KP
+                        $jurnal = new TabelTransaksi;
+                        $jurnal->unit =  $unit_member; 
+                        $jurnal->kode_transaksi = $request['idpenjualan'];
+                        $jurnal->kode_rekening = 2500000;
+                        $jurnal->tanggal_transaksi = $now;
+                        $jurnal->jenis_transaksi  = 'Jurnal System';
+                        $jurnal->keterangan_transaksi = 'RAK PASIVA ';
+                        $jurnal->debet = $margin_persediaan;
+                        $jurnal->kredit = 0;
                         $jurnal->tanggal_posting = ' ';
                         $jurnal->keterangan_posting = '0';
                         $jurnal->id_admin = Auth::user()->id; 
@@ -1282,7 +1454,7 @@ class PenjualanDetailMemberInsanController extends Controller
                         $jurnal->tanggal_transaksi = $now;
                         $jurnal->jenis_transaksi  = 'Jurnal System';
                         $jurnal->keterangan_transaksi = 'Musawamah ';
-                        $jurnal->debet = $rak_pasiva;
+                        $jurnal->debet = $persediaan_barang_dagang;
                         $jurnal->kredit = 0;
                         $jurnal->tanggal_posting = ' ';
                         $jurnal->keterangan_posting = '0';
@@ -1298,7 +1470,37 @@ class PenjualanDetailMemberInsanController extends Controller
                         $jurnal->jenis_transaksi  = 'Jurnal System';
                         $jurnal->keterangan_transaksi = 'Musawamah ';
                         $jurnal->debet =0;
-                        $jurnal->kredit = $rak_pasiva;
+                        $jurnal->kredit = $persediaan_barang_dagang;
+                        $jurnal->tanggal_posting = ' ';
+                        $jurnal->keterangan_posting = '0';
+                        $jurnal->id_admin = Auth::user()->id; 
+                        $jurnal->save();                        
+
+                        // D	1833000	RAK Aktiva - Unit TI CIRANJANG 2
+                        $jurnal = new TabelTransaksi;
+                        $jurnal->unit = '1010'; 
+                        $jurnal->kode_transaksi = $request['idpenjualan'];
+                        $jurnal->kode_rekening = $coa_aktiva_member;
+                        $jurnal->tanggal_transaksi = $now;
+                        $jurnal->jenis_transaksi  = 'Jurnal System';
+                        $jurnal->keterangan_transaksi = 'Musawamah ';
+                        $jurnal->debet = 0;
+                        $jurnal->kredit = $margin_persediaan;
+                        $jurnal->tanggal_posting = ' ';
+                        $jurnal->keterangan_posting = '0';
+                        $jurnal->id_admin = Auth::user()->id; 
+                        $jurnal->save();
+                     
+                        // K	1831000	RAK Aktiva - Unit TI CIANJUR
+                        $jurnal = new TabelTransaksi;
+                        $jurnal->unit =  '1010'; 
+                        $jurnal->kode_transaksi = $request['idpenjualan'];
+                        $jurnal->kode_rekening = $coa_aktiva_user;
+                        $jurnal->tanggal_transaksi = $now;
+                        $jurnal->jenis_transaksi  = 'Jurnal System';
+                        $jurnal->keterangan_transaksi = 'Musawamah ';
+                        $jurnal->debet = $margin_persediaan;
+                        $jurnal->kredit =0;
                         $jurnal->tanggal_posting = ' ';
                         $jurnal->keterangan_posting = '0';
                         $jurnal->id_admin = Auth::user()->id; 
@@ -1370,7 +1572,7 @@ class PenjualanDetailMemberInsanController extends Controller
             $jurnal = new TabelTransaksi;
             $jurnal->unit =  Auth::user()->unit; 
             $jurnal->kode_transaksi = $request['idpenjualan'];
-            $jurnal->kode_rekening = 1482000;
+            $jurnal->kode_rekening = 2863000;
             $jurnal->tanggal_transaksi = $now;
             $jurnal->jenis_transaksi  = 'Jurnal System';
             $jurnal->keterangan_transaksi = 'Donasi dari Penjualan ';
