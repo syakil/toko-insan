@@ -7,6 +7,7 @@ use App\Kirim;
 use App\KirimDetail;
 use App\TabelTransaksi;
 use App\ProdukDetail;
+use App\KartuStok;
 use App\Produk;
 use Illuminate\Support\Facades\DB;
 use PDF;
@@ -37,7 +38,7 @@ class TerimaGudangController extends Controller
                             ->join('produk','kirim_barang_detail.kode_produk','=','produk.kode_produk')
                             ->where('unit',Auth::user()->unit)
                             ->get();
-        $nopo = Kirim::where('id_pembelian',$id)->get();
+        $nopo = Kirim::where('id_pembelian',$id)->first();
         $nomer = 1;
         return view('terima_gudang.detail',['kirim'=>$detail,'nomer'=>$nomer,'nopo'=>$nopo]);
     }
@@ -95,7 +96,6 @@ class TerimaGudangController extends Controller
     public function terima(Request $request){
         
         $id = $request->id;
-
         try{
             
             DB::beginTransaction();

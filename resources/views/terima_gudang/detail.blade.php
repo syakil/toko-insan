@@ -13,7 +13,20 @@
   <li>detail terima</li>
 @endsection
 
+
 @section('content')     
+     
+@if ($message = Session::get('error'))
+  <script>
+    var pesan = "{{$message}}"
+    swal("Maaf !", pesan, "error"); 
+  </script>
+@elseif ($message = Session::get('success'))
+  <script>
+    var pesan = "{{$message}}"
+    swal("Selamat !", pesan, "success"); 
+  </script>
+@endif
 
 <!-- Main content -->
 <div class="row">
@@ -48,7 +61,7 @@
       <div class="box-footer">
         <form action="{{route('terima_antar_gudang.terima')}}" method="POST">
           {{csrf_field()}}
-          <input type="hidden" name="id" value="{{$nopo}}">
+          <input type="hidden" name="id" value="{{$nopo->id_pembelian}}">
           <button type="submit" class="btn btn-danger pull-right"> <i class="fa fa-send"></i> Proses</button>
         </form>
       </div>
