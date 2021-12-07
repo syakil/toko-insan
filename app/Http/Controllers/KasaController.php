@@ -245,10 +245,7 @@ class KasaController extends Controller{
                   $ubah->status = null;
                   $ubah->update();
                   
-               }  
-
-                             
-		
+               }
                
             }
 
@@ -488,7 +485,11 @@ class KasaController extends Controller{
                                     ->where("kode_rekening", "=", "1120000")
                                     ->where("unit", "=", Auth::user()->unit)
                                     ->first();
-
+         if ($pendapatan) {
+            $debet = $pendapatan->debet;
+         }else {
+            $debet = 0;
+         }
                
          $pengeluaran = TabelTransaksi::groupBy("kode_rekening")
                                     ->select("kode_rekening", \DB::raw("sum(kredit) as kredit"))
@@ -496,16 +497,22 @@ class KasaController extends Controller{
                                     ->where("kode_rekening", "=", "1120000")
                                     ->where("unit", "=", Auth::user()->unit)
                                     ->first();
+         if ($pengeluaran) {
+            $kredit = $pengeluaran->kredit;
+         }else {
+            $kredit = 0;
+         }
 
-         $saldo_id = SaldoToko::where("tanggal",$tanggal)
-                              ->where("unit",Auth::user()->unit)
+         $saldo_id = SaldoToko::where("unit",Auth::user()->unit)
+                              ->orderBy('tanggal','DESC')
                               ->first();
-            
-         $saldo_toko = SaldoToko::where("id_saldo",$saldo_id->id_saldo)->first();
-         $saldo_akhir = $pengeluaran->debet + $saldo_toko->saldo_akhir - $pengeluaran->kredit;
 
-         $saldo_toko->pemasukan = $pendapatan->debet;
-         $saldo_toko->pengeluaran = $pengeluaran->kredir;
+         $saldo_toko = SaldoToko::where("id_saldo",$saldo_id->id_saldo)->first();
+         
+         $saldo_akhir =  $debet+ $saldo_toko->saldo_akhir - $kredit;
+
+         $saldo_toko->pemasukan = $debet;
+         $saldo_toko->pengeluaran = $kredit;
          $saldo_toko->saldo_akhir = $saldo_akhir;
          $saldo_toko->update();
 
