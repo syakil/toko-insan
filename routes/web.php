@@ -122,10 +122,12 @@ Route::group(['middleware' => ['web', 'cekuser:2']], function(){
    
 Route::group(['middleware' => ['web', 'cekuser:1' ]], function(){
 
-Route::get('report_so/index', 'ReportStokOpnameController@index')->name('report_so.index');
+   Route::get('report_so/index', 'ReportStokOpnameController@index')->name('report_so.index');
    Route::get('report_so/data', 'ReportStokOpnameController@listData')->name('report_so.data');
 
-// reset pin
+   Route::get('restruktur/index', 'RestrukturController@index')->name('restruktur.index');
+   
+   // reset pin
    Route::get('reset_pin/index', 'ResetPinController@index')->name('reset_pin.index');
    Route::get('reset_pin/data', 'ResetPinController@listData')->name('reset_pin.data');
    Route::get('reset_pin/reset/{kode_member}', 'ResetPinController@reset')->name('reset_pin.reset');
