@@ -9,8 +9,8 @@
   <meta name="csrf-token" content="{{csrf_token()}}">
   <meta content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no" name="viewport">
  
+  <link rel="shortcut icon" href="#" />
   <script type="text/javascript" src="https://ajax.googleapis.com/ajax/libs/jquery/1.8.3/jquery.min.js"></script>
-  
   <link rel="stylesheet" href="{{ asset('public/adminLTE/bootstrap/css/bootstrap.min.css') }}">
   <link rel="stylesheet" href="{{ asset('public/font-awesome/css/font-awesome.min.css') }}">
   <link rel="stylesheet" href="{{ asset('public/adminLTE/dist/css/AdminLTE.min.css') }}">

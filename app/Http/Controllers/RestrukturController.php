@@ -10,6 +10,7 @@ use DB;
 use App\Musawamah;
 use App\Member;
 use App\Restruktur;
+use App\ListToko;
 use App\Branch;
 
 class RestrukturController extends Controller
@@ -88,7 +89,7 @@ class RestrukturController extends Controller
 
     public function proses(Request $request){
 
-        
+
         try{
         
             DB::beginTransaction();
@@ -101,16 +102,19 @@ class RestrukturController extends Controller
             $musawamah = Musawamah::where('id_member',$idMember)->first();
             $param_tgl = \App\ParamTgl::where('nama_param_tgl','tanggal_transaksi')->where('unit',Auth::user()->id)->first();
             $tanggal = $param_tgl->param_tgl;
-            $id = $musawamah->id_member;
+            $id = $idMember;
             $nama = $musawamah->Cust_Short_name;
 
-            $DataSimpanan = DB::table('list_toko')->select(DB::raw('SUM(debit-kredit) as simpanan'))->where('id_member',$idMember)->first();
+            $DataSimpanan = DB::table('list_toko')->select(DB::raw('SUM(kredit-debit) as simpanan'))->where('id_member',$idMember)->first();
             $simpanan = $DataSimpanan->simpanan;
 
             
             switch ($jenisTransaksi) {
 
                 case 'pokok':
+
+                    
+                    $saldo_margin = $musawamah->saldo_margin;
 
                     $musawamah = Musawamah::where('id_member',$idMember)->first();
                                         
@@ -153,18 +157,12 @@ class RestrukturController extends Controller
                     $resturktur->code_musa = $musawamah->code_musa;
                     $resturktur->save();
 
-                    $musawamah = Musawamah::where('id_member',$idMember)->first();
-                    $musawamah->os = $musawamah->os - $musawamah->saldo_margin;
-                    $musawamah->saldo_margin = 0;
-                    $musawamah->ijaroh = 0;
-                    $musawamah->update();
-
                     $kode=Uuid::uuid4()->getHex();
                     $kode_t=substr($kode,25);
                     $unit=Auth::user()->unit;
                     $kode_t="BU/-".$unit.$kode_t;
 
-                    // Piutang
+                    
                     $jurnal = new TabelTransaksi;
                     $jurnal->unit =  $musawamah->unit; 
                     $jurnal->kode_transaksi = $kode_t;
@@ -173,13 +171,13 @@ class RestrukturController extends Controller
                     $jurnal->jenis_transaksi  = 'Jurnal System';
                     $jurnal->keterangan_transaksi = 'Restrukturisasi Pokok' . ' ' . $id . ' an/ ' . $nama;
                     $jurnal->debet =0;
-                    $jurnal->kredit = $simpanan;
+                    $jurnal->kredit = $musawamah->saldo_margin;
                     $jurnal->tanggal_posting = '';
                     $jurnal->keterangan_posting = '0';
                     $jurnal->id_admin = Auth::user()->id; 
                     $jurnal->save();
 
-                    //ESCROW/Titipan selisih lebihnya
+                
                     $jurnal = new TabelTransaksi;
                     $jurnal->unit =  $musawamah->unit; 
                     $jurnal->kode_transaksi = $kode_t;
@@ -187,27 +185,26 @@ class RestrukturController extends Controller
                     $jurnal->tanggal_transaksi  = $tanggal;
                     $jurnal->jenis_transaksi  = 'Jurnal System';
                     $jurnal->keterangan_transaksi = 'Restrukturisasi Pokok' . ' ' . $id . ' an/ ' . $nama;
-                    $jurnal->debet =0;
-                    $jurnal->kredit = $simpanan;
+                    $jurnal->debet = $musawamah->saldo_margin;
+                    $jurnal->kredit = 0;
                     $jurnal->tanggal_posting = '';
                     $jurnal->keterangan_posting = '0';
                     $jurnal->id_admin = Auth::user()->id; 
                     $jurnal->save();   
 
                     $musawamah = Musawamah::where('id_member',$idMember)->first();
-                    
+                    $musawamah->os = $musawamah->os - $musawamah->saldo_margin;
+                    $musawamah->saldo_margin = 0;
+                    $musawamah->ijaroh = 0;
+                    $musawamah->update();
+
                     $angsuran = $musawamah->os/$tenor;
                     $angsuranBaru = roundUpToAny($angsuran,5000);
 
-                    $ijaroh = round($musawamah->saldo_margin/$tenor,-3);
-                    $ijarohBaru = roundUpToAny($ijaroh,5000);
-                    
                     $musawamah->tenor = $tenor;
                     $musawamah->angsuran = $angsuranBaru;
-                    $musawamah->ijaroh =$ijarohBaru;
                     $musawamah->status_app = 'RES POKOK';
                     $musawamah->update();
-
 
                 break;
                 
@@ -262,13 +259,12 @@ class RestrukturController extends Controller
                             $angsuran = $musawamah->os/$tenor;
                             $angsuranBaru = roundUpToAny($angsuran,5000);
 
-                            $ijaroh = round($musawamah->saldo_margin/$tenor,-3);
-                            $ijarohBaru = roundUpToAny($ijaroh,5000);
+                            $ijaroh = round($musawamah->saldo_margin/$tenor);
 
                             $musawamah->os = $musawamah->os - $simpanan;    
                             $musawamah->tenor = $tenor;
                             $musawamah->angsuran = $angsuranBaru;
-                            $musawamah->ijaroh =$ijarohBaru;
+                            $musawamah->ijaroh =$ijaroh;
                             $musawamah->status_app = 'RES POKOK MARGIN';
                             $musawamah->update();
 
@@ -277,23 +273,23 @@ class RestrukturController extends Controller
                             $unit=Auth::user()->unit;
                             $kode_t="BU/-".$unit.$kode_t;
 
-                            $simpanan = new ListToko;
-                            $simpanan->buss_date = $tanggal;
-                            $simpanan->norek   = $idMember;
-                            $simpanan->unit = $musawamah->unit;
-                            $simpanan->id_member =$idMember;
-                            $simpanan->code_kel =$musawamah->code_kel;
-                            $simpanan->DEBIT = 0;
-                            $simpanan->type ='02';
-                            $simpanan->KREDIT = $simpanan;
-                            $simpanan->userid =Auth::user()->id;
-                            $simpanan->ket = 'Restrukturisasi Pokok Dari Titipan';
-                            $simpanan->kode_transaksi = $kode_t;
-                            $simpanan->tgl_input = $tanggal;
-                            $simpanan->cao =$musawamah->cao;
-                            $simpanan->save(); 
+                            $list_simpanan = new ListToko;
+                            $list_simpanan->buss_date = $tanggal;
+                            $list_simpanan->norek   = $idMember;
+                            $list_simpanan->unit = $musawamah->unit;
+                            $list_simpanan->id_member =$idMember;
+                            $list_simpanan->code_kel =$musawamah->code_kel;
+                            $list_simpanan->kredit = 0;
+                            $list_simpanan->type ='02';
+                            $list_simpanan->DEBIT = $simpanan;
+                            $list_simpanan->userid =Auth::user()->id;
+                            $list_simpanan->ket = 'Restrukturisasi Pokok Dari Titipan';
+                            $list_simpanan->kode_transaksi = $kode_t;
+                            $list_simpanan->tgl_input = $tanggal;
+                            $list_simpanan->cao =$musawamah->cao;
+                            $list_simpanan->save(); 
                             
-                            // Piutang
+                            
                             $jurnal = new TabelTransaksi;
                             $jurnal->unit =  $musawamah->unit; 
                             $jurnal->kode_transaksi = $kode_t;
@@ -308,7 +304,7 @@ class RestrukturController extends Controller
                             $jurnal->id_admin = Auth::user()->id; 
                             $jurnal->save();
 
-                            //ESCROW/Titipan selisih lebihnya
+                            
                             $jurnal = new TabelTransaksi;
                             $jurnal->unit =  $musawamah->unit; 
                             $jurnal->kode_transaksi = $kode_t;
@@ -316,8 +312,8 @@ class RestrukturController extends Controller
                             $jurnal->tanggal_transaksi  = $tanggal;
                             $jurnal->jenis_transaksi  = 'Jurnal System';
                             $jurnal->keterangan_transaksi = 'Restrukturisasi Pokok Dari Titipan' . ' ' . $id . ' an/ ' . $nama;
-                            $jurnal->debet =0;
-                            $jurnal->kredit = $simpanan;
+                            $jurnal->debet = $simpanan;
+                            $jurnal->kredit =0;
                             $jurnal->tanggal_posting = '';
                             $jurnal->keterangan_posting = '0';
                             $jurnal->id_admin = Auth::user()->id; 
@@ -371,11 +367,10 @@ class RestrukturController extends Controller
                             $angsuran = $musawamah->os/$tenor;
                             $angsuranBaru = roundUpToAny($angsuran,5000);
 
-                            $ijaroh = round($musawamah->saldo_margin/$tenor,-3);
-                            $ijarohBaru = roundUpToAny($ijaroh,5000);
+                            $ijaroh = round($musawamah->saldo_margin/$tenor);
                             
                             $musawamah->angsuran = $angsuranBaru;
-                            $musawamah->ijaroh = $ijarohBaru;
+                            $musawamah->ijaroh = $ijaroh;
                             $musawamah->tenor = $tenor;
                             $musawamah->status_app = 'RES POKOK MARGIN';
                             $musawamah->update();
