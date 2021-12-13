@@ -126,6 +126,9 @@ Route::group(['middleware' => ['web', 'cekuser:1' ]], function(){
    Route::get('report_so/data', 'ReportStokOpnameController@listData')->name('report_so.data');
 
    Route::get('restruktur/index', 'RestrukturController@index')->name('restruktur.index');
+   Route::get('restruktur/loadData', 'RestrukturController@loadData')->name('restruktur.loadData');
+   Route::get('restruktur/listData/{kode}', 'RestrukturController@listData')->name('restruktur.listData');
+   Route::post('restruktur/proses', 'RestrukturController@proses')->name('restruktur.proses');
    
    // reset pin
    Route::get('reset_pin/index', 'ResetPinController@index')->name('reset_pin.index');

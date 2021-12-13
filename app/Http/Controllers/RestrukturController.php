@@ -59,4 +59,32 @@ class RestrukturController extends Controller
         echo $output;
 
     }
+
+    public function listData($kode){
+
+        $detail = Musawamah::where('id_member',$kode)->first();
+        
+        $data = array();
+        
+        $row = array();
+        $row[] = $detail->id_member;
+        $row[] = $detail->Cust_Short_name;
+        $row[] = $detail->Tenor;
+        $row[] = "Rp. ".format_uang($detail->os);
+        $row[] = "Rp. ".format_uang($detail->angsuran);
+        $row[] = "Rp. ".format_uang($detail->saldo_margin);
+        $row[] = "Rp. ".format_uang($detail->ijaroh);
+        $row[] = '<div class="btn-group">
+                <button type="button" class="btn btn-success" onclick="proses()">Proses</button>
+                </div>';
+        $data[] = $row;  
+        
+        $output = array("data" => $data);
+        return response()->json($output);  
+    }
+
+    public function proses(Request $request){
+
+        dd($request);
+    }
 }
