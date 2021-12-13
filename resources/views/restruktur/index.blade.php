@@ -140,7 +140,7 @@ $(".cari").on('click',function(){
     tenor = $("#tenor").val()
     kode = $("#kode").val()
 
-    if(tenor >= 52){
+    if(tenor > 52){
         swal("Maaf !", "Tenor Lebih Dari 52 Minggu", "error"); 
     }else if(tenor <=0){    
         swal("Maaf !", "Tenor Tidak Boleh Kosong/Nol", "error"); 
@@ -181,8 +181,12 @@ function proses(){
     type : "POST",
     data : $('.form-restruktur').serialize(),
     success : function(data){
-        swal("Selamat !", "Member Berhasil Di Restruktur!", "success");
-        reset()
+        if (data.alert) {
+            swal("Maaf !", data.alert, "error");
+        }else{
+            swal("Selamat !", "Member Berhasil Di Restruktur!", "success");
+            reset()
+        }
     },
     error : function(){
         swal("Maaf !", "Tidak Dapat Memproses Data!", "error");

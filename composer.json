@@ -32,7 +32,8 @@
         "files": [
             "app/Helpers/TanggalIndonesia.php",
             "app/Helpers/FormatUang.php",
-            "app/Helpers/AngkaTerbilang.php"
+            "app/Helpers/AngkaTerbilang.php",
+            "app/Helpers/PembulatanAngka.php"
         ]
     },
     
