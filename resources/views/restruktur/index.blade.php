@@ -37,17 +37,16 @@ Restrukturisasi
                         </select>
                     </div>
 
-                        <div class="form-group">
-                          <label>
-                            <input type="checkbox" id="simpanan" name="simpanan" {{ old('remember') ? 'checked' : '' }}> Simpanan
-                          </label>
-                        </div>
+                    <div class="form-group">
+                        <label>
+                        <input type="checkbox" id="simpanan" name="simpanan" {{ old('remember') ? 'checked' : '' }}> Simpanan
+                        </label>
+                    </div>
 
                     <div class="form-group">
                         <label for="tenor">Tenor <small class="form-text text-muted" >(Minggu)</small></label>
                         <input type="number" class="form-control" name="tenor" id="tenor" placeholder="Tenor" required>
                     </div>
-
 
                 </form>
                 <button type="button" class="btn btn-primary cari"><i class="fa fa-search"></i> Cari</button>
