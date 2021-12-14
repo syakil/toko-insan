@@ -300,7 +300,6 @@ class RestrukturController extends Controller
                             $jurnal->keterangan_posting = '0';
                             $jurnal->id_admin = Auth::user()->id; 
                             $jurnal->save();   
-
                             
                             $jurnal = new TabelTransaksi;
                             $jurnal->unit =  $musawamah->unit; 
