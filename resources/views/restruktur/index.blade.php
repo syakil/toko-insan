@@ -194,8 +194,11 @@ function proses(){
         if (data.alert) {
             swal("Maaf !", data.alert, "error");
         }else{
-            swal("Selamat !", "Member Berhasil Di Restruktur!", "success");
+            swal("Selamat !", "Member " + data.idMember + " Berhasil Di Restruktur!", "success");
             reset()
+            url = "{{route('restruktur.print',':id')}}"
+            url = url.replace(':id',data.idMember)
+            window.open(url, '_blank');
         }
     },
     error : function(){

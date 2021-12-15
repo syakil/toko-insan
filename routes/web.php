@@ -128,6 +128,7 @@ Route::group(['middleware' => ['web', 'cekuser:1' ]], function(){
    Route::get('restruktur/index', 'RestrukturController@index')->name('restruktur.index');
    Route::get('restruktur/loadData', 'RestrukturController@loadData')->name('restruktur.loadData');
    Route::get('restruktur/listData/{kode}', 'RestrukturController@listData')->name('restruktur.listData');
+   Route::get('restruktur/print/{kode}', 'RestrukturController@print')->name('restruktur.print');
    Route::post('restruktur/proses', 'RestrukturController@proses')->name('restruktur.proses');
    
    // reset pin

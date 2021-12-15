@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use Illuminate\Http\Request;
 use Auth;
 use App\TabelTransaksi;
+use PDF;
 use Ramsey\Uuid\Uuid;
 use DB;
 use App\Musawamah;
@@ -12,6 +13,7 @@ use App\Member;
 use App\Restruktur;
 use App\ListToko;
 use App\Branch;
+use App\TunggakanToko;
 
 class RestrukturController extends Controller
 {
@@ -47,7 +49,14 @@ class RestrukturController extends Controller
 
         $cari = $request['query'];
         
-        $data = DB::table('musawamah')->select('id_member', 'Cust_Short_name')->where('id_member', 'LIKE', '%'.$cari.'%')->orWhere('Cust_Short_name', 'LIKE', '%'.$cari.'%')->limit('5')->get();
+        $data = DB::table('musawamah')
+        ->select('id_member', 'Cust_Short_name')
+        ->where('id_member', 'LIKE', '%'.$cari.'%')
+        ->whereIn('gol',[3,4])
+        ->where('os','>',0)
+        ->limit('5')
+        ->get();
+
         $output = '<ul class="dropdown-menu" style="display:block; position:relative">';
 
 
@@ -102,11 +111,34 @@ class RestrukturController extends Controller
             $musawamah = Musawamah::where('id_member',$idMember)->first();
             $param_tgl = \App\ParamTgl::where('nama_param_tgl','tanggal_transaksi')->where('unit',Auth::user()->id)->first();
             $tanggal = $param_tgl->param_tgl;
+            $jumlahHari = 7 * $tenor;
+            $date = strtotime($tanggal);
+            $next_jatpo = strtotime("+".$jumlahHari." day", $date);
+            $maturity_date = date('Y-m-d',$next_jatpo);
             $id = $idMember;
             $nama = $musawamah->Cust_Short_name;
 
             $DataSimpanan = DB::table('list_toko')->select(DB::raw('SUM(kredit-debit) as simpanan'))->where('id_member',$idMember)->first();
             $simpanan = $DataSimpanan->simpanan;
+
+            if ($musawamah->bulat > 0) {
+
+                $tunggakan = new TunggakanToko;
+                $tunggakan->tgl_tunggak = $tanggal;
+                $tunggakan->NOREK = $id;
+                $tunggakan->unit = $musawamah->unit;
+                $tunggakan->CIF = $id;
+                $tunggakan->CODE_KEL = $musawamah->code_kel;
+                $tunggakan->DEBIT = 0;
+                $tunggakan->type = "01";
+                $tunggakan->USERID = $musawamah->unit;
+                $tunggakan->KREDIT = $musawamah->bulat;
+                $tunggakan->KET = 'Restruktur' . ' ' . $id . ' an/ ' . $nama;
+                $tunggakan->cao = $musawamah->cao;
+                $tunggakan->blok = 1;
+                $tunggakan->save();
+
+            }
 
             
             switch ($jenisTransaksi) {
@@ -120,45 +152,47 @@ class RestrukturController extends Controller
                             $saldo_margin = $musawamah->saldo_margin;
 
                             $musawamah = Musawamah::where('id_member',$idMember)->first();
-                                                
-                            $resturktur = new Restruktur;
-                            $resturktur->buss_date = $musawamah->buss_date;
-                            $resturktur->code_kel = $musawamah->code_kel;
-                            $resturktur->no_anggota = $musawamah->no_anggota;
-                            $resturktur->id_member = $idMember;
-                            $resturktur->Cust_Short_name = $musawamah->Cust_Short_name;
-                            $resturktur->DEAL_TYPE = $musawamah->DEAL_TYPE;
-                            $resturktur->suffix = $musawamah->suffix;
-                            $resturktur->bagi_hasil = $musawamah->bagi_hasil;
-                            $resturktur->Tenor = $musawamah->Tenor;
-                            $resturktur->Plafond = $musawamah->Plafond;
-                            $resturktur->os = $musawamah->os;
-                            $resturktur->saldo_margin = $musawamah->saldo_margin;
-                            $resturktur->angsuran = $musawamah->angsuran;
-                            $resturktur->pokok = $musawamah->pokok;
-                            $resturktur->ijaroh = $musawamah->ijaroh;
-                            $resturktur->bulat = $musawamah->bulat;
-                            $resturktur->run_tenor = $musawamah->run_tenor;
-                            $resturktur->ke = $musawamah->ke;
-                            $resturktur->usaha = $musawamah->usaha;
-                            $resturktur->nama_usaha = $musawamah->nama_usaha;
-                            $resturktur->unit = $musawamah->unit;
-                            $resturktur->tgl_wakalah = $musawamah->tgl_wakalah;
-                            $resturktur->tgl_akad = $musawamah->tgl_akad;
-                            $resturktur->tgl_murab = $musawamah->tgl_murab;
-                            $resturktur->next_schedule = $musawamah->next_schedule;
-                            $resturktur->maturity_date = $musawamah->maturity_date;
-                            $resturktur->last_payment = $musawamah->last_payment;
-                            $resturktur->hari = $musawamah->hari;
-                            $resturktur->cao = $musawamah->cao;
-                            $resturktur->USERID = $musawamah->USERID;
-                            $resturktur->status = $musawamah->status;
-                            $resturktur->status_usia = $musawamah->status_usia;
-                            $resturktur->status_app = $musawamah->status_app;
-                            $resturktur->gol = $musawamah->gol;
-                            $resturktur->id_outlet = $musawamah->id_outlet;
-                            $resturktur->code_musa = $musawamah->code_musa;
-                            $resturktur->save();
+                                
+                            // restruktur
+                                $resturktur = new Restruktur;
+                                $resturktur->buss_date = $musawamah->buss_date;
+                                $resturktur->code_kel = $musawamah->code_kel;
+                                $resturktur->no_anggota = $musawamah->no_anggota;
+                                $resturktur->id_member = $idMember;
+                                $resturktur->Cust_Short_name = $musawamah->Cust_Short_name;
+                                $resturktur->DEAL_TYPE = $musawamah->DEAL_TYPE;
+                                $resturktur->suffix = $musawamah->suffix;
+                                $resturktur->bagi_hasil = $musawamah->bagi_hasil;
+                                $resturktur->Tenor = $musawamah->Tenor;
+                                $resturktur->Plafond = $musawamah->Plafond;
+                                $resturktur->os = $musawamah->os;
+                                $resturktur->saldo_margin = $musawamah->saldo_margin;
+                                $resturktur->angsuran = $musawamah->angsuran;
+                                $resturktur->pokok = $musawamah->pokok;
+                                $resturktur->ijaroh = $musawamah->ijaroh;
+                                $resturktur->bulat = $musawamah->bulat;
+                                $resturktur->run_tenor = $musawamah->run_tenor;
+                                $resturktur->ke = $musawamah->ke;
+                                $resturktur->usaha = $musawamah->usaha;
+                                $resturktur->nama_usaha = $musawamah->nama_usaha;
+                                $resturktur->unit = $musawamah->unit;
+                                $resturktur->tgl_wakalah = $musawamah->tgl_wakalah;
+                                $resturktur->tgl_akad = $musawamah->tgl_akad;
+                                $resturktur->tgl_murab = $musawamah->tgl_murab;
+                                $resturktur->next_schedule = $musawamah->next_schedule;
+                                $resturktur->maturity_date = $musawamah->maturity_date;
+                                $resturktur->last_payment = $musawamah->last_payment;
+                                $resturktur->hari = $musawamah->hari;
+                                $resturktur->cao = $musawamah->cao;
+                                $resturktur->USERID = $musawamah->USERID;
+                                $resturktur->status = $musawamah->status;
+                                $resturktur->status_usia = $musawamah->status_usia;
+                                $resturktur->status_app = $musawamah->status_app;
+                                $resturktur->gol = $musawamah->gol;
+                                $resturktur->id_outlet = $musawamah->id_outlet;
+                                $resturktur->code_musa = $musawamah->code_musa;
+                                $resturktur->save();
+                            //--end restruktur
 
                             $kode=Uuid::uuid4()->getHex();
                             $kode_t=substr($kode,25);
@@ -173,7 +207,7 @@ class RestrukturController extends Controller
                             $jurnal->jenis_transaksi  = 'Jurnal System';
                             $jurnal->keterangan_transaksi = 'Restrukturisasi Pokok' . ' ' . $id . ' an/ ' . $nama;
                             $jurnal->debet =0;
-                            $jurnal->kredit = $musawamah->saldo_margin;
+                            $jurnal->kredit = $musawamah->os;
                             $jurnal->tanggal_posting = '';
                             $jurnal->keterangan_posting = '0';
                             $jurnal->id_admin = Auth::user()->id; 
@@ -193,6 +227,21 @@ class RestrukturController extends Controller
                             $jurnal->id_admin = Auth::user()->id; 
                             $jurnal->save();   
 
+                            $jurnal = new TabelTransaksi;
+                            $jurnal->unit =  $musawamah->unit; 
+                            $jurnal->kode_transaksi = $kode_t;
+                            $jurnal->kode_rekening = 1415000;
+                            $jurnal->tanggal_transaksi  = $tanggal;
+                            $jurnal->jenis_transaksi  = 'Jurnal System';
+                            $jurnal->keterangan_transaksi = 'Restrukturisasi Pokok' . ' ' . $id . ' an/ ' . $nama;
+                            $jurnal->debet = $musawamah->os - $musawamah->saldo_margin;
+                            $jurnal->kredit =0;
+                            $jurnal->tanggal_posting = '';
+                            $jurnal->keterangan_posting = '0';
+                            $jurnal->id_admin = Auth::user()->id; 
+                            $jurnal->save();
+                        
+
                             $musawamah = Musawamah::where('id_member',$idMember)->first();
                             $musawamah->os = $musawamah->os - $musawamah->saldo_margin;
                             $musawamah->saldo_margin = 0;
@@ -204,7 +253,14 @@ class RestrukturController extends Controller
 
                             $musawamah->tenor = $tenor;
                             $musawamah->angsuran = $angsuranBaru;
-                            $musawamah->status_app = 'RES POKOK';
+                            // TODO : Run Tenor ,Bulat, Ke , Gol, Akad sesuai tgl res
+                            $musawamah->gol = 1;
+                            $musawamah->bulat = 0;
+                            $musawamah->maturity_date = $maturity_date;
+                            $musawamah->run_tenor = 0;
+                            $musawamah->ke = 1;
+                            $musawamah->tgl_akad = $tanggal;
+                            $musawamah->status_app = 'REST_POKOK';
                             $musawamah->update();
                             
                         }else { 
@@ -212,45 +268,47 @@ class RestrukturController extends Controller
                             $musawamah = Musawamah::where('id_member',$idMember)->first();
 
                             $saldo_margin = $musawamah->saldo_margin;
-                                                
-                            $resturktur = new Restruktur;
-                            $resturktur->buss_date = $musawamah->buss_date;
-                            $resturktur->code_kel = $musawamah->code_kel;
-                            $resturktur->no_anggota = $musawamah->no_anggota;
-                            $resturktur->id_member = $idMember;
-                            $resturktur->Cust_Short_name = $musawamah->Cust_Short_name;
-                            $resturktur->DEAL_TYPE = $musawamah->DEAL_TYPE;
-                            $resturktur->suffix = $musawamah->suffix;
-                            $resturktur->bagi_hasil = $musawamah->bagi_hasil;
-                            $resturktur->Tenor = $musawamah->Tenor;
-                            $resturktur->Plafond = $musawamah->Plafond;
-                            $resturktur->os = $musawamah->os;
-                            $resturktur->saldo_margin = $musawamah->saldo_margin;
-                            $resturktur->angsuran = $musawamah->angsuran;
-                            $resturktur->pokok = $musawamah->pokok;
-                            $resturktur->ijaroh = $musawamah->ijaroh;
-                            $resturktur->bulat = $musawamah->bulat;
-                            $resturktur->run_tenor = $musawamah->run_tenor;
-                            $resturktur->ke = $musawamah->ke;
-                            $resturktur->usaha = $musawamah->usaha;
-                            $resturktur->nama_usaha = $musawamah->nama_usaha;
-                            $resturktur->unit = $musawamah->unit;
-                            $resturktur->tgl_wakalah = $musawamah->tgl_wakalah;
-                            $resturktur->tgl_akad = $musawamah->tgl_akad;
-                            $resturktur->tgl_murab = $musawamah->tgl_murab;
-                            $resturktur->next_schedule = $musawamah->next_schedule;
-                            $resturktur->maturity_date = $musawamah->maturity_date;
-                            $resturktur->last_payment = $musawamah->last_payment;
-                            $resturktur->hari = $musawamah->hari;
-                            $resturktur->cao = $musawamah->cao;
-                            $resturktur->USERID = $musawamah->USERID;
-                            $resturktur->status = $musawamah->status;
-                            $resturktur->status_usia = $musawamah->status_usia;
-                            $resturktur->status_app = $musawamah->status_app;
-                            $resturktur->gol = $musawamah->gol;
-                            $resturktur->id_outlet = $musawamah->id_outlet;
-                            $resturktur->code_musa = $musawamah->code_musa;
-                            $resturktur->save();
+                                             
+                            // restruktur
+                                $resturktur = new Restruktur;
+                                $resturktur->buss_date = $musawamah->buss_date;
+                                $resturktur->code_kel = $musawamah->code_kel;
+                                $resturktur->no_anggota = $musawamah->no_anggota;
+                                $resturktur->id_member = $idMember;
+                                $resturktur->Cust_Short_name = $musawamah->Cust_Short_name;
+                                $resturktur->DEAL_TYPE = $musawamah->DEAL_TYPE;
+                                $resturktur->suffix = $musawamah->suffix;
+                                $resturktur->bagi_hasil = $musawamah->bagi_hasil;
+                                $resturktur->Tenor = $musawamah->Tenor;
+                                $resturktur->Plafond = $musawamah->Plafond;
+                                $resturktur->os = $musawamah->os;
+                                $resturktur->saldo_margin = $musawamah->saldo_margin;
+                                $resturktur->angsuran = $musawamah->angsuran;
+                                $resturktur->pokok = $musawamah->pokok;
+                                $resturktur->ijaroh = $musawamah->ijaroh;
+                                $resturktur->bulat = $musawamah->bulat;
+                                $resturktur->run_tenor = $musawamah->run_tenor;
+                                $resturktur->ke = $musawamah->ke;
+                                $resturktur->usaha = $musawamah->usaha;
+                                $resturktur->nama_usaha = $musawamah->nama_usaha;
+                                $resturktur->unit = $musawamah->unit;
+                                $resturktur->tgl_wakalah = $musawamah->tgl_wakalah;
+                                $resturktur->tgl_akad = $musawamah->tgl_akad;
+                                $resturktur->tgl_murab = $musawamah->tgl_murab;
+                                $resturktur->next_schedule = $musawamah->next_schedule;
+                                $resturktur->maturity_date = $musawamah->maturity_date;
+                                $resturktur->last_payment = $musawamah->last_payment;
+                                $resturktur->hari = $musawamah->hari;
+                                $resturktur->cao = $musawamah->cao;
+                                $resturktur->USERID = $musawamah->USERID;
+                                $resturktur->status = $musawamah->status;
+                                $resturktur->status_usia = $musawamah->status_usia;
+                                $resturktur->status_app = $musawamah->status_app;
+                                $resturktur->gol = $musawamah->gol;
+                                $resturktur->id_outlet = $musawamah->id_outlet;
+                                $resturktur->code_musa = $musawamah->code_musa;
+                                $resturktur->save();
+                            //restrutktur
 
                             $kode=Uuid::uuid4()->getHex();
                             $kode_t=substr($kode,25);
@@ -286,6 +344,20 @@ class RestrukturController extends Controller
                             $jurnal->keterangan_posting = '0';
                             $jurnal->id_admin = Auth::user()->id; 
                             $jurnal->save();
+                            
+                            $jurnal = new TabelTransaksi;
+                            $jurnal->unit =  $musawamah->unit; 
+                            $jurnal->kode_transaksi = $kode_t;
+                            $jurnal->kode_rekening = 1412000;
+                            $jurnal->tanggal_transaksi  = $tanggal;
+                            $jurnal->jenis_transaksi  = 'Jurnal System';
+                            $jurnal->keterangan_transaksi = 'Restrukturisasi Pokok' . ' ' . $id . ' an/ ' . $nama;
+                            $jurnal->debet  = 0;
+                            $jurnal->kredit = $musawamah->os - $simpanan;
+                            $jurnal->tanggal_posting = '';
+                            $jurnal->keterangan_posting = '0';
+                            $jurnal->id_admin = Auth::user()->id; 
+                            $jurnal->save();   
                         
                             $jurnal = new TabelTransaksi;
                             $jurnal->unit =  $musawamah->unit; 
@@ -304,25 +376,11 @@ class RestrukturController extends Controller
                             $jurnal = new TabelTransaksi;
                             $jurnal->unit =  $musawamah->unit; 
                             $jurnal->kode_transaksi = $kode_t;
-                            $jurnal->kode_rekening = 1412000;
+                            $jurnal->kode_rekening = 1415000;
                             $jurnal->tanggal_transaksi  = $tanggal;
                             $jurnal->jenis_transaksi  = 'Jurnal System';
                             $jurnal->keterangan_transaksi = 'Restrukturisasi Pokok' . ' ' . $id . ' an/ ' . $nama;
-                            $jurnal->debet  = 0;
-                            $jurnal->kredit = $musawamah->saldo_margin;
-                            $jurnal->tanggal_posting = '';
-                            $jurnal->keterangan_posting = '0';
-                            $jurnal->id_admin = Auth::user()->id; 
-                            $jurnal->save();   
-
-                            $jurnal = new TabelTransaksi;
-                            $jurnal->unit =  $musawamah->unit; 
-                            $jurnal->kode_transaksi = $kode_t;
-                            $jurnal->kode_rekening = 56412;
-                            $jurnal->tanggal_transaksi  = $tanggal;
-                            $jurnal->jenis_transaksi  = 'Jurnal System';
-                            $jurnal->keterangan_transaksi = 'Restrukturisasi Pokok' . ' ' . $id . ' an/ ' . $nama;
-                            $jurnal->debet = $musawamah->saldo_margin;
+                            $jurnal->debet = $musawamah->os-$musawamah->saldo_margin-$simpanan;
                             $jurnal->kredit = 0;
                             $jurnal->tanggal_posting = '';
                             $jurnal->keterangan_posting = '0';
@@ -338,9 +396,16 @@ class RestrukturController extends Controller
                             $angsuran = $musawamah->os/$tenor;
                             $angsuranBaru = roundUpToAny($angsuran,5000);
 
+
+                            $musawamah->gol = 1;
+                            $musawamah->bulat = 0;
+                            $musawamah->run_tenor = 0;
+                            $musawamah->ke = 1;
+                            $musawamah->maturity_date = $maturity_date;
+                            $musawamah->tgl_akad = $tanggal;
                             $musawamah->tenor = $tenor;
                             $musawamah->angsuran = $angsuranBaru;
-                            $musawamah->status_app = 'RES POKOK';
+                            $musawamah->status_app = 'REST_POKOK';
                             $musawamah->update();  
 
                         }
@@ -350,45 +415,47 @@ class RestrukturController extends Controller
                         $saldo_margin = $musawamah->saldo_margin;
 
                         $musawamah = Musawamah::where('id_member',$idMember)->first();
-                                            
-                        $resturktur = new Restruktur;
-                        $resturktur->buss_date = $musawamah->buss_date;
-                        $resturktur->code_kel = $musawamah->code_kel;
-                        $resturktur->no_anggota = $musawamah->no_anggota;
-                        $resturktur->id_member = $idMember;
-                        $resturktur->Cust_Short_name = $musawamah->Cust_Short_name;
-                        $resturktur->DEAL_TYPE = $musawamah->DEAL_TYPE;
-                        $resturktur->suffix = $musawamah->suffix;
-                        $resturktur->bagi_hasil = $musawamah->bagi_hasil;
-                        $resturktur->Tenor = $musawamah->Tenor;
-                        $resturktur->Plafond = $musawamah->Plafond;
-                        $resturktur->os = $musawamah->os;
-                        $resturktur->saldo_margin = $musawamah->saldo_margin;
-                        $resturktur->angsuran = $musawamah->angsuran;
-                        $resturktur->pokok = $musawamah->pokok;
-                        $resturktur->ijaroh = $musawamah->ijaroh;
-                        $resturktur->bulat = $musawamah->bulat;
-                        $resturktur->run_tenor = $musawamah->run_tenor;
-                        $resturktur->ke = $musawamah->ke;
-                        $resturktur->usaha = $musawamah->usaha;
-                        $resturktur->nama_usaha = $musawamah->nama_usaha;
-                        $resturktur->unit = $musawamah->unit;
-                        $resturktur->tgl_wakalah = $musawamah->tgl_wakalah;
-                        $resturktur->tgl_akad = $musawamah->tgl_akad;
-                        $resturktur->tgl_murab = $musawamah->tgl_murab;
-                        $resturktur->next_schedule = $musawamah->next_schedule;
-                        $resturktur->maturity_date = $musawamah->maturity_date;
-                        $resturktur->last_payment = $musawamah->last_payment;
-                        $resturktur->hari = $musawamah->hari;
-                        $resturktur->cao = $musawamah->cao;
-                        $resturktur->USERID = $musawamah->USERID;
-                        $resturktur->status = $musawamah->status;
-                        $resturktur->status_usia = $musawamah->status_usia;
-                        $resturktur->status_app = $musawamah->status_app;
-                        $resturktur->gol = $musawamah->gol;
-                        $resturktur->id_outlet = $musawamah->id_outlet;
-                        $resturktur->code_musa = $musawamah->code_musa;
-                        $resturktur->save();
+                            
+                        // Restruktur
+                            $resturktur = new Restruktur;
+                            $resturktur->buss_date = $musawamah->buss_date;
+                            $resturktur->code_kel = $musawamah->code_kel;
+                            $resturktur->no_anggota = $musawamah->no_anggota;
+                            $resturktur->id_member = $idMember;
+                            $resturktur->Cust_Short_name = $musawamah->Cust_Short_name;
+                            $resturktur->DEAL_TYPE = $musawamah->DEAL_TYPE;
+                            $resturktur->suffix = $musawamah->suffix;
+                            $resturktur->bagi_hasil = $musawamah->bagi_hasil;
+                            $resturktur->Tenor = $musawamah->Tenor;
+                            $resturktur->Plafond = $musawamah->Plafond;
+                            $resturktur->os = $musawamah->os;
+                            $resturktur->saldo_margin = $musawamah->saldo_margin;
+                            $resturktur->angsuran = $musawamah->angsuran;
+                            $resturktur->pokok = $musawamah->pokok;
+                            $resturktur->ijaroh = $musawamah->ijaroh;
+                            $resturktur->bulat = $musawamah->bulat;
+                            $resturktur->run_tenor = $musawamah->run_tenor;
+                            $resturktur->ke = $musawamah->ke;
+                            $resturktur->usaha = $musawamah->usaha;
+                            $resturktur->nama_usaha = $musawamah->nama_usaha;
+                            $resturktur->unit = $musawamah->unit;
+                            $resturktur->tgl_wakalah = $musawamah->tgl_wakalah;
+                            $resturktur->tgl_akad = $musawamah->tgl_akad;
+                            $resturktur->tgl_murab = $musawamah->tgl_murab;
+                            $resturktur->next_schedule = $musawamah->next_schedule;
+                            $resturktur->maturity_date = $musawamah->maturity_date;
+                            $resturktur->last_payment = $musawamah->last_payment;
+                            $resturktur->hari = $musawamah->hari;
+                            $resturktur->cao = $musawamah->cao;
+                            $resturktur->USERID = $musawamah->USERID;
+                            $resturktur->status = $musawamah->status;
+                            $resturktur->status_usia = $musawamah->status_usia;
+                            $resturktur->status_app = $musawamah->status_app;
+                            $resturktur->gol = $musawamah->gol;
+                            $resturktur->id_outlet = $musawamah->id_outlet;
+                            $resturktur->code_musa = $musawamah->code_musa;
+                            $resturktur->save();
+                        // restruktur
 
                         $kode=Uuid::uuid4()->getHex();
                         $kode_t=substr($kode,25);
@@ -403,7 +470,7 @@ class RestrukturController extends Controller
                         $jurnal->jenis_transaksi  = 'Jurnal System';
                         $jurnal->keterangan_transaksi = 'Restrukturisasi Pokok' . ' ' . $id . ' an/ ' . $nama;
                         $jurnal->debet =0;
-                        $jurnal->kredit = $musawamah->saldo_margin;
+                        $jurnal->kredit = $musawamah->os;
                         $jurnal->tanggal_posting = '';
                         $jurnal->keterangan_posting = '0';
                         $jurnal->id_admin = Auth::user()->id; 
@@ -423,6 +490,20 @@ class RestrukturController extends Controller
                         $jurnal->id_admin = Auth::user()->id; 
                         $jurnal->save();   
 
+                        $jurnal = new TabelTransaksi;
+                        $jurnal->unit =  $musawamah->unit; 
+                        $jurnal->kode_transaksi = $kode_t;
+                        $jurnal->kode_rekening = 1415000;
+                        $jurnal->tanggal_transaksi  = $tanggal;
+                        $jurnal->jenis_transaksi  = 'Jurnal System';
+                        $jurnal->keterangan_transaksi = 'Restrukturisasi Pokok' . ' ' . $id . ' an/ ' . $nama;
+                        $jurnal->debet = $musawamah->os - $musawamah->saldo_margin;
+                        $jurnal->kredit =0;
+                        $jurnal->tanggal_posting = '';
+                        $jurnal->keterangan_posting = '0';
+                        $jurnal->id_admin = Auth::user()->id; 
+                        $jurnal->save();
+
                         $musawamah = Musawamah::where('id_member',$idMember)->first();
                         $musawamah->os = $musawamah->os - $musawamah->saldo_margin;
                         $musawamah->saldo_margin = 0;
@@ -432,9 +513,15 @@ class RestrukturController extends Controller
                         $angsuran = $musawamah->os/$tenor;
                         $angsuranBaru = roundUpToAny($angsuran,5000);
 
+                        $musawamah->gol = 1;
+                        $musawamah->bulat = 0;
+                        $musawamah->run_tenor = 0;
+                        $musawamah->ke = 1;
+                        $musawamah->tgl_akad = $tanggal;
                         $musawamah->tenor = $tenor;
+                        $musawamah->maturity_date = $maturity_date;
                         $musawamah->angsuran = $angsuranBaru;
-                        $musawamah->status_app = 'RES POKOK';
+                        $musawamah->status_app = 'REST_POKOK';
                         $musawamah->update();
                     
                     }
@@ -449,45 +536,117 @@ class RestrukturController extends Controller
         
                         if ($simpanan != null || $simpanan > 0) {
                             
-                            $resturktur = new Restruktur;
-                            $resturktur->buss_date = $musawamah->buss_date;
-                            $resturktur->code_kel = $musawamah->code_kel;
-                            $resturktur->no_anggota = $musawamah->no_anggota;
-                            $resturktur->id_member = $idMember;
-                            $resturktur->Cust_Short_name = $musawamah->Cust_Short_name;
-                            $resturktur->DEAL_TYPE = $musawamah->DEAL_TYPE;
-                            $resturktur->suffix = $musawamah->suffix;
-                            $resturktur->bagi_hasil = $musawamah->bagi_hasil;
-                            $resturktur->Tenor = $musawamah->Tenor;
-                            $resturktur->Plafond = $musawamah->Plafond;
-                            $resturktur->os = $musawamah->os;
-                            $resturktur->saldo_margin = $musawamah->saldo_margin;
-                            $resturktur->angsuran = $musawamah->angsuran;
-                            $resturktur->pokok = $musawamah->pokok;
-                            $resturktur->ijaroh = $musawamah->ijaroh;
-                            $resturktur->bulat = $musawamah->bulat;
-                            $resturktur->run_tenor = $musawamah->run_tenor;
-                            $resturktur->ke = $musawamah->ke;
-                            $resturktur->usaha = $musawamah->usaha;
-                            $resturktur->nama_usaha = $musawamah->nama_usaha;
-                            $resturktur->unit = $musawamah->unit;
-                            $resturktur->tgl_wakalah = $musawamah->tgl_wakalah;
-                            $resturktur->tgl_akad = $musawamah->tgl_akad;
-                            $resturktur->tgl_murab = $musawamah->tgl_murab;
-                            $resturktur->next_schedule = $musawamah->next_schedule;
-                            $resturktur->maturity_date = $musawamah->maturity_date;
-                            $resturktur->last_payment = $musawamah->last_payment;
-                            $resturktur->hari = $musawamah->hari;
-                            $resturktur->cao = $musawamah->cao;
-                            $resturktur->USERID = $musawamah->USERID;
-                            $resturktur->status = $musawamah->status;
-                            $resturktur->status_usia = $musawamah->status_usia;
-                            $resturktur->status_app = $musawamah->status_app;
-                            $resturktur->gol = $musawamah->gol;
-                            $resturktur->id_outlet = $musawamah->id_outlet;
-                            $resturktur->code_musa = $musawamah->code_musa;
-                            $resturktur->save();
+                            // Restruktur
+                                $resturktur = new Restruktur;
+                                $resturktur->buss_date = $musawamah->buss_date;
+                                $resturktur->code_kel = $musawamah->code_kel;
+                                $resturktur->no_anggota = $musawamah->no_anggota;
+                                $resturktur->id_member = $idMember;
+                                $resturktur->Cust_Short_name = $musawamah->Cust_Short_name;
+                                $resturktur->DEAL_TYPE = $musawamah->DEAL_TYPE;
+                                $resturktur->suffix = $musawamah->suffix;
+                                $resturktur->bagi_hasil = $musawamah->bagi_hasil;
+                                $resturktur->Tenor = $musawamah->Tenor;
+                                $resturktur->Plafond = $musawamah->Plafond;
+                                $resturktur->os = $musawamah->os;
+                                $resturktur->saldo_margin = $musawamah->saldo_margin;
+                                $resturktur->angsuran = $musawamah->angsuran;
+                                $resturktur->pokok = $musawamah->pokok;
+                                $resturktur->ijaroh = $musawamah->ijaroh;
+                                $resturktur->bulat = $musawamah->bulat;
+                                $resturktur->run_tenor = $musawamah->run_tenor;
+                                $resturktur->ke = $musawamah->ke;
+                                $resturktur->usaha = $musawamah->usaha;
+                                $resturktur->nama_usaha = $musawamah->nama_usaha;
+                                $resturktur->unit = $musawamah->unit;
+                                $resturktur->tgl_wakalah = $musawamah->tgl_wakalah;
+                                $resturktur->tgl_akad = $musawamah->tgl_akad;
+                                $resturktur->tgl_murab = $musawamah->tgl_murab;
+                                $resturktur->next_schedule = $musawamah->next_schedule;
+                                $resturktur->maturity_date = $musawamah->maturity_date;
+                                $resturktur->last_payment = $musawamah->last_payment;
+                                $resturktur->hari = $musawamah->hari;
+                                $resturktur->cao = $musawamah->cao;
+                                $resturktur->USERID = $musawamah->USERID;
+                                $resturktur->status = $musawamah->status;
+                                $resturktur->status_usia = $musawamah->status_usia;
+                                $resturktur->status_app = $musawamah->status_app;
+                                $resturktur->gol = $musawamah->gol;
+                                $resturktur->id_outlet = $musawamah->id_outlet;
+                                $resturktur->code_musa = $musawamah->code_musa;
+                                $resturktur->save();
+                            // Restruktur
                             
+                            $jurnal = new TabelTransaksi;
+                            $jurnal->unit =  $musawamah->unit; 
+                            $jurnal->kode_transaksi = $kode_t;
+                            $jurnal->kode_rekening = 1412000;
+                            $jurnal->tanggal_transaksi  = $tanggal;
+                            $jurnal->jenis_transaksi  = 'Jurnal System';
+                            $jurnal->keterangan_transaksi = 'Restrukturisasi Pokok Margin' . ' ' . $id . ' an/ ' . $nama;
+                            $jurnal->debet =0;
+                            $jurnal->kredit = $musawamah->os;
+                            $jurnal->tanggal_posting = '';
+                            $jurnal->keterangan_posting = '0';
+                            $jurnal->id_admin = Auth::user()->id; 
+                            $jurnal->save();
+                        
+                            $jurnal = new TabelTransaksi;
+                            $jurnal->unit =  $musawamah->unit; 
+                            $jurnal->kode_transaksi = $kode_t;
+                            $jurnal->kode_rekening = 1422000;
+                            $jurnal->tanggal_transaksi  = $tanggal;
+                            $jurnal->jenis_transaksi  = 'Jurnal System';
+                            $jurnal->keterangan_transaksi = 'Restrukturisasi Pokok Margin' . ' ' . $id . ' an/ ' . $nama;
+                            $jurnal->debet = $musawamah->saldo_margin;
+                            $jurnal->kredit = 0;
+                            $jurnal->tanggal_posting = '';
+                            $jurnal->keterangan_posting = '0';
+                            $jurnal->id_admin = Auth::user()->id; 
+                            $jurnal->save();   
+                            
+                            $jurnal = new TabelTransaksi;
+                            $jurnal->unit =  $musawamah->unit; 
+                            $jurnal->kode_transaksi = $kode_t;
+                            $jurnal->kode_rekening = 2891000;
+                            $jurnal->tanggal_transaksi  = $tanggal;
+                            $jurnal->jenis_transaksi  = 'Jurnal System';
+                            $jurnal->keterangan_transaksi = 'Restrukturisasi Pokok Margin' . ' ' . $id . ' an/ ' . $nama;
+                            $jurnal->debet = $simpanan;
+                            $jurnal->kredit = 0;
+                            $jurnal->tanggal_posting = '';
+                            $jurnal->keterangan_posting = '0';
+                            $jurnal->id_admin = Auth::user()->id; 
+                            $jurnal->save();   
+
+                            $jurnal = new TabelTransaksi;
+                            $jurnal->unit =  $musawamah->unit; 
+                            $jurnal->kode_transaksi = $kode_t;
+                            $jurnal->kode_rekening = 1415000;
+                            $jurnal->tanggal_transaksi  = $tanggal;
+                            $jurnal->jenis_transaksi  = 'Jurnal System';
+                            $jurnal->keterangan_transaksi = 'Restrukturisasi Pokok Margin' . ' ' . $id . ' an/ ' . $nama;
+                            $jurnal->debet = $musawamah->os-$simpanan;
+                            $jurnal->kredit =0;
+                            $jurnal->tanggal_posting = '';
+                            $jurnal->keterangan_posting = '0';
+                            $jurnal->id_admin = Auth::user()->id; 
+                            $jurnal->save();
+
+                            $jurnal = new TabelTransaksi;
+                            $jurnal->unit =  $musawamah->unit; 
+                            $jurnal->kode_transaksi = $kode_t;
+                            $jurnal->kode_rekening = 1425000;
+                            $jurnal->tanggal_transaksi  = $tanggal;
+                            $jurnal->jenis_transaksi  = 'Jurnal System';
+                            $jurnal->keterangan_transaksi = 'Restrukturisasi Pokok Margin' . ' ' . $id . ' an/ ' . $nama;
+                            $jurnal->debet =0;
+                            $jurnal->kredit = $musawamah->saldo_margin;
+                            $jurnal->tanggal_posting = '';
+                            $jurnal->keterangan_posting = '0';
+                            $jurnal->id_admin = Auth::user()->id; 
+                            $jurnal->save();                            
+
                             $musawamah = Musawamah::where('id_member',$idMember)->first();
 
                             $angsuran = $musawamah->os/$tenor;
@@ -495,57 +654,119 @@ class RestrukturController extends Controller
 
                             $ijaroh = round($musawamah->saldo_margin/$tenor);
     
+                            $musawamah->gol = 1;
+                            $musawamah->bulat = 0;
+                            $musawamah->run_tenor = 0;
+                            $musawamah->ke = 1;
+                            $musawamah->tgl_akad = $tanggal;
                             $musawamah->tenor = $tenor;
+                            $musawamah->maturity_date = $maturity_date;
                             $musawamah->angsuran = $angsuranBaru;
                             $musawamah->ijaroh =$ijaroh;
-                            $musawamah->status_app = 'RES POKOK MARGIN';
+                            $musawamah->status_app = 'REST_POKOK_MARGIN';
                             $musawamah->update();
-
-                                    
 
                         }else {
 
                             $musawamah = Musawamah::where('id_member',$idMember)->first();
                             
-                            $resturktur = new Restruktur;
-                            $resturktur->buss_date = $musawamah->buss_date;
-                            $resturktur->code_kel = $musawamah->code_kel;
-                            $resturktur->no_anggota = $musawamah->no_anggota;
-                            $resturktur->id_member = $idMember;
-                            $resturktur->Cust_Short_name = $musawamah->Cust_Short_name;
-                            $resturktur->DEAL_TYPE = $musawamah->DEAL_TYPE;
-                            $resturktur->suffix = $musawamah->suffix;
-                            $resturktur->bagi_hasil = $musawamah->bagi_hasil;
-                            $resturktur->Tenor = $musawamah->Tenor;
-                            $resturktur->Plafond = $musawamah->Plafond;
-                            $resturktur->os = $musawamah->os;
-                            $resturktur->saldo_margin = $musawamah->saldo_margin;
-                            $resturktur->angsuran = $musawamah->angsuran;
-                            $resturktur->pokok = $musawamah->pokok;
-                            $resturktur->ijaroh = $musawamah->ijaroh;
-                            $resturktur->bulat = $musawamah->bulat;
-                            $resturktur->run_tenor = $musawamah->run_tenor;
-                            $resturktur->ke = $musawamah->ke;
-                            $resturktur->usaha = $musawamah->usaha;
-                            $resturktur->nama_usaha = $musawamah->nama_usaha;
-                            $resturktur->unit = $musawamah->unit;
-                            $resturktur->tgl_wakalah = $musawamah->tgl_wakalah;
-                            $resturktur->tgl_akad = $musawamah->tgl_akad;
-                            $resturktur->tgl_murab = $musawamah->tgl_murab;
-                            $resturktur->next_schedule = $musawamah->next_schedule;
-                            $resturktur->maturity_date = $musawamah->maturity_date;
-                            $resturktur->last_payment = $musawamah->last_payment;
-                            $resturktur->hari = $musawamah->hari;
-                            $resturktur->cao = $musawamah->cao;
-                            $resturktur->USERID = $musawamah->USERID;
-                            $resturktur->status = $musawamah->status;
-                            $resturktur->status_usia = $musawamah->status_usia;
-                            $resturktur->status_app = $musawamah->status_app;
-                            $resturktur->gol = $musawamah->gol;
-                            $resturktur->id_outlet = $musawamah->id_outlet;
-                            $resturktur->code_musa = $musawamah->code_musa;
-                            $resturktur->save();
+                            // Restrktur
+                                $resturktur = new Restruktur;
+                                $resturktur->buss_date = $musawamah->buss_date;
+                                $resturktur->code_kel = $musawamah->code_kel;
+                                $resturktur->no_anggota = $musawamah->no_anggota;
+                                $resturktur->id_member = $idMember;
+                                $resturktur->Cust_Short_name = $musawamah->Cust_Short_name;
+                                $resturktur->DEAL_TYPE = $musawamah->DEAL_TYPE;
+                                $resturktur->suffix = $musawamah->suffix;
+                                $resturktur->bagi_hasil = $musawamah->bagi_hasil;
+                                $resturktur->Tenor = $musawamah->Tenor;
+                                $resturktur->Plafond = $musawamah->Plafond;
+                                $resturktur->os = $musawamah->os;
+                                $resturktur->saldo_margin = $musawamah->saldo_margin;
+                                $resturktur->angsuran = $musawamah->angsuran;
+                                $resturktur->pokok = $musawamah->pokok;
+                                $resturktur->ijaroh = $musawamah->ijaroh;
+                                $resturktur->bulat = $musawamah->bulat;
+                                $resturktur->run_tenor = $musawamah->run_tenor;
+                                $resturktur->ke = $musawamah->ke;
+                                $resturktur->usaha = $musawamah->usaha;
+                                $resturktur->nama_usaha = $musawamah->nama_usaha;
+                                $resturktur->unit = $musawamah->unit;
+                                $resturktur->tgl_wakalah = $musawamah->tgl_wakalah;
+                                $resturktur->tgl_akad = $musawamah->tgl_akad;
+                                $resturktur->tgl_murab = $musawamah->tgl_murab;
+                                $resturktur->next_schedule = $musawamah->next_schedule;
+                                $resturktur->maturity_date = $musawamah->maturity_date;
+                                $resturktur->last_payment = $musawamah->last_payment;
+                                $resturktur->hari = $musawamah->hari;
+                                $resturktur->cao = $musawamah->cao;
+                                $resturktur->USERID = $musawamah->USERID;
+                                $resturktur->status = $musawamah->status;
+                                $resturktur->status_usia = $musawamah->status_usia;
+                                $resturktur->status_app = $musawamah->status_app;
+                                $resturktur->gol = $musawamah->gol;
+                                $resturktur->id_outlet = $musawamah->id_outlet;
+                                $resturktur->code_musa = $musawamah->code_musa;
+                                $resturktur->save();
+                            // Restruktur
                             
+                            $jurnal = new TabelTransaksi;
+                            $jurnal->unit =  $musawamah->unit; 
+                            $jurnal->kode_transaksi = $kode_t;
+                            $jurnal->kode_rekening = 1412000;
+                            $jurnal->tanggal_transaksi  = $tanggal;
+                            $jurnal->jenis_transaksi  = 'Jurnal System';
+                            $jurnal->keterangan_transaksi = 'Restrukturisasi Pokok Margin' . ' ' . $id . ' an/ ' . $nama;
+                            $jurnal->debet =0;
+                            $jurnal->kredit = $musawamah->os;
+                            $jurnal->tanggal_posting = '';
+                            $jurnal->keterangan_posting = '0';
+                            $jurnal->id_admin = Auth::user()->id; 
+                            $jurnal->save();
+                        
+                            $jurnal = new TabelTransaksi;
+                            $jurnal->unit =  $musawamah->unit; 
+                            $jurnal->kode_transaksi = $kode_t;
+                            $jurnal->kode_rekening = 1422000;
+                            $jurnal->tanggal_transaksi  = $tanggal;
+                            $jurnal->jenis_transaksi  = 'Jurnal System';
+                            $jurnal->keterangan_transaksi = 'Restrukturisasi Pokok Margin' . ' ' . $id . ' an/ ' . $nama;
+                            $jurnal->debet = $musawamah->saldo_margin;
+                            $jurnal->kredit = 0;
+                            $jurnal->tanggal_posting = '';
+                            $jurnal->keterangan_posting = '0';
+                            $jurnal->id_admin = Auth::user()->id; 
+                            $jurnal->save();   
+                            
+                            $jurnal = new TabelTransaksi;
+                            $jurnal->unit =  $musawamah->unit; 
+                            $jurnal->kode_transaksi = $kode_t;
+                            $jurnal->kode_rekening = 1415000;
+                            $jurnal->tanggal_transaksi  = $tanggal;
+                            $jurnal->jenis_transaksi  = 'Jurnal System';
+                            $jurnal->keterangan_transaksi = 'Restrukturisasi Pokok Margin' . ' ' . $id . ' an/ ' . $nama;
+                            $jurnal->debet = $musawamah->os-$simpanan;
+                            $jurnal->kredit =0;
+                            $jurnal->tanggal_posting = '';
+                            $jurnal->keterangan_posting = '0';
+                            $jurnal->id_admin = Auth::user()->id; 
+                            $jurnal->save();
+
+                            $jurnal = new TabelTransaksi;
+                            $jurnal->unit =  $musawamah->unit; 
+                            $jurnal->kode_transaksi = $kode_t;
+                            $jurnal->kode_rekening = 1425000;
+                            $jurnal->tanggal_transaksi  = $tanggal;
+                            $jurnal->jenis_transaksi  = 'Jurnal System';
+                            $jurnal->keterangan_transaksi = 'Restrukturisasi Pokok Margin' . ' ' . $id . ' an/ ' . $nama;
+                            $jurnal->debet =0;
+                            $jurnal->kredit = $musawamah->saldo_margin;
+                            $jurnal->tanggal_posting = '';
+                            $jurnal->keterangan_posting = '0';
+                            $jurnal->id_admin = Auth::user()->id; 
+                            $jurnal->save();   
+
                             $musawamah = Musawamah::where('id_member',$idMember)->first();
                             $musawamah->os = $musawamah->os - $simpanan;
                             $musawamah->update();
@@ -555,10 +776,16 @@ class RestrukturController extends Controller
 
                             $ijaroh = round($musawamah->saldo_margin/$tenor);
                             
+                            $musawamah->gol = 1;
+                            $musawamah->bulat = 0;
+                            $musawamah->run_tenor = 0;
+                            $musawamah->ke = 1;
+                            $musawamah->maturity_date = $maturity_date;
+                            $musawamah->tgl_akad = $tanggal;
                             $musawamah->angsuran = $angsuranBaru;
                             $musawamah->ijaroh = $ijaroh;
                             $musawamah->tenor = $tenor;
-                            $musawamah->status_app = 'RES POKOK MARGIN';
+                            $musawamah->status_app = 'REST_POKOK_MARGIN';
                             $musawamah->update();
                             
                             
@@ -653,8 +880,69 @@ class RestrukturController extends Controller
                         $resturktur->gol = $musawamah->gol;
                         $resturktur->id_outlet = $musawamah->id_outlet;
                         $resturktur->code_musa = $musawamah->code_musa;
-                        $resturktur->save();
+                        $resturktur->save();    
+
+                        $kode=Uuid::uuid4()->getHex();
+                        $kode_t=substr($kode,25);
+                        $unit=Auth::user()->unit;
+                        $kode_t="BU/-".$unit.$kode_t;
                         
+                        $jurnal = new TabelTransaksi;
+                        $jurnal->unit =  $musawamah->unit; 
+                        $jurnal->kode_transaksi = $kode_t;
+                        $jurnal->kode_rekening = 1412000;
+                        $jurnal->tanggal_transaksi  = $tanggal;
+                        $jurnal->jenis_transaksi  = 'Jurnal System';
+                        $jurnal->keterangan_transaksi = 'Restrukturisasi Pokok Margin' . ' ' . $id . ' an/ ' . $nama;
+                        $jurnal->debet =0;
+                        $jurnal->kredit = $musawamah->os;
+                        $jurnal->tanggal_posting = '';
+                        $jurnal->keterangan_posting = '0';
+                        $jurnal->id_admin = Auth::user()->id; 
+                        $jurnal->save();
+                    
+                        $jurnal = new TabelTransaksi;
+                        $jurnal->unit =  $musawamah->unit; 
+                        $jurnal->kode_transaksi = $kode_t;
+                        $jurnal->kode_rekening = 1422000;
+                        $jurnal->tanggal_transaksi  = $tanggal;
+                        $jurnal->jenis_transaksi  = 'Jurnal System';
+                        $jurnal->keterangan_transaksi = 'Restrukturisasi Pokok Margin' . ' ' . $id . ' an/ ' . $nama;
+                        $jurnal->debet = $musawamah->saldo_margin;
+                        $jurnal->kredit = 0;
+                        $jurnal->tanggal_posting = '';
+                        $jurnal->keterangan_posting = '0';
+                        $jurnal->id_admin = Auth::user()->id; 
+                        $jurnal->save();   
+                        
+                        $jurnal = new TabelTransaksi;
+                        $jurnal->unit =  $musawamah->unit; 
+                        $jurnal->kode_transaksi = $kode_t;
+                        $jurnal->kode_rekening = 1415000;
+                        $jurnal->tanggal_transaksi  = $tanggal;
+                        $jurnal->jenis_transaksi  = 'Jurnal System';
+                        $jurnal->keterangan_transaksi = 'Restrukturisasi Pokok Margin' . ' ' . $id . ' an/ ' . $nama;
+                        $jurnal->debet = $musawamah->os-$simpanan;
+                        $jurnal->kredit =0;
+                        $jurnal->tanggal_posting = '';
+                        $jurnal->keterangan_posting = '0';
+                        $jurnal->id_admin = Auth::user()->id; 
+                        $jurnal->save();
+
+                        $jurnal = new TabelTransaksi;
+                        $jurnal->unit =  $musawamah->unit; 
+                        $jurnal->kode_transaksi = $kode_t;
+                        $jurnal->kode_rekening = 1425000;
+                        $jurnal->tanggal_transaksi  = $tanggal;
+                        $jurnal->jenis_transaksi  = 'Jurnal System';
+                        $jurnal->keterangan_transaksi = 'Restrukturisasi Pokok Margin' . ' ' . $id . ' an/ ' . $nama;
+                        $jurnal->debet =0;
+                        $jurnal->kredit = $musawamah->saldo_margin;
+                        $jurnal->tanggal_posting = '';
+                        $jurnal->keterangan_posting = '0';
+                        $jurnal->id_admin = Auth::user()->id; 
+                        $jurnal->save();   
+
                         $musawamah = Musawamah::where('id_member',$idMember)->first();
                         
                         $angsuran = $musawamah->os/$tenor;
@@ -662,10 +950,16 @@ class RestrukturController extends Controller
 
                         $ijaroh = round($musawamah->saldo_margin/$tenor);
                         
+                        $musawamah->gol = 1;
+                        $musawamah->bulat = 0;
+                        $musawamah->run_tenor = 0;
+                        $musawamah->maturity_date = $maturity_date;
+                        $musawamah->ke = 1;
+                        $musawamah->tgl_akad = $tanggal;
                         $musawamah->angsuran = $angsuranBaru;
                         $musawamah->ijaroh = $ijaroh;
                         $musawamah->tenor = $tenor;
-                        $musawamah->status_app = 'RES POKOK MARGIN';
+                        $musawamah->status_app = 'REST_POKOK_MARGIN';
                         $musawamah->update();
 
                     }
@@ -685,6 +979,19 @@ class RestrukturController extends Controller
    
         }
 
+        $data = array(
+            "idMember" => $idMember,
+        );
+        return response()->json($data);
+
+    }
+
+    public function print($id){
+
+        $musawamah = Musawamah::findOrFail($id);
+        $noAkad = $musawamah->unit.'-'.$id;
+        $pdf = PDF::loadView('restruktur.adendum',compact('id','noAkad'));  
+        return $pdf->stream();
 
     }
 }

@@ -157,13 +157,26 @@ class AngsuranController extends Controller
             $titipan = $sum_titipan->titipan;
             $sisa_titipan = $titipan-$angsuran;
             
+            $status_restruktur = ['REST_POKOK_MARGIN','REST_POKOK'];
+
+            if (!in_array($musawama->status_app,$status_restruktur)) {
+
+                $coa_piutang = 1412000;
+                $coa_margin = 1422000;
+
+            }else{
+
+                $coa_piutang = 1412000;
+                $coa_margin = 1422000;
+
+            }
+
+
             $os = $musawamah->os;
             $sisa_os = $setoran - $os;
 
-
             $kode_kelompok = $musawamah->code_kel;
             $cao = $musawamah->cao;
-
             
             switch ($jenis_transaksi) {
                 case 'titipan':
@@ -218,7 +231,7 @@ class AngsuranController extends Controller
                     $jurnal = new TabelTransaksi;
                     $jurnal->unit =  $unit_member; 
                     $jurnal->kode_transaksi = $kode_t;
-                    $jurnal->kode_rekening = 1412000;
+                    $jurnal->kode_rekening = $coa_piutang;
                     $jurnal->tanggal_transaksi  = $tanggal;
                     $jurnal->jenis_transaksi  = 'Jurnal System';
                     $jurnal->keterangan_transaksi = 'Setoran Angsuran Dari Titipan' . ' ' . $id . ' an/ ' . $nama;
@@ -233,7 +246,7 @@ class AngsuranController extends Controller
                     $jurnal = new TabelTransaksi;
                     $jurnal->unit =  $unit_member; 
                     $jurnal->kode_transaksi = $kode_t;
-                    $jurnal->kode_rekening = 1422000;
+                    $jurnal->kode_rekening = $coa_margin;
                     $jurnal->tanggal_transaksi  = $tanggal;
                     $jurnal->jenis_transaksi  = 'Jurnal System';
                     $jurnal->keterangan_transaksi = 'Setoran Angsuran Dari Titipan' . ' ' . $id . ' an/ ' . $nama;
@@ -410,7 +423,7 @@ class AngsuranController extends Controller
                         $jurnal = new TabelTransaksi;
                         $jurnal->unit =  $unit_member; 
                         $jurnal->kode_transaksi = $kode_t;
-                        $jurnal->kode_rekening = 1412000;
+                        $jurnal->kode_rekening = $coa_piutang;
                         $jurnal->tanggal_transaksi  = $tanggal;
                         $jurnal->jenis_transaksi  = 'Jurnal System';
                         $jurnal->keterangan_transaksi = 'Pelunasan' . ' ' . $id . ' an/ ' . $nama;
@@ -424,7 +437,7 @@ class AngsuranController extends Controller
                         $jurnal = new TabelTransaksi;
                         $jurnal->unit =  $unit_member; 
                         $jurnal->kode_transaksi = $kode_t;
-                        $jurnal->kode_rekening = 1422000;
+                        $jurnal->kode_rekening = $coa_margin;
                         $jurnal->tanggal_transaksi  = $tanggal;
                         $jurnal->jenis_transaksi  = 'Jurnal System';
                         $jurnal->keterangan_transaksi = 'Pelunasan' . ' ' . $id . ' an/ ' . $nama;
@@ -551,6 +564,20 @@ class AngsuranController extends Controller
             $saldo_margin = $musawamah->saldo_margin;
             $os = $musawamah->os;
 
+            if (!in_array($musawama->status_app,$status_restruktur)) {
+
+                $coa_piutang = 1412000;
+                $coa_margin = 1422000;
+
+            }else{
+
+                $coa_piutang = 1412000;
+                $coa_margin = 1422000;
+
+            }
+
+
+
             $nama = $musawamah->Cust_Short_name;
             $sisa = $setoran - $angsuran;
             
@@ -583,7 +610,7 @@ class AngsuranController extends Controller
                 $jurnal = new TabelTransaksi;
                 $jurnal->unit =  $unit; 
                 $jurnal->kode_transaksi = $kode_t;
-                $jurnal->kode_rekening = 1412000;
+                $jurnal->kode_rekening = $coa_piutang;
                 $jurnal->tanggal_transaksi  = $tanggal;
                 $jurnal->jenis_transaksi  = 'Jurnal System';
                 $jurnal->keterangan_transaksi = 'Setoran Angsuran' . ' ' . $id . ' an/ ' . $nama;
@@ -613,7 +640,7 @@ class AngsuranController extends Controller
                 $jurnal = new TabelTransaksi;
                 $jurnal->unit =  $unit; 
                 $jurnal->kode_transaksi = $kode_t;
-                $jurnal->kode_rekening = 1422000;
+                $jurnal->kode_rekening = $coa_margin;
                 $jurnal->tanggal_transaksi  = $tanggal;
                 $jurnal->jenis_transaksi  = 'Jurnal System';
                 $jurnal->keterangan_transaksi = 'Setoran Angsuran' . ' ' . $id . ' an/ ' . $nama;
@@ -829,7 +856,7 @@ class AngsuranController extends Controller
                 $jurnal = new TabelTransaksi;
                 $jurnal->unit =  $unit; 
                 $jurnal->kode_transaksi = $kode_t;
-                $jurnal->kode_rekening = 1412000;
+                $jurnal->kode_rekening = $coa_piutang;
                 $jurnal->tanggal_transaksi  = $tanggal;
                 $jurnal->jenis_transaksi  = 'Jurnal System';
                 $jurnal->keterangan_transaksi = 'Setoran Angsuran' . ' ' . $id . ' an/ ' . $nama;
@@ -843,7 +870,7 @@ class AngsuranController extends Controller
                 $jurnal = new TabelTransaksi;
                 $jurnal->unit =  $unit; 
                 $jurnal->kode_transaksi = $kode_t;
-                $jurnal->kode_rekening = 1422000;
+                $jurnal->kode_rekening = $coa_margin;
                 $jurnal->tanggal_transaksi  = $tanggal;
                 $jurnal->jenis_transaksi  = 'Jurnal System';
                 $jurnal->keterangan_transaksi = 'Setoran Angsuran' . ' ' . $id . ' an/ ' . $nama;
