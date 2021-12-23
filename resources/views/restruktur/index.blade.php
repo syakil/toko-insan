@@ -21,7 +21,7 @@ Restrukturisasi
                 {{ csrf_field() }}
                     <div class="form-group">
                         <label for="cari">ID Member</label>
-                        <input id="member" type="text" class="form-control"  onClick="this.value = ''" name="member" autofocus required>
+                        <input id="member" type="text" class="form-control" autocomplete="off" onClick="this.value = ''" name="member" autofocus required>
                         <div id="parentMemberList"></div>
                     </div>
                     <input type="hidden" name="kode" id="kode">
@@ -88,7 +88,7 @@ Restrukturisasi
 var url = "{{route('restruktur.loadData')}}";
 $('#member').keyup(function(){
   var query = $(this).val();
-  if (query.length > 3) {
+  if (query.length > 2) {
     $.ajax({
       url : url,
       method:"get",

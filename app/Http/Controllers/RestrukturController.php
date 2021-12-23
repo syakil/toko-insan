@@ -59,6 +59,7 @@ class RestrukturController extends Controller
 
         $output = '<ul class="dropdown-menu" style="display:block; position:relative">';
 
+    
 
         foreach($data as $row){
 
